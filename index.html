@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTI_SPAM Bot — модерация групп музеев</title>
+    <meta name="description" content="Бот для модерации Telegram-групп музеев «Моя страна. Моя история». Автоматически удаляет спам, рекламу и запрещённый контент.">
+    <link rel="stylesheet" href="style.css?v=1">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="#" class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">ANTI_SPAM Bot</span>
+            </a>
+            <div class="header-actions">
+                <div class="lang-switch">
+                    <button type="button" class="lang-btn" data-lang="ru">RU</button>
+                    <button type="button" class="lang-btn" data-lang="en">EN</button>
+                </div>
+                <a href="https://t.me/ANTI_SPAM_MWKbot?startgroup=true"
+                   class="btn btn-primary btn-small"
+                   data-i18n="header.add">
+                    Добавить бота
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge" data-i18n="hero.badge">🛡️ Защита Telegram-групп</div>
+            <h1 class="hero-title" data-i18n="hero.title">Модерация групп музеев без спама и рекламы</h1>
+            <p class="hero-subtitle" data-i18n="hero.subtitle">
+                Бот автоматически удаляет спам, рекламу и запрещённый контент, чтобы вы могли сосредоточиться на главном — общении с посетителями и коллегами.
+            </p>
+            <div class="hero-actions">
+                <a href="https://t.me/ANTI_SPAM_MWKbot?startgroup=true"
+                   class="btn btn-primary btn-large"
+                   data-i18n="hero.cta">
+                    Добавить бота в группу
+                </a>
+                <a href="https://t.me/ANTI_SPAM_MWKbot"
+                   class="btn btn-secondary btn-large"
+                   data-i18n="hero.cta_secondary">
+                    Открыть в Telegram
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust / Trusted by -->
+    <section class="trust">
+        <div class="container">
+            <p class="trust-label" data-i18n="trust.label">Уже используют группы музеев:</p>
+            <div class="trust-list">
+                <div class="trust-item">
+                    <div class="trust-icon">🏛️</div>
+                    <div class="trust-name">Моя страна. Моя история<br><span>Пятигорск</span></div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">🏛️</div>
+                    <div class="trust-name">Россия — Моя история<br><span>Ставрополь</span></div>
+                </div>
+            </div>
+            <p class="trust-hint" data-i18n="trust.hint">И ещё несколько сообществ</p>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title" data-i18n="features.title">Что умеет бот</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚫</div>
+                    <h3 data-i18n="features.spam.title">Ловит спам</h3>
+                    <p data-i18n="features.spam.text">Удаляет рекламу, спам-работу, наркотики и 18+ контент автоматически.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3 data-i18n="features.ocr.title">Распознаёт текст на картинках</h3>
+                    <p data-i18n="features.ocr.text">Если спам спрятан в фото, GIF или видео — бот прочитает текст и удалит его.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚖️</div>
+                    <h3 data-i18n="features.punish.title">Прогрессивные наказания</h3>
+                    <p data-i18n="features.punish.text">1-е нарушение — мут 1 час, 5-е — бан навсегда. Никаких случайных блокировок.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌊</div>
+                    <h3 data-i18n="features.flood.title">Защита от флуда</h3>
+                    <p data-i18n="features.flood.text">Если кто-то клеит сообщения пачками — бот временно заглушит нарушителя.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 data-i18n="features.stats.title">Понятная статистика</h3>
+                    <p data-i18n="features.stats.text">Графики активности, категории спама и топ нарушителей — в Telegram прямо в панели управления.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3 data-i18n="features.lang.title">Русский и английский</h3>
+                    <p data-i18n="features.lang.text">Интерфейс и уведомления на двух языках. Для групп с иностранными гостями.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="how">
+        <div class="container">
+            <h2 class="section-title" data-i18n="how.title">Как это работает</h2>
+            <div class="how-grid">
+                <div class="how-step">
+                    <div class="how-number">1</div>
+                    <h3 data-i18n="how.step1.title">Добавьте бота</h3>
+                    <p data-i18n="how.step1.text">Нажмите «Добавить бота» — откроется Telegram, выберите вашу группу.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-number">2</div>
+                    <h3 data-i18n="how.step2.title">Назначьте админом</h3>
+                    <p data-i18n="how.step2.text">Дайте боту права удалять сообщения и блокировать участников.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-number">3</div>
+                    <h3 data-i18n="how.step3.title">Готово</h3>
+                    <p data-i18n="how.step3.text">Бот сразу начнёт защищать группу. Управление — через /my в личке бота.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <div class="container">
+            <h2 class="section-title" data-i18n="faq.title">Частые вопросы</h2>
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary data-i18n="faq.q1">Сколько это стоит?</summary>
+                    <p data-i18n="faq.a1">Бесплатно. Бот создан для поддержки групп музеев «Моя страна. Моя история».</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q2">Нужен ли программист для настройки?</summary>
+                    <p data-i18n="faq.a2">Нет. Добавили в группу, дали права — и всё. Дальше управление идёт через кнопки и команды.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q3">Может ли бот случайно забанить нормального человека?</summary>
+                    <p data-i18n="faq.a3">Бот работает по принципу «сначала мут, потом бан». Первое нарушение — мут на 1 час, а не блокировка. Владелец всегда может снять наказание вручную.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q4">Что видит владелец группы?</summary>
+                    <p data-i18n="faq.a4">Статистику: сколько удалено, сколько забанено, топ нарушителей и категории спама. Всё — в удобной панели прямо в Telegram.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q5">Куда обращаться за помощью?</summary>
+                    <p data-i18n="faq.a5">Напишите @zakharsakharov в Telegram — ответим в течение дня.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="cta-final">
+        <div class="container">
+            <h2 data-i18n="cta.title">Готовы защитить свою группу?</h2>
+            <p data-i18n="cta.text">Добавьте бота — подключение занимает меньше минуты.</p>
+            <a href="https://t.me/ANTI_SPAM_MWKbot?startgroup=true"
+               class="btn btn-primary btn-large"
+               data-i18n="cta.button">
+                Добавить бота в группу
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://t.me/ANTI_SPAM_MWKbot" data-i18n="footer.bot">Бот</a>
+                <a href="https://t.me/zakharsakharov" data-i18n="footer.support">Поддержка</a>
+                <a href="https://t.me/ANTI_SPAM_MWKbot/panel" data-i18n="footer.panel">Панель управления</a>
+            </div>
+            <p class="footer-copy">ANTI_SPAM Bot © 2026 · <span data-i18n="footer.made">Сделано с заботой о музеях</span></p>
+        </div>
+    </footer>
+
+    <script src="i18n.js?v=1"></script>
+    <script src="app.js?v=1"></script>
+</body>
+</html>
