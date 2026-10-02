@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const lang = btn.getAttribute('data-lang');
-            if (lang === currentLang()) return;
+            // Проверяем через localStorage — надёжнее
+            if (localStorage.getItem('lang') === lang) return;
             setLanguage(lang);
         });
     });
