@@ -15,7 +15,11 @@ const TRANSLATIONS = {
     },
     'hero.cta': { ru: 'Добавить бота в группу', en: 'Add bot to group' },
     'hero.cta_secondary': { ru: 'Открыть в Telegram', en: 'Open in Telegram' },
-
+    // Live stats
+    'live.chats': { ru: 'групп под защитой', en: 'protected groups' },
+    'live.deleted': { ru: 'сообщений удалено', en: 'messages deleted' },
+    'live.bans': { ru: 'нарушителей забанено', en: 'violators banned' },
+    'live.violations': { ru: 'нарушений поймано', en: 'violations caught' },
     // Trust
     'trust.label': { ru: 'Уже используют группы музеев:', en: 'Already used by museum groups:' },
     'trust.hint': { ru: 'И ещё несколько сообществ', en: 'And a few more communities' },
