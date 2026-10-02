@@ -99,6 +99,36 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.loadGlobalStats = loadGlobalStats;
+// ===== АНАЛИТИКА: цели =====
+// Отслеживаем клики по кнопкам "Добавить бота"
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('a[href*="ANTI_SPAM_MWKbot?startgroup"]').forEach(link => {
+        link.addEventListener('click', () => {
+            if (typeof ym === 'function') {
+                ym(113334145, 'reachGoal', 'add_to_group');
+            }
+        });
+    });
+
+    // Клики по переключателю языка
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lang = btn.getAttribute('data-lang');
+            if (typeof ym === 'function') {
+                ym(113334145, 'reachGoal', `lang_switch_${lang}`);
+            }
+        });
+    });
+
+    // Клики по ссылке на бота (Открыть в Telegram)
+    document.querySelectorAll('a[href="https://t.me/ANTI_SPAM_MWKbot"]').forEach(link => {
+        link.addEventListener('click', () => {
+            if (typeof ym === 'function') {
+                ym(113334145, 'reachGoal', 'open_bot_dm');
+            }
+        });
+    });
+});
 // ===== ЛОГИКА ФОРМЫ (заглушка) =====
 // Пока нет формы, но если добавим — вот заготовка
 // (можно удалить при желании)
