@@ -56,7 +56,15 @@ const TRANSLATIONS = {
         ru: 'Интерфейс и уведомления на двух языках. Для групп с иностранными гостями.',
         en: 'Interface and notifications in two languages. For groups with international visitors.',
     },
-
+    // Screenshots / Preview
+    'screens.title': { ru: 'Как выглядит панель управления', en: 'What the control panel looks like' },
+    'screens.subtitle': {
+        ru: 'Все данные о группе — в одном месте, прямо в Telegram',
+        en: 'All group data in one place, right inside Telegram',
+    },
+    'screens.caption_chart': { ru: '📊 График активности', en: '📊 Activity chart' },
+    'screens.caption_categories': { ru: '🥧 Категории нарушений', en: '🥧 Violation categories' },
+    'screens.caption_violators': { ru: '🏆 Топ нарушителей', en: '🏆 Top violators' },
     // How it works
     'how.title': { ru: 'Как это работает', en: 'How it works' },
     'how.step1.title': { ru: 'Добавьте бота', en: 'Add the bot' },
