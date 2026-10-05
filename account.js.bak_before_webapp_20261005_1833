@@ -695,49 +695,10 @@ function bindMagicForm() {
 }
 
 
-
-
-// ===== АВТОЛОГИН ЧЕРЕЗ MINI APP =====
-async function handleTelegramWebApp(initData) {
-    try {
-        const response = await fetch(`${API_BASE}/api/auth/telegram_webapp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData }),
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.detail || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        addOrUpdateAccount(data.user, data.token);
-        showDashboard();
-    } catch (e) {
-        console.error('Telegram WebApp auth error:', e);
-        // Fallback — показываем экран логина
-        const accounts = getAccounts();
-        if (accounts.length > 0 && getActiveId()) {
-            showDashboard();
-        } else {
-            showLogin();
-        }
-    }
-}
-
-
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof applyTranslations === 'function') {
         applyTranslations();
-    }
-
-    // Проверяем Telegram WebApp initData (открытие как Mini App)
-    const tg = window.Telegram?.WebApp;
-    if (tg && tg.initData && tg.initData.length > 10) {
-        handleTelegramWebApp(tg.initData);
-        return;
     }
 
     // Привязываем форму magic link
