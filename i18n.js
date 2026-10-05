@@ -171,6 +171,19 @@ const TRANSLATIONS = {
     'account.add_account': { ru: '➕ Добавить аккаунт', en: '➕ Add account' },
     'account.delete_confirm': { ru: 'Удалить этот аккаунт из списка?', en: 'Remove this account from the list?' },
     'account.accounts': { ru: 'Аккаунты', en: 'Accounts' },
+
+    // ===== ДОНАТЫ =====
+    'donate.title': { ru: '💛 Поддержать проект', en: '💛 Support the project' },
+    'donate.text': {
+        ru: 'Бот бесплатный и работает для всех. Если он помогает вашей группе — можете поддержать разработку любой суммой.',
+        en: 'The bot is free for everyone. If it helps your group — you can support development with any amount.',
+    },
+    'donate.button': { ru: 'Поддержать', en: 'Donate' },
+    'donate.thanks': {
+        ru: 'Спасибо за поддержку! Каждый рубль идёт на сервер и развитие бота.',
+        en: 'Thanks for your support! Every ruble goes to the server and bot development.',
+    },
+    'donate.footer': { ru: '💛 Поддержать', en: '💛 Donate' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====
