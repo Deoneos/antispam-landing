@@ -738,8 +738,29 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🔍 Telegram WebApp?', !!tg);
     console.log('🔍 initData length:', tg?.initData?.length || 0);
 
+    // DEBUG: показываем отладку на экране если в URL ?debug=1
+    if (window.location.search.includes('debug')) {
+        const debug = document.createElement('div');
+        debug.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;white-space:pre-wrap;max-height:200px;overflow:auto;';
+        debug.textContent = 
+            'TG: ' + (!!tg) + '\n' +
+            'initData len: ' + (tg?.initData?.length || 0) + '\n' +
+            'initData start: ' + (tg?.initData?.slice(0, 100) || 'N/A') + '\n' +
+            'initDataUnsafe.user: ' + JSON.stringify(tg?.initDataUnsafe?.user || null);
+        document.body.appendChild(debug);
+    }
+
     if (tg && tg.initData && tg.initData.length > 10) {
         console.log('✅ Обнаружен WebApp initData, автологин...');
+
+        // DEBUG
+        if (window.location.search.includes('debug')) {
+            const debug2 = document.createElement('div');
+            debug2.style.cssText = 'position:fixed;top:210px;left:0;right:0;background:#001;color:#ff0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;';
+            debug2.textContent = 'Отправляем initData на /api/auth/telegram_webapp...';
+            document.body.appendChild(debug2);
+        }
+
         handleTelegramWebApp(tg.initData);
         return;
     }
