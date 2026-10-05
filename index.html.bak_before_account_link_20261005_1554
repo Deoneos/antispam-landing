@@ -46,9 +46,6 @@
                 <span class="logo-text">ANTI_SPAM Bot</span>
             </a>
             <div class="header-actions">
-                <a href="account.html" class="btn btn-secondary btn-small header-account-btn">
-                    <span data-i18n="header.account">🔐 Войти</span>
-                </a>
                 <div class="lang-switch">
                     <button type="button" class="lang-btn" data-lang="ru">RU</button>
                     <button type="button" class="lang-btn" data-lang="en">EN</button>

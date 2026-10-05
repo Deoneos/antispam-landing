@@ -2,7 +2,6 @@
 const TRANSLATIONS = {
     // Header
     'header.add': { ru: 'Добавить бота', en: 'Add bot' },
-    'header.account': { ru: '🔐 Войти', en: '🔐 Login' },
 
     // Hero
     'hero.badge': { ru: '🛡️ Защита Telegram-групп', en: '🛡️ Telegram group protection' },
@@ -125,46 +124,6 @@ const TRANSLATIONS = {
     'footer.support': { ru: 'Поддержка', en: 'Support' },
     'footer.panel': { ru: 'Панель управления', en: 'Control panel' },
     'footer.made': { ru: 'Сделано с заботой о сообществах', en: 'Made with care for communities' },
-
-    // ===== ЛИЧНЫЙ КАБИНЕТ =====
-    'account.login_title': { ru: 'Личный кабинет', en: 'Account' },
-    'account.login_hint': {
-        ru: 'Войдите через Telegram, чтобы управлять своими группами',
-        en: 'Sign in with Telegram to manage your groups',
-    },
-    'account.login_small': {
-        ru: 'Мы не получаем доступ к вашим сообщениям — только ID и имя для входа',
-        en: 'We don\'t access your messages — only your ID and name for login',
-    },
-    'account.loading': { ru: 'Загрузка...', en: 'Loading...' },
-    'account.logout': { ru: 'Выйти', en: 'Logout' },
-    'account.guest': { ru: 'Пользователь', en: 'User' },
-
-    'account.stat_chats': { ru: 'групп', en: 'groups' },
-    'account.stat_deleted': { ru: 'удалено', en: 'deleted' },
-    'account.stat_bans': { ru: 'банов', en: 'bans' },
-    'account.stat_violations': { ru: 'нарушений', en: 'violations' },
-
-    'account.my_groups': { ru: '📋 Мои группы', en: '📋 My groups' },
-    'account.no_groups': { ru: 'У вас пока нет групп с ботом', en: 'You have no groups with the bot yet' },
-    'account.no_groups_hint': {
-        ru: 'Добавьте бота в группу — она появится здесь',
-        en: 'Add the bot to your group — it will appear here',
-    },
-    'account.error_loading': { ru: 'Не удалось загрузить данные', en: 'Failed to load data' },
-    'account.cta_text': { ru: 'Хотите добавить бота в новую группу?', en: 'Want to add the bot to a new group?' },
-    'account.cta_button': { ru: '➕ Добавить в группу', en: '➕ Add to group' },
-
-    'account.modal_deleted': { ru: 'Удалено', en: 'Deleted' },
-    'account.modal_bans': { ru: 'Банов', en: 'Bans' },
-    'account.modal_violations': { ru: 'Нарушений', en: 'Violations' },
-    'account.modal_chart_title': { ru: '📊 Активность за 30 дней', en: '📊 Activity for 30 days' },
-    'account.modal_top_violators': { ru: '🏆 Топ нарушителей', en: '🏆 Top violators' },
-    'account.modal_no_violators': { ru: 'Нарушителей нет', en: 'No violators' },
-    'account.modal_export': { ru: '📥 Экспорт CSV', en: '📥 Export CSV' },
-    'account.modal_open_group': { ru: '🚪 Открыть в Telegram', en: '🚪 Open in Telegram' },
-
-    'account.login_btn': { ru: 'Войти', en: 'Login' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====

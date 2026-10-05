@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANTI_SPAM Bot — модерация Telegram-групп без спама</title>
-    <meta name="description" content="Бесплатный бот для модерации Telegram-групп. Автоматически удаляет спам, рекламу и запрещённый контент. Используется музеями, IT-сообществами и другими.">
+    <title>ANTI_SPAM Bot — модерация групп музеев</title>
+    <meta name="description" content="Бот для модерации Telegram-групп музеев «Моя страна. Моя история». Автоматически удаляет спам, рекламу и запрещённый контент.">
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deoneos.github.io/antispam-landing/">
-    <meta property="og:title" content="ANTI_SPAM Bot — модерация Telegram-групп без спама">
-    <meta property="og:description" content="Бот автоматически удаляет спам, рекламу и запрещённый контент из Telegram-групп. Бесплатно для любых групп.">
+    <meta property="og:title" content="ANTI_SPAM Bot — модерация групп музеев">
+    <meta property="og:description" content="Бот автоматически удаляет спам, рекламу и запрещённый контент из Telegram-групп. Бесплатно для музеев «Моя страна. Моя история».">
     <meta property="og:image" content="https://deoneos.github.io/antispam-landing/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -17,7 +17,7 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ANTI_SPAM Bot — модерация Telegram-групп">
+    <meta name="twitter:title" content="ANTI_SPAM Bot — модерация групп музеев">
     <meta name="twitter:description" content="Бот автоматически удаляет спам, рекламу и запрещённый контент из Telegram-групп.">
     <meta name="twitter:image" content="https://deoneos.github.io/antispam-landing/og-image.png">    
     <link rel="stylesheet" href="style.css?v=1">
@@ -46,9 +46,6 @@
                 <span class="logo-text">ANTI_SPAM Bot</span>
             </a>
             <div class="header-actions">
-                <a href="account.html" class="btn btn-secondary btn-small header-account-btn">
-                    <span data-i18n="header.account">🔐 Войти</span>
-                </a>
                 <div class="lang-switch">
                     <button type="button" class="lang-btn" data-lang="ru">RU</button>
                     <button type="button" class="lang-btn" data-lang="en">EN</button>
@@ -66,7 +63,7 @@
     <section class="hero">
         <div class="container">
             <div class="hero-badge" data-i18n="hero.badge">🛡️ Защита Telegram-групп</div>
-            <h1 class="hero-title" data-i18n="hero.title">Модерация Telegram-групп без спама и рекламы</h1>
+            <h1 class="hero-title" data-i18n="hero.title">Модерация групп музеев без спама и рекламы</h1>
             <p class="hero-subtitle" data-i18n="hero.subtitle">
                 Бот автоматически удаляет спам, рекламу и запрещённый контент, чтобы вы могли сосредоточиться на главном — общении с посетителями и коллегами.
             </p>
@@ -114,7 +111,7 @@
     <!-- Trust / Trusted by -->
     <section class="trust">
         <div class="container">
-            <p class="trust-label" data-i18n="trust.label">Уже используют:</p>
+            <p class="trust-label" data-i18n="trust.label">Уже используют группы музеев:</p>
             <div class="trust-list">
                 <div class="trust-item">
                     <div class="trust-icon">🏛️</div>
@@ -123,14 +120,6 @@
                 <div class="trust-item">
                     <div class="trust-icon">🏛️</div>
                     <div class="trust-name">Россия — Моя история<br><span>Ставрополь</span></div>
-                </div>
-                <div class="trust-item">
-                    <div class="trust-icon">💻</div>
-                    <div class="trust-name">Будни вайбкодера<br><span>IT-сообщество</span></div>
-                </div>
-                <div class="trust-item">
-                    <div class="trust-icon">👥</div>
-                    <div class="trust-name">Vodolazy<br><span>Сообщество</span></div>
                 </div>
             </div>
             <p class="trust-hint" data-i18n="trust.hint">И ещё несколько сообществ</p>
@@ -236,7 +225,7 @@
             <div class="faq-list">
                 <details class="faq-item">
                     <summary data-i18n="faq.q1">Сколько это стоит?</summary>
-                    <p data-i18n="faq.a1">Бесплатно. Бот создан для поддержки любых Telegram-групп: музеев, IT-сообществ, клубов и просто дружеских чатов.</p>
+                    <p data-i18n="faq.a1">Бесплатно. Бот создан для поддержки групп музеев «Моя страна. Моя история».</p>
                 </details>
                 <details class="faq-item">
                     <summary data-i18n="faq.q2">Нужен ли программист для настройки?</summary>
@@ -279,7 +268,7 @@
                 <a href="https://t.me/zakharsakharov" data-i18n="footer.support">Поддержка</a>
                 <a href="https://t.me/ANTI_SPAM_MWKbot/panel" data-i18n="footer.panel">Панель управления</a>
             </div>
-            <p class="footer-copy">ANTI_SPAM Bot © 2026 · <span data-i18n="footer.made">Сделано с заботой о сообществах</span></p>
+            <p class="footer-copy">ANTI_SPAM Bot © 2026 · <span data-i18n="footer.made">Сделано с заботой о музеях</span></p>
         </div>
     </footer>
 

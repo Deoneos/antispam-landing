@@ -626,3 +626,24 @@ a {
         aspect-ratio: 4 / 5;
     }
 }
+/* ===== HEADER: КНОПКА ЛК ===== */
+.header-account-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .header-account-btn {
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+    .header-account-btn span {
+        font-size: 16px;
+    }
+    .header-account-btn span::before {
+        content: '🔐';
+    }
+}

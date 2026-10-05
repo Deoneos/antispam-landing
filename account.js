@@ -231,6 +231,16 @@ function openGroupModal(card) {
         downloadExport(chatId, title);
     };
 
+    // Кнопка "Открыть в Telegram" — универсальная ссылка на бота
+    const tgBtn = document.getElementById('modal-open-tg');
+    if (tgBtn) {
+        tgBtn.href = 'https://t.me/ANTI_SPAM_MWKbot';
+    }
+
+    // Загружаем график и топ нарушителей
+    loadModalChart(chatId);
+    loadModalViolators(chatId);
+
     document.getElementById('group-modal').style.display = 'flex';
 }
 
@@ -254,6 +264,158 @@ async function downloadExport(chatId, title) {
         alert('Ошибка экспорта');
     }
 }
+
+
+
+// ===== ГРАФИК В МОДАЛКЕ =====
+let modalChart = null;
+
+async function loadModalChart(chatId) {
+    const canvas = document.getElementById('modal-chart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    if (modalChart) {
+        modalChart.destroy();
+        modalChart = null;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/timeline?chat_id=${chatId}&days=30`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        const items = data.days || [];
+
+        if (items.length === 0) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#667';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Нет данных', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        const labels = items.map(d => {
+            const p = d.date.split('-');
+            return `${p[2]}.${p[1]}`;
+        });
+
+        modalChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '🗑',
+                        data: items.map(d => d.deleted || 0),
+                        borderColor: '#2481cc',
+                        backgroundColor: 'rgba(36, 129, 204, 0.12)',
+                        borderWidth: 2, tension: 0.3, pointRadius: 0,
+                        pointHoverRadius: 4, fill: true,
+                    },
+                    {
+                        label: '⚖️',
+                        data: items.map(d => d.bans || 0),
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.12)',
+                        borderWidth: 2, tension: 0.3, pointRadius: 0,
+                        pointHoverRadius: 4, fill: true,
+                    },
+                    {
+                        label: '⚠️',
+                        data: items.map(d => d.violations || 0),
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.12)',
+                        borderWidth: 2, tension: 0.3, pointRadius: 0,
+                        pointHoverRadius: 4, fill: true,
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12, padding: 8, font: { size: 11 },
+                            color: '#8899b0',
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.85)',
+                        padding: 8,
+                        titleFont: { size: 12 },
+                        bodyFont: { size: 12 },
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 10 }, color: '#667',
+                            maxRotation: 0, autoSkip: true, maxTicksLimit: 8,
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 10 }, color: '#667', precision: 0,
+                        },
+                        grid: { color: 'rgba(128,128,128,0.1)' }
+                    }
+                }
+            }
+        });
+
+    } catch (e) {
+        console.error('Modal chart error:', e);
+    }
+}
+
+// ===== ТОП НАРУШИТЕЛЕЙ В МОДАЛКЕ =====
+async function loadModalViolators(chatId) {
+    const container = document.getElementById('modal-violators-list');
+    if (!container) return;
+
+    container.innerHTML = '<p class="modal-violators-loading">Загрузка...</p>';
+
+    try {
+        const response = await fetch(`${API_BASE}/api/top_violators?chat_id=${chatId}&limit=5`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        const items = data.violators || [];
+
+        if (items.length === 0) {
+            container.innerHTML = '<p class="modal-violators-empty">Нарушителей нет</p>';
+            return;
+        }
+
+        container.innerHTML = items.map((v, i) => {
+            const name = v.first_name || v.username || 'Без имени';
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+
+            return `
+                <div class="violator-item">
+                    <div class="violator-rank">${medal}</div>
+                    <div class="violator-info">
+                        <div class="violator-name">${escapeHtml(name)}</div>
+                        <div class="violator-meta">${v.last_date || ''}</div>
+                    </div>
+                    <div class="violator-count">${v.count} наруш.</div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error('Modal violators error:', e);
+        container.innerHTML = '<p class="modal-violators-empty">Не удалось загрузить</p>';
+    }
+}
+
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
