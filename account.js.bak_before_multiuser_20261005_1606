@@ -1,108 +1,28 @@
 // ===== ЛИЧНЫЙ КАБИНЕТ =====
 const API_BASE = 'https://antispam-api-zakharsakharov.amvera.io';
-
-// Ключи localStorage
-const ACCOUNTS_KEY = 'accounts';           // [{user_id, first_name, username, photo_url, token, added_at}]
-const ACTIVE_ID_KEY = 'active_account_id'; // user_id
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
 
 // ===== DOM =====
 const loadingSection = document.getElementById('loading');
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard');
 const userHeader = document.getElementById('user-header');
-const switcherAvatar = document.getElementById('switcher-avatar');
-const switcherName = document.getElementById('switcher-name');
-const accountDropdown = document.getElementById('account-dropdown');
-const accountList = document.getElementById('account-list');
-const addAccountBtn = document.getElementById('add-account-btn');
+const userHeaderName = document.getElementById('user-header-name');
 
-// ===== РАБОТА С АККАУНТАМИ =====
-function getAccounts() {
-    try {
-        return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]');
-    } catch (e) {
-        return [];
-    }
-}
+// ===== СОСТОЯНИЕ =====
+let currentToken = localStorage.getItem(TOKEN_KEY);
+let currentUser = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
 
-function saveAccounts(accounts) {
-    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-}
-
-function getActiveId() {
-    const id = localStorage.getItem(ACTIVE_ID_KEY);
-    return id ? parseInt(id, 10) : null;
-}
-
-function setActiveId(userId) {
-    localStorage.setItem(ACTIVE_ID_KEY, String(userId));
-}
-
-function getActiveAccount() {
-    const id = getActiveId();
-    if (id === null) return null;
-    return getAccounts().find(a => a.user_id === id) || null;
-}
-
-function addOrUpdateAccount(user, token) {
-    const accounts = getAccounts();
-    const idx = accounts.findIndex(a => a.user_id === user.user_id);
-
-    const account = {
-        user_id: user.user_id,
-        first_name: user.first_name || '',
-        username: user.username || '',
-        photo_url: user.photo_url || '',
-        token,
-        added_at: new Date().toISOString(),
-    };
-
-    if (idx >= 0) {
-        accounts[idx] = account;
-    } else {
-        accounts.push(account);
-    }
-
-    saveAccounts(accounts);
-    setActiveId(user.user_id);
-}
-
-function removeAccount(userId) {
-    let accounts = getAccounts();
-    accounts = accounts.filter(a => a.user_id !== userId);
-    saveAccounts(accounts);
-
-    if (getActiveId() === userId) {
-        if (accounts.length > 0) {
-            setActiveId(accounts[0].user_id);
-        } else {
-            localStorage.removeItem(ACTIVE_ID_KEY);
-        }
-    }
-}
-
-function switchToAccount(userId) {
-    setActiveId(userId);
-    closeDropdown();
-    loadDashboard();
-}
-
-// ===== ТОКЕН ТЕКУЩЕГО АККАУНТА =====
-function getToken() {
-    const acc = getActiveAccount();
-    return acc ? acc.token : null;
-}
-
-// ===== API =====
+// ===== API ХЕЛПЕР =====
 async function apiFetch(path, options = {}) {
-    const token = getToken();
     const headers = {
         'Content-Type': 'application/json',
         ...(options.headers || {}),
     };
 
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+    if (currentToken) {
+        headers['Authorization'] = `Bearer ${currentToken}`;
     }
 
     const response = await fetch(`${API_BASE}${path}`, {
@@ -111,12 +31,7 @@ async function apiFetch(path, options = {}) {
     });
 
     if (response.status === 401) {
-        // Токен протух — удаляем этот аккаунт
-        const activeId = getActiveId();
-        if (activeId) {
-            removeAccount(activeId);
-        }
-        showLogin();
+        logout();
         throw new Error('Unauthorized');
     }
 
@@ -125,6 +40,7 @@ async function apiFetch(path, options = {}) {
         throw new Error(error.detail || `HTTP ${response.status}`);
     }
 
+    // Для CSV — возвращаем blob
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('text/csv')) {
         return response.blob();
@@ -134,6 +50,14 @@ async function apiFetch(path, options = {}) {
 }
 
 // ===== АВТОРИЗАЦИЯ =====
+function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    currentToken = null;
+    currentUser = null;
+    showLogin();
+}
+
 async function loginWithTelegram(userData) {
     try {
         const response = await fetch(`${API_BASE}/api/auth/telegram`, {
@@ -147,16 +71,21 @@ async function loginWithTelegram(userData) {
         }
 
         const data = await response.json();
-        addOrUpdateAccount(data.user, data.token);
-        closeDropdown();
-        loadDashboard();
+
+        currentToken = data.token;
+        currentUser = data.user;
+
+        localStorage.setItem(TOKEN_KEY, currentToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+
+        showDashboard();
     } catch (e) {
         console.error('Login error:', e);
         alert('Ошибка авторизации. Попробуйте ещё раз.');
     }
 }
 
-// ===== ОТОБРАЖЕНИЕ =====
+// ===== ОТОБРАЖЕНИЕ СЕКЦИЙ =====
 function showLogin() {
     loadingSection.style.display = 'none';
     loginSection.style.display = 'block';
@@ -169,104 +98,13 @@ function showDashboard() {
     loadingSection.style.display = 'none';
     loginSection.style.display = 'none';
     dashboardSection.style.display = 'block';
-    userHeader.style.display = 'flex';
-    renderSwitcher();
+
+    if (currentUser) {
+        userHeader.style.display = 'flex';
+        userHeaderName.textContent = currentUser.first_name || currentUser.username || 'Пользователь';
+    }
+
     loadDashboard();
-}
-
-function renderSwitcher() {
-    const acc = getActiveAccount();
-    if (!acc) return;
-
-    const name = acc.first_name || acc.username || 'Пользователь';
-    switcherName.textContent = name;
-
-    if (acc.photo_url) {
-        switcherAvatar.style.backgroundImage = `url('${acc.photo_url}')`;
-        switcherAvatar.textContent = '';
-    } else {
-        switcherAvatar.textContent = name[0].toUpperCase();
-        switcherAvatar.style.backgroundImage = '';
-    }
-}
-
-// ===== DROPDOWN =====
-function renderDropdown() {
-    const accounts = getAccounts();
-    const activeId = getActiveId();
-
-    accountList.innerHTML = accounts.map(a => {
-        const name = a.first_name || a.username || 'Пользователь';
-        const initial = name[0].toUpperCase();
-        const isActive = a.user_id === activeId;
-
-        const avatarStyle = a.photo_url
-            ? `style="background-image: url('${a.photo_url}'); background-size: cover;"` 
-            : '';
-
-        return `
-            <div class="account-item ${isActive ? 'active' : ''}" data-user-id="${a.user_id}">
-                <div class="account-item-avatar" ${avatarStyle}>${a.photo_url ? '' : initial}</div>
-                <div class="account-item-info">
-                    <div class="account-item-name">${escapeHtml(name)}</div>
-                    <div class="account-item-id">ID: ${a.user_id}</div>
-                </div>
-                <button class="account-item-delete" data-delete-id="${a.user_id}" title="Удалить">✕</button>
-            </div>
-        `;
-    }).join('');
-
-    // Обработчики
-    accountList.querySelectorAll('.account-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (e.target.classList.contains('account-item-delete')) return;
-            const userId = parseInt(item.dataset.userId, 10);
-            if (userId !== getActiveId()) {
-                switchToAccount(userId);
-            } else {
-                closeDropdown();
-            }
-        });
-    });
-
-    accountList.querySelectorAll('.account-item-delete').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const userId = parseInt(btn.dataset.deleteId, 10);
-            const acc = getAccounts().find(a => a.user_id === userId);
-            const name = acc ? (acc.first_name || acc.username || 'аккаунт') : 'аккаунт';
-
-            const msg = window.t ? t('account.delete_confirm') : 'Удалить этот аккаунт из списка?';
-            if (confirm(`${name}\n\n${msg}`)) {
-                removeAccount(userId);
-                const accounts = getAccounts();
-                if (accounts.length === 0) {
-                    showLogin();
-                } else {
-                    renderSwitcher();
-                    renderDropdown();
-                    loadDashboard();
-                }
-            }
-        });
-    });
-}
-
-function openDropdown() {
-    renderDropdown();
-    accountDropdown.style.display = 'block';
-}
-
-function closeDropdown() {
-    accountDropdown.style.display = 'none';
-}
-
-function toggleDropdown() {
-    if (accountDropdown.style.display === 'block') {
-        closeDropdown();
-    } else {
-        openDropdown();
-    }
 }
 
 // ===== TELEGRAM WIDGET =====
@@ -276,6 +114,7 @@ function renderTelegramWidget() {
 
     container.innerHTML = '';
 
+    // Callback для виджета — должен быть глобальным
     window.onTelegramAuth = function(user) {
         loginWithTelegram(user);
     };
@@ -297,13 +136,14 @@ async function loadDashboard() {
     try {
         const data = await apiFetch('/api/account/groups');
 
+        // Сводка
         document.getElementById('stat-chats').textContent = data.stats.total_chats || 0;
         document.getElementById('stat-deleted').textContent = data.stats.total_deleted || 0;
         document.getElementById('stat-bans').textContent = data.stats.total_bans || 0;
         document.getElementById('stat-violations').textContent = data.stats.total_violations || 0;
 
+        // Группы
         renderGroups(data.groups || []);
-        renderSwitcher();
     } catch (e) {
         console.error('Load dashboard error:', e);
         document.getElementById('groups-list').innerHTML = `
@@ -334,6 +174,7 @@ function renderGroups(groups) {
     container.innerHTML = groups.map(g => {
         const title = g.title || 'Без названия';
         const initial = title.trim()[0].toUpperCase();
+        const added = (g.added_at || '').slice(0, 10);
 
         return `
             <div class="group-card" data-chat-id="${g.telegram_chat_id}"
@@ -355,8 +196,11 @@ function renderGroups(groups) {
         `;
     }).join('');
 
+    // Обработчики кликов
     container.querySelectorAll('.group-card').forEach(card => {
-        card.addEventListener('click', () => openGroupModal(card));
+        card.addEventListener('click', () => {
+            openGroupModal(card);
+        });
     });
 }
 
@@ -380,17 +224,20 @@ function openGroupModal(card) {
     document.getElementById('modal-bans').textContent = card.dataset.bans;
     document.getElementById('modal-violations').textContent = card.dataset.violations;
 
+    // Кнопка экспорта
     const exportBtn = document.getElementById('modal-export');
     exportBtn.onclick = (e) => {
         e.preventDefault();
         downloadExport(chatId, title);
     };
 
+    // Кнопка "Открыть в Telegram" — универсальная ссылка на бота
     const tgBtn = document.getElementById('modal-open-tg');
     if (tgBtn) {
         tgBtn.href = 'https://t.me/ANTI_SPAM_MWKbot';
     }
 
+    // Загружаем график и топ нарушителей
     loadModalChart(chatId);
     loadModalViolators(chatId);
 
@@ -417,6 +264,8 @@ async function downloadExport(chatId, title) {
         alert('Ошибка экспорта');
     }
 }
+
+
 
 // ===== ГРАФИК В МОДАЛКЕ =====
 let modalChart = null;
@@ -526,7 +375,7 @@ async function loadModalChart(chatId) {
     }
 }
 
-// ===== ТОП НАРУШИТЕЛЕЙ =====
+// ===== ТОП НАРУШИТЕЛЕЙ В МОДАЛКЕ =====
 async function loadModalViolators(chatId) {
     const container = document.getElementById('modal-violators-list');
     if (!container) return;
@@ -567,6 +416,7 @@ async function loadModalViolators(chatId) {
     }
 }
 
+
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof applyTranslations === 'function') {
@@ -585,30 +435,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Открытие/закрытие dropdown
-    const switcher = document.getElementById('account-switcher');
-    if (switcher) {
-        switcher.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleDropdown();
-        });
-    }
-
-    // Закрытие по клику вне
-    document.addEventListener('click', (e) => {
-        if (!userHeader.contains(e.target)) {
-            closeDropdown();
-        }
-    });
-
-    // Добавить аккаунт
-    if (addAccountBtn) {
-        addAccountBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closeDropdown();
-            showLogin();
-        });
-    }
+    // Logout
+    document.getElementById('logout-btn')?.addEventListener('click', logout);
 
     // Модалка — закрытие
     document.getElementById('modal-close')?.addEventListener('click', closeModal);
@@ -617,8 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Стартовый экран
-    const accounts = getAccounts();
-    if (accounts.length > 0 && getActiveId()) {
+    if (currentToken && currentUser) {
         showDashboard();
     } else {
         showLogin();

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Личный кабинет — ANTI_SPAM Bot</title>
     <link rel="stylesheet" href="style.css?v=10">
-    <link rel="stylesheet" href="account.css?v=3">
+    <link rel="stylesheet" href="account.css?v=2">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -23,18 +23,8 @@
                     <button type="button" class="lang-btn" data-lang="en">EN</button>
                 </div>
                 <div id="user-header" class="user-header" style="display:none;">
-                    <button id="account-switcher" class="account-switcher-btn">
-                        <span class="account-switcher-avatar" id="switcher-avatar"></span>
-                        <span class="account-switcher-name" id="switcher-name"></span>
-                        <span class="account-switcher-arrow">▾</span>
-                    </button>
-                    <div id="account-dropdown" class="account-dropdown" style="display:none;">
-                        <div class="account-dropdown-header" data-i18n="account.accounts">Аккаунты</div>
-                        <div id="account-list" class="account-list"></div>
-                        <button id="add-account-btn" class="account-dropdown-add" data-i18n="account.add_account">
-                            ➕ Добавить аккаунт
-                        </button>
-                    </div>
+                    <span id="user-header-name"></span>
+                    <button id="logout-btn" class="btn btn-small btn-secondary" data-i18n="account.logout">Выйти</button>
                 </div>
             </div>
         </div>
@@ -155,6 +145,6 @@
     </div>
 
     <script src="i18n.js?v=11"></script>
-    <script src="account.js?v=3"></script>
+    <script src="account.js?v=2"></script>
 </body>
 </html>

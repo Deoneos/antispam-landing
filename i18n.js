@@ -165,6 +165,11 @@ const TRANSLATIONS = {
     'account.modal_open_group': { ru: '🚪 Открыть в Telegram', en: '🚪 Open in Telegram' },
 
     'account.login_btn': { ru: 'Войти', en: 'Login' },
+
+    'account.switch': { ru: 'Сменить аккаунт', en: 'Switch account' },
+    'account.add_account': { ru: '➕ Добавить аккаунт', en: '➕ Add account' },
+    'account.delete_confirm': { ru: 'Удалить этот аккаунт из списка?', en: 'Remove this account from the list?' },
+    'account.accounts': { ru: 'Аккаунты', en: 'Accounts' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====
