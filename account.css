@@ -647,3 +647,89 @@
 .account-add-hint a:hover {
     color: #7bbdf0;
 }
+
+/* ===== MAGIC LINK ФОРМА ===== */
+.magic-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0 8px;
+}
+
+.magic-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #e8e8e8;
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.15s;
+    box-sizing: border-box;
+}
+
+.magic-input:focus {
+    border-color: #2481cc;
+    background: rgba(36, 129, 204, 0.05);
+}
+
+.magic-input::placeholder {
+    color: #667;
+}
+
+.magic-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+    min-height: 48px;
+    cursor: pointer;
+}
+
+.magic-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.magic-status {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.magic-status.success {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+}
+
+.magic-status.error {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+}
+
+.magic-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 12px;
+    color: #667;
+    font-size: 12px;
+}
+
+.magic-divider div {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Уменьшаем виджет, т.к. теперь он вторичный */
+.tg-widget-container {
+    margin: 12px 0;
+    opacity: 0.85;
+}

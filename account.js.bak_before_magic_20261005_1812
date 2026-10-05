@@ -608,101 +608,11 @@ async function loadModalViolators(chatId) {
     }
 }
 
-
-
-// ===== MAGIC LINK =====
-async function handleMagicCode(code) {
-    // Очищаем URL
-    history.replaceState(null, '', window.location.pathname);
-
-    if (!code || code.length < 10) {
-        alert('Неверная ссылка. Запросите новую.');
-        showLogin();
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE}/api/auth/verify_magic_link`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.detail || 'Invalid code');
-        }
-
-        const data = await response.json();
-        addOrUpdateAccount(data.user, data.token);
-        showDashboard();
-    } catch (e) {
-        console.error('Magic link error:', e);
-        alert('Ссылка устарела или уже использована. Запросите новую.');
-        showLogin();
-    }
-}
-
-function bindMagicForm() {
-    const form = document.getElementById('magic-form');
-    if (!form) return;
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const input = document.getElementById('magic-username');
-        const btn = document.getElementById('magic-submit');
-        const status = document.getElementById('magic-status');
-
-        let username = (input.value || '').trim();
-        if (!username) return;
-
-        // Убираем @, если есть
-        username = username.replace(/^@/, '');
-
-        btn.disabled = true;
-        btn.textContent = 'Отправляем...';
-        status.style.display = 'none';
-
-        try {
-            const response = await fetch(`${API_BASE}/api/auth/request_magic_link`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Request failed');
-            }
-
-            const data = await response.json();
-
-            status.className = 'magic-status success';
-            status.textContent = data.message || 'Ссылка отправлена в Telegram!';
-            status.style.display = 'block';
-
-            input.value = '';
-        } catch (e) {
-            console.error('Magic request error:', e);
-            status.className = 'magic-status error';
-            status.textContent = 'Не удалось отправить ссылку. Попробуйте позже.';
-            status.style.display = 'block';
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Получить ссылку для входа';
-        }
-    });
-}
-
-
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof applyTranslations === 'function') {
         applyTranslations();
     }
-
-    // Привязываем форму magic link
-    bindMagicForm();
 
     // Переключатель языка
     document.querySelectorAll('.lang-btn').forEach(btn => {
