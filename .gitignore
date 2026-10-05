@@ -1,0 +1,10 @@
+# Бэкапы
+*.bak
+*.bak_*
+*.bak_before_*
+*.broken*
+*.old
+
+# Временное
+*.tmp
+.DS_Store
