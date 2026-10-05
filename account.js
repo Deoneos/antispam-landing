@@ -735,10 +735,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Проверяем Telegram WebApp initData (открытие как Mini App)
     const tg = window.Telegram?.WebApp;
+    console.log('🔍 Telegram WebApp?', !!tg);
+    console.log('🔍 initData length:', tg?.initData?.length || 0);
+
     if (tg && tg.initData && tg.initData.length > 10) {
+        console.log('✅ Обнаружен WebApp initData, автологин...');
         handleTelegramWebApp(tg.initData);
         return;
     }
+
+    console.log('ℹ️ Обычный режим (не Mini App)');
 
     // Привязываем форму magic link
     bindMagicForm();
