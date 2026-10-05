@@ -166,6 +166,14 @@ function showLogin() {
 }
 
 function showDashboard() {
+    const acc = getActiveAccount();
+
+    if (!acc) {
+        console.warn('showDashboard: нет аккаунта, показываю логин');
+        showLogin();
+        return;
+    }
+
     loadingSection.style.display = 'none';
     loginSection.style.display = 'none';
     dashboardSection.style.display = 'block';
@@ -176,7 +184,11 @@ function showDashboard() {
 
 function renderSwitcher() {
     const acc = getActiveAccount();
-    if (!acc) return;
+
+    if (!acc) {
+        userHeader.style.display = 'none';
+        return;
+    }
 
     const name = acc.first_name || acc.username || 'Пользователь';
     switcherName.textContent = name;
@@ -789,8 +801,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.id === 'group-modal') closeModal();
     });
 
-    // Стартовый экран
-    const accounts = getAccounts();
+    // Стартовый экран с защитой
+    let accounts = getAccounts();
+    const activeId = getActiveId();
+
+    // Чистим битые аккаунты (без user_id или token)
+    const cleanAccounts = accounts.filter(a => a && a.user_id && a.token);
+    if (cleanAccounts.length !== accounts.length) {
+        console.warn('Удалены битые аккаунты:', accounts.length - cleanAccounts.length);
+        saveAccounts(cleanAccounts);
+        accounts = cleanAccounts;
+    }
+
+    // Если active_id указывает на несуществующий аккаунт — сбрасываем
+    if (activeId && !accounts.some(a => a.user_id === activeId)) {
+        console.warn('Сброс active_account_id (аккаунт не найден)');
+        localStorage.removeItem('active_account_id');
+    }
+
     if (accounts.length > 0 && getActiveId()) {
         showDashboard();
     } else {
