@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🔍 initData length:', tg?.initData?.length || 0);
 
     // DEBUG: показываем отладку на экране если в URL ?debug=1
-    if (window.location.search.includes('debug')) {
+    if (tg || window.location.search.includes('debug')) {
         const debug = document.createElement('div');
         debug.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;white-space:pre-wrap;max-height:200px;overflow:auto;';
         debug.textContent = 
