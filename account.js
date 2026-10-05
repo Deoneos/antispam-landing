@@ -699,7 +699,15 @@ function bindMagicForm() {
 
 // ===== АВТОЛОГИН ЧЕРЕЗ MINI APP =====
 async function handleTelegramWebApp(initData) {
+    const debugEl = document.getElementById('debug-result');
+    const setDebug = (msg) => {
+        if (debugEl) debugEl.textContent = msg;
+        console.log('[WebApp]', msg);
+    };
+
     try {
+        setDebug('⏳ Отправляем initData на /api/auth/telegram_webapp...');
+
         const response = await fetch(`${API_BASE}/api/auth/telegram_webapp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -708,15 +716,18 @@ async function handleTelegramWebApp(initData) {
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
+            setDebug(`❌ Ошибка ${response.status}: ${JSON.stringify(error)}`);
             throw new Error(error.detail || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
+        setDebug(`✅ Успех! user_id=${data.user?.user_id}`);
         addOrUpdateAccount(data.user, data.token);
         showDashboard();
     } catch (e) {
+        setDebug(`❌ Exception: ${e.message}`);
         console.error('Telegram WebApp auth error:', e);
-        // Fallback — показываем экран логина
+
         const accounts = getAccounts();
         if (accounts.length > 0 && getActiveId()) {
             showDashboard();
@@ -754,10 +765,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Обнаружен WebApp initData, автологин...');
 
         // DEBUG
-        if (window.location.search.includes('debug')) {
+        if (tg || window.location.search.includes('debug')) {
             const debug2 = document.createElement('div');
-            debug2.style.cssText = 'position:fixed;top:210px;left:0;right:0;background:#001;color:#ff0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;';
-            debug2.textContent = 'Отправляем initData на /api/auth/telegram_webapp...';
+            debug2.id = 'debug-result';
+            debug2.style.cssText = 'position:fixed;top:200px;left:0;right:0;background:#001;color:#ff0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;white-space:pre-wrap;';
+            debug2.textContent = '⏳ Отправляем initData на /api/auth/telegram_webapp...';
             document.body.appendChild(debug2);
         }
 
