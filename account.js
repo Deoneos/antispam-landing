@@ -237,66 +237,6 @@ function renderDropdown() {
     `;
 
     accountList.innerHTML = accountsHtml + logoutHtml;
-
-    // Обработчики
-    accountList.querySelectorAll('.account-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (e.target.classList.contains('account-item-delete')) return;
-            const userId = parseInt(item.dataset.userId, 10);
-            if (userId !== getActiveId()) {
-                switchToAccount(userId);
-            } else {
-                closeDropdown();
-            }
-        });
-    });
-
-    // Обработчик logout
-    const logoutBtn = document.getElementById('logout-active-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const activeId = getActiveId();
-            if (!activeId) return;
-
-            const acc = getAccounts().find(a => a.user_id === activeId);
-            const name = acc ? (acc.first_name || acc.username || 'аккаунт') : 'аккаунт';
-
-            if (confirm(`Выйти из аккаунта "${name}"?`)) {
-                removeAccount(activeId);
-                closeDropdown();
-                const accounts = getAccounts();
-                if (accounts.length === 0) {
-                    showLogin();
-                } else {
-                    renderSwitcher();
-                    loadDashboard();
-                }
-            }
-        });
-    }
-
-    accountList.querySelectorAll('.account-item-delete').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const userId = parseInt(btn.dataset.deleteId, 10);
-            const acc = getAccounts().find(a => a.user_id === userId);
-            const name = acc ? (acc.first_name || acc.username || 'аккаунт') : 'аккаунт';
-
-            const msg = window.t ? t('account.delete_confirm') : 'Удалить этот аккаунт из списка?';
-            if (confirm(`${name}\n\n${msg}`)) {
-                removeAccount(userId);
-                const accounts = getAccounts();
-                if (accounts.length === 0) {
-                    showLogin();
-                } else {
-                    renderSwitcher();
-                    renderDropdown();
-                    loadDashboard();
-                }
-            }
-        });
-    });
 }
 
 function openDropdown() {
@@ -770,30 +710,71 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Открытие/закрытие dropdown
-    const switcher = document.getElementById('account-switcher');
-    if (switcher) {
-        switcher.addEventListener('click', (e) => {
+    
+    
+    // Делегирование кликов — работает всегда, независимо от рендера
+    document.body.addEventListener('click', (e) => {
+        // 1. Клик на switcher — открыть/закрыть dropdown
+        const switcher = e.target.closest('#account-switcher');
+        if (switcher) {
+            e.preventDefault();
             e.stopPropagation();
+            console.log('[delegate] switcher clicked');
             toggleDropdown();
-        });
-    }
+            return;
+        }
 
-    // Закрытие по клику вне
-    document.addEventListener('click', (e) => {
-        if (!userHeader.contains(e.target)) {
+        // 2. Клик на кнопку "Добавить аккаунт"
+        const addBtn = e.target.closest('#add-account-btn');
+        if (addBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeDropdown();
+            showLogin();
+            return;
+        }
+
+        // 3. Клик на кнопку "Выйти из аккаунта"
+        const logoutBtn = e.target.closest('#logout-active-btn');
+        if (logoutBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleLogout();
+            return;
+        }
+
+        // 4. Клик на удаление аккаунта (крестик)
+        const deleteBtn = e.target.closest('.account-item-delete');
+        if (deleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const userId = parseInt(deleteBtn.dataset.deleteId, 10);
+            handleDeleteAccount(userId);
+            return;
+        }
+
+        // 5. Клик на аккаунт в dropdown — переключиться
+        const accountItem = e.target.closest('.account-item');
+        if (accountItem) {
+            e.preventDefault();
+            e.stopPropagation();
+            const userId = parseInt(accountItem.dataset.userId, 10);
+            if (userId !== getActiveId()) {
+                switchToAccount(userId);
+            } else {
+                closeDropdown();
+            }
+            return;
+        }
+
+        // 6. Клик вне userHeader — закрыть dropdown
+        if (userHeader && !userHeader.contains(e.target)) {
             closeDropdown();
         }
     });
 
-    // Добавить аккаунт
-    if (addAccountBtn) {
-        addAccountBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closeDropdown();
-            showLogin();
-        });
-    }
+    // Убираем старую логику для addAccountBtn (если она ещё есть ниже)
+    
 
     // Модалка — закрытие
     document.getElementById('modal-close')?.addEventListener('click', closeModal);
@@ -825,3 +806,42 @@ document.addEventListener('DOMContentLoaded', () => {
         showLogin();
     }
 });
+
+// ===== ОБРАБОТЧИКИ =====
+function handleLogout() {
+    const activeId = getActiveId();
+    if (!activeId) return;
+
+    const acc = getAccounts().find(a => a.user_id === activeId);
+    const name = acc ? (acc.first_name || acc.username || 'аккаунт') : 'аккаунт';
+
+    if (confirm(`Выйти из аккаунта "${name}"?`)) {
+        removeAccount(activeId);
+        closeDropdown();
+        const accounts = getAccounts();
+        if (accounts.length === 0) {
+            showLogin();
+        } else {
+            renderSwitcher();
+            loadDashboard();
+        }
+    }
+}
+
+function handleDeleteAccount(userId) {
+    const acc = getAccounts().find(a => a.user_id === userId);
+    const name = acc ? (acc.first_name || acc.username || 'аккаунт') : 'аккаунт';
+
+    if (confirm(`Удалить "${name}" из списка аккаунтов?`)) {
+        removeAccount(userId);
+        const accounts = getAccounts();
+        if (accounts.length === 0) {
+            closeDropdown();
+            showLogin();
+        } else {
+            renderSwitcher();
+            renderDropdown();
+            loadDashboard();
+        }
+    }
+}
