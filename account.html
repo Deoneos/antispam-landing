@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет — ANTI_SPAM Bot</title>
+    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="account.css?v=1">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">ANTI_SPAM Bot</span>
+            </a>
+            <div class="header-actions">
+                <div class="lang-switch">
+                    <button type="button" class="lang-btn" data-lang="ru">RU</button>
+                    <button type="button" class="lang-btn" data-lang="en">EN</button>
+                </div>
+                <div id="user-header" class="user-header" style="display:none;">
+                    <span id="user-header-name"></span>
+                    <button id="logout-btn" class="btn btn-small btn-secondary">Выйти</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Loading -->
+    <section id="loading" class="account-section">
+        <div class="container">
+            <div class="account-loading">Загрузка...</div>
+        </div>
+    </section>
+
+    <!-- Login -->
+    <section id="login-section" class="account-section" style="display:none;">
+        <div class="container">
+            <div class="account-card account-login-card">
+                <div class="account-icon">🔐</div>
+                <h1>Личный кабинет</h1>
+                <p class="account-hint">
+                    Войдите через Telegram, чтобы управлять своими группами
+                </p>
+                <div id="tg-widget-container" class="tg-widget-container"></div>
+                <p class="account-hint-small">
+                    Мы не получаем доступ к вашим сообщениям — только ID и имя для входа
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="account-section" style="display:none;">
+        <div class="container">
+            <!-- Сводка -->
+            <div class="dashboard-summary">
+                <div class="summary-tile">
+                    <div class="summary-icon">📢</div>
+                    <div class="summary-value" id="stat-chats">—</div>
+                    <div class="summary-label">групп</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-icon">🗑</div>
+                    <div class="summary-value" id="stat-deleted">—</div>
+                    <div class="summary-label">удалено</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-icon">⚖️</div>
+                    <div class="summary-value" id="stat-bans">—</div>
+                    <div class="summary-label">банов</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-icon">⚠️</div>
+                    <div class="summary-value" id="stat-violations">—</div>
+                    <div class="summary-label">нарушений</div>
+                </div>
+            </div>
+
+            <!-- Список групп -->
+            <h2 class="dashboard-title">📋 Мои группы</h2>
+            <div id="groups-list" class="dashboard-groups">
+                <p class="dashboard-loading">Загрузка...</p>
+            </div>
+
+            <!-- CTA -->
+            <div class="dashboard-cta">
+                <p>Хотите добавить бота в новую группу?</p>
+                <a href="https://t.me/ANTI_SPAM_MWKbot?startgroup=true"
+                   class="btn btn-primary"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    ➕ Добавить в группу
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Group modal -->
+    <div class="modal-overlay" id="group-modal" style="display:none;">
+        <div class="modal">
+            <button class="modal-close" id="modal-close">✕</button>
+            <div class="modal-header">
+                <div class="modal-icon">📢</div>
+                <h3 class="modal-title" id="modal-title">Группа</h3>
+                <p class="modal-subtitle" id="modal-subtitle">ID: —</p>
+            </div>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modal-deleted">0</div>
+                    <div class="modal-stat-label">Удалено</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modal-bans">0</div>
+                    <div class="modal-stat-label">Банов</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modal-violations">0</div>
+                    <div class="modal-stat-label">Нарушений</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <a class="btn btn-secondary" id="modal-export" href="#">📥 Экспорт CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js?v=10"></script>
+    <script src="account.js?v=1"></script>
+</body>
+</html>
