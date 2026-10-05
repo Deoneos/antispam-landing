@@ -224,7 +224,16 @@
 .dashboard-cta p {
     color: #8899b0;
     font-size: 15px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.dashboard-cta .btn {
+    display: inline-flex;
+    padding: 14px 32px;
+    font-size: 15px;
+    min-height: 48px;
+    text-decoration: none;
+    width: auto;
 }
 
 /* ===== MODAL ACTIONS ===== */
