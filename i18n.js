@@ -6,12 +6,12 @@ const TRANSLATIONS = {
     // Hero
     'hero.badge': { ru: '🛡️ Защита Telegram-групп', en: '🛡️ Telegram group protection' },
     'hero.title': {
-        ru: 'Модерация групп музеев без спама и рекламы',
-        en: 'Museum group moderation without spam and ads',
+        ru: 'Модерация Telegram-групп без спама и рекламы',
+        en: 'Telegram group moderation without spam and ads',
     },
     'hero.subtitle': {
-        ru: 'Бот автоматически удаляет спам, рекламу и запрещённый контент, чтобы вы могли сосредоточиться на главном — общении с посетителями и коллегами.',
-        en: 'The bot automatically removes spam, ads and prohibited content, so you can focus on what matters — talking to visitors and colleagues.',
+        ru: 'Бот автоматически удаляет спам, рекламу и запрещённый контент, чтобы вы могли сосредоточиться на главном — общении с участниками и коллегами.',
+        en: 'The bot automatically removes spam, ads and prohibited content, so you can focus on what matters — talking to members and colleagues.',
     },
     'hero.cta': { ru: 'Добавить бота в группу', en: 'Add bot to group' },
     'hero.cta_secondary': { ru: 'Открыть в Telegram', en: 'Open in Telegram' },
@@ -21,7 +21,7 @@ const TRANSLATIONS = {
     'live.bans': { ru: 'нарушителей забанено', en: 'violators banned' },
     'live.violations': { ru: 'нарушений поймано', en: 'violations caught' },
     // Trust
-    'trust.label': { ru: 'Уже используют группы музеев:', en: 'Already used by museum groups:' },
+    'trust.label': { ru: 'Уже используют:', en: 'Already used by:' },
     'trust.hint': { ru: 'И ещё несколько сообществ', en: 'And a few more communities' },
 
     // Features
@@ -87,7 +87,7 @@ const TRANSLATIONS = {
     'faq.title': { ru: 'Частые вопросы', en: 'Frequently asked questions' },
     'faq.q1': { ru: 'Сколько это стоит?', en: 'How much does it cost?' },
     'faq.a1': {
-        ru: 'Бесплатно. Бот создан для поддержки групп музеев «Моя страна. Моя история».',
+        ru: 'Бесплатно. Бот создан для поддержки любых Telegram-групп: музеев, IT-сообществ, клубов и просто дружеских чатов.',
         en: 'Free. The bot was created to support museum groups.',
     },
     'faq.q2': { ru: 'Нужен ли программист для настройки?', en: 'Do I need a programmer to set it up?' },
@@ -123,7 +123,7 @@ const TRANSLATIONS = {
     'footer.bot': { ru: 'Бот', en: 'Bot' },
     'footer.support': { ru: 'Поддержка', en: 'Support' },
     'footer.panel': { ru: 'Панель управления', en: 'Control panel' },
-    'footer.made': { ru: 'Сделано с заботой о музеях', en: 'Made with care for museums' },
+    'footer.made': { ru: 'Сделано с заботой о сообществах', en: 'Made with care for communities' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====
