@@ -137,29 +137,3 @@ document.addEventListener('DOMContentLoaded', () => {
 // Тут можно добавить счётчики: Яндекс.Метрика, Google Analytics
 // Например:
 // (function(m,e,t,r,i,k,a){...})(window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym','00000000');
-
-// ===== ПРОВЕРКА АВТОРИЗАЦИИ (для кнопки "Войти") =====
-function checkAuth() {
-    try {
-        const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
-        const activeId = localStorage.getItem('active_account_id');
-        const loginBtn = document.querySelector('.header-account-btn');
-
-        if (!loginBtn) return;
-
-        if (accounts.length > 0 && activeId) {
-            // Пользователь залогинен — меняем кнопку
-            const active = accounts.find(a => a.user_id === parseInt(activeId, 10));
-            const name = active ? (active.first_name || active.username || 'Кабинет') : 'Кабинет';
-
-            loginBtn.innerHTML = `<span data-i18n="header.account_logged">👤 ${name}</span>`;
-            loginBtn.href = 'account.html';
-            loginBtn.classList.remove('btn-secondary');
-            loginBtn.classList.add('btn-primary');
-        }
-    } catch (e) {
-        console.warn('Auth check error:', e);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', checkAuth);

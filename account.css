@@ -585,3 +585,65 @@
         right: -12px;
     }
 }
+
+/* ===== LOGOUT В DROPDOWN ===== */
+.account-dropdown-logout {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 4px;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: transparent;
+    color: #e74c3c;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+}
+
+.account-dropdown-logout:hover {
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* ===== HINT ДЛЯ ДОБАВЛЕНИЯ АККАУНТА ===== */
+.account-add-hint {
+    text-align: left;
+    background: rgba(36, 129, 204, 0.08);
+    border: 1px solid rgba(36, 129, 204, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #a0b0c8;
+}
+
+.account-add-hint p {
+    margin: 0 0 8px 0;
+}
+
+.account-add-hint p:first-child {
+    color: #5aa9e6;
+    font-size: 14px;
+}
+
+.account-add-hint ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.account-add-hint li {
+    margin: 4px 0;
+}
+
+.account-add-hint a {
+    color: #5aa9e6;
+    text-decoration: underline;
+}
+
+.account-add-hint a:hover {
+    color: #7bbdf0;
+}

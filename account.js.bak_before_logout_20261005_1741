@@ -195,7 +195,7 @@ function renderDropdown() {
     const accounts = getAccounts();
     const activeId = getActiveId();
 
-    const accountsHtml = accounts.map(a => {
+    accountList.innerHTML = accounts.map(a => {
         const name = a.first_name || a.username || 'Пользователь';
         const initial = name[0].toUpperCase();
         const isActive = a.user_id === activeId;
@@ -204,27 +204,17 @@ function renderDropdown() {
             ? `style="background-image: url('${a.photo_url}'); background-size: cover;"` 
             : '';
 
-        const activeBadge = isActive ? ' <span style="color:#5aa9e6;font-size:11px;">✓</span>' : '';
-
         return `
             <div class="account-item ${isActive ? 'active' : ''}" data-user-id="${a.user_id}">
                 <div class="account-item-avatar" ${avatarStyle}>${a.photo_url ? '' : initial}</div>
                 <div class="account-item-info">
-                    <div class="account-item-name">${escapeHtml(name)}${activeBadge}</div>
+                    <div class="account-item-name">${escapeHtml(name)}</div>
                     <div class="account-item-id">ID: ${a.user_id}</div>
                 </div>
-                <button class="account-item-delete" data-delete-id="${a.user_id}" title="Удалить из списка">✕</button>
+                <button class="account-item-delete" data-delete-id="${a.user_id}" title="Удалить">✕</button>
             </div>
         `;
     }).join('');
-
-    const logoutHtml = `
-        <button class="account-dropdown-logout" id="logout-active-btn">
-            🚪 Выйти из аккаунта
-        </button>
-    `;
-
-    accountList.innerHTML = accountsHtml + logoutHtml;
 
     // Обработчики
     accountList.querySelectorAll('.account-item').forEach(item => {
@@ -238,31 +228,6 @@ function renderDropdown() {
             }
         });
     });
-
-    // Обработчик logout
-    const logoutBtn = document.getElementById('logout-active-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const activeId = getActiveId();
-            if (!activeId) return;
-
-            const acc = getAccounts().find(a => a.user_id === activeId);
-            const name = acc ? (acc.first_name || acc.username || 'аккаунт') : 'аккаунт';
-
-            if (confirm(`Выйти из аккаунта "${name}"?`)) {
-                removeAccount(activeId);
-                closeDropdown();
-                const accounts = getAccounts();
-                if (accounts.length === 0) {
-                    showLogin();
-                } else {
-                    renderSwitcher();
-                    loadDashboard();
-                }
-            }
-        });
-    }
 
     accountList.querySelectorAll('.account-item-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -310,12 +275,6 @@ function renderTelegramWidget() {
     if (!container) return;
 
     container.innerHTML = '';
-
-    // Если аккаунты уже есть — показываем пояснение
-    const hint = document.getElementById('add-account-hint');
-    if (hint) {
-        hint.style.display = getAccounts().length > 0 ? 'block' : 'none';
-    }
 
     window.onTelegramAuth = function(user) {
         loginWithTelegram(user);

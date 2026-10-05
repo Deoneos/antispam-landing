@@ -3,6 +3,7 @@ const TRANSLATIONS = {
     // Header
     'header.add': { ru: 'Добавить бота', en: 'Add bot' },
     'header.account': { ru: '🔐 Войти', en: '🔐 Login' },
+    'header.account_logged': { ru: '👤 Кабинет', en: '👤 Account' },
 
     // Hero
     'hero.badge': { ru: '🛡️ Защита Telegram-групп', en: '🛡️ Telegram group protection' },
