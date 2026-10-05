@@ -699,15 +699,7 @@ function bindMagicForm() {
 
 // ===== АВТОЛОГИН ЧЕРЕЗ MINI APP =====
 async function handleTelegramWebApp(initData) {
-    const debugEl = document.getElementById('debug-result');
-    const setDebug = (msg) => {
-        if (debugEl) debugEl.textContent = msg;
-        console.log('[WebApp]', msg);
-    };
-
     try {
-        setDebug('⏳ Отправляем initData на /api/auth/telegram_webapp...');
-
         const response = await fetch(`${API_BASE}/api/auth/telegram_webapp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -716,16 +708,13 @@ async function handleTelegramWebApp(initData) {
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
-            setDebug(`❌ Ошибка ${response.status}: ${JSON.stringify(error)}`);
             throw new Error(error.detail || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        setDebug(`✅ Успех! user_id=${data.user?.user_id}`);
         addOrUpdateAccount(data.user, data.token);
         showDashboard();
     } catch (e) {
-        setDebug(`❌ Exception: ${e.message}`);
         console.error('Telegram WebApp auth error:', e);
 
         const accounts = getAccounts();
@@ -746,38 +735,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Проверяем Telegram WebApp initData (открытие как Mini App)
     const tg = window.Telegram?.WebApp;
-    console.log('🔍 Telegram WebApp?', !!tg);
-    console.log('🔍 initData length:', tg?.initData?.length || 0);
-
-    // DEBUG: показываем отладку на экране если в URL ?debug=1
-    if (tg || window.location.search.includes('debug')) {
-        const debug = document.createElement('div');
-        debug.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;white-space:pre-wrap;max-height:200px;overflow:auto;';
-        debug.textContent = 
-            'TG: ' + (!!tg) + '\n' +
-            'initData len: ' + (tg?.initData?.length || 0) + '\n' +
-            'initData start: ' + (tg?.initData?.slice(0, 100) || 'N/A') + '\n' +
-            'initDataUnsafe.user: ' + JSON.stringify(tg?.initDataUnsafe?.user || null);
-        document.body.appendChild(debug);
-    }
 
     if (tg && tg.initData && tg.initData.length > 10) {
-        console.log('✅ Обнаружен WebApp initData, автологин...');
-
-        // DEBUG
-        if (tg || window.location.search.includes('debug')) {
-            const debug2 = document.createElement('div');
-            debug2.id = 'debug-result';
-            debug2.style.cssText = 'position:fixed;top:200px;left:0;right:0;background:#001;color:#ff0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;white-space:pre-wrap;';
-            debug2.textContent = '⏳ Отправляем initData на /api/auth/telegram_webapp...';
-            document.body.appendChild(debug2);
-        }
 
         handleTelegramWebApp(tg.initData);
         return;
     }
 
-    console.log('ℹ️ Обычный режим (не Mini App)');
 
     // Привязываем форму magic link
     bindMagicForm();
