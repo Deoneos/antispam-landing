@@ -57,25 +57,27 @@
                 <p class="account-hint" data-i18n="account.login_hint">
                     Войдите через Telegram, чтобы управлять своими группами
                 </p>
-                <!-- Magic link — основной способ -->
-                <form id="magic-form" class="magic-form">
-                    <input type="text" 
-                           id="magic-username" 
-                           class="magic-input"
-                           placeholder="@username в Telegram"
-                           autocomplete="off"
-                           required>
-                    <button type="submit" class="btn btn-primary magic-btn" id="magic-submit">
-                        Получить ссылку для входа
-                    </button>
-                </form>
+                <!-- Magic link (только для браузера, скрыт в Mini App) -->
+                <div id="magic-section">
+                    <form id="magic-form" class="magic-form">
+                        <input type="text" 
+                               id="magic-username" 
+                               class="magic-input"
+                               placeholder="@username в Telegram"
+                               autocomplete="off"
+                               required>
+                        <button type="submit" class="btn btn-primary magic-btn" id="magic-submit">
+                            Получить ссылку для входа
+                        </button>
+                    </form>
 
-                <div id="magic-status" class="magic-status" style="display:none;"></div>
+                    <div id="magic-status" class="magic-status" style="display:none;"></div>
 
-                <div class="magic-divider">
-                    <div></div>
-                    <span>или войти через виджет</span>
-                    <div></div>
+                    <div class="magic-divider">
+                        <div></div>
+                        <span>или войти через виджет</span>
+                        <div></div>
+                    </div>
                 </div>
 
                 <div id="tg-widget-container" class="tg-widget-container"></div>
@@ -209,6 +211,6 @@
     </div>
 
     <script src="i18n.js?v=13"></script>
-    <script src="account.js?v=23"></script>
+    <script src="account.js?v=24"></script>
 </body>
 </html>

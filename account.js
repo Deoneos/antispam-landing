@@ -712,62 +712,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     
-    // Делегирование кликов — работает всегда, независимо от рендера
-    document.body.addEventListener('click', (e) => {
-        // 1. Клик на switcher — открыть/закрыть dropdown
-        const switcher = e.target.closest('#account-switcher');
-        if (switcher) {
+    // Прямые обработчики (надёжнее в WebView Telegram)
+    const switcherBtn = document.getElementById('account-switcher');
+    if (switcherBtn) {
+        switcherBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('[delegate] switcher clicked');
             toggleDropdown();
-            return;
-        }
+        };
+    }
 
-        // 2. Клик на кнопку "Добавить аккаунт"
-        const addBtn = e.target.closest('#add-account-btn');
-        if (addBtn) {
-            e.preventDefault();
+    // Обработчики внутри dropdown — через делегирование на контейнере
+    const dropdownEl = document.getElementById('account-dropdown');
+    if (dropdownEl) {
+        dropdownEl.onclick = (e) => {
             e.stopPropagation();
-            closeDropdown();
-            showLogin();
-            return;
-        }
 
-        // 3. Клик на кнопку "Выйти из аккаунта"
-        const logoutBtn = e.target.closest('#logout-active-btn');
-        if (logoutBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleLogout();
-            return;
-        }
-
-        // 4. Клик на удаление аккаунта (крестик)
-        const deleteBtn = e.target.closest('.account-item-delete');
-        if (deleteBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const userId = parseInt(deleteBtn.dataset.deleteId, 10);
-            handleDeleteAccount(userId);
-            return;
-        }
-
-        // 5. Клик на аккаунт в dropdown — переключиться
-        const accountItem = e.target.closest('.account-item');
-        if (accountItem) {
-            e.preventDefault();
-            e.stopPropagation();
-            const userId = parseInt(accountItem.dataset.userId, 10);
-            if (userId !== getActiveId()) {
-                switchToAccount(userId);
-            } else {
+            const addBtn = e.target.closest('#add-account-btn');
+            if (addBtn) {
                 closeDropdown();
+                showLogin();
+                return;
             }
-            return;
-        }
 
-        // 6. Клик вне userHeader — закрыть dropdown
+            const logoutBtn = e.target.closest('#logout-active-btn');
+            if (logoutBtn) {
+                handleLogout();
+                return;
+            }
+
+            const deleteBtn = e.target.closest('.account-item-delete');
+            if (deleteBtn) {
+                const userId = parseInt(deleteBtn.dataset.deleteId, 10);
+                handleDeleteAccount(userId);
+                return;
+            }
+
+            const item = e.target.closest('.account-item');
+            if (item) {
+                const userId = parseInt(item.dataset.userId, 10);
+                if (userId !== getActiveId()) {
+                    switchToAccount(userId);
+                } else {
+                    closeDropdown();
+                }
+                return;
+            }
+        };
+    }
+
+    // Клик вне — закрыть dropdown
+    document.addEventListener('click', (e) => {
         if (userHeader && !userHeader.contains(e.target)) {
             closeDropdown();
         }
