@@ -387,11 +387,11 @@ function openGroupModal(card) {
     loadModalChart(chatId);
     loadModalViolators(chatId);
 
-    document.getElementById('group-modal').style.display = 'flex';
+    document.getElementById('group-modal').classList.add('active');
 }
 
 function closeModal() {
-    document.getElementById('group-modal').style.display = 'none';
+    document.getElementById('group-modal').classList.remove('active');
 }
 
 async function downloadExport(chatId, title) {
