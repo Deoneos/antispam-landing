@@ -186,6 +186,8 @@ const TRANSLATIONS = {
     'donate.footer': { ru: '💛 Поддержать', en: '💛 Donate' },
 
     'account.logout_full': { ru: '🚪 Выйти из аккаунта', en: '🚪 Logout' },
+
+    'modal.chart_no_data': { ru: 'Нет данных', en: 'No data' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====
