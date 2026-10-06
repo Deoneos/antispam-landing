@@ -184,6 +184,8 @@ const TRANSLATIONS = {
         en: 'Thanks for your support! Every ruble goes to the server and bot development.',
     },
     'donate.footer': { ru: '💛 Поддержать', en: '💛 Donate' },
+
+    'account.logout_full': { ru: '🚪 Выйти из аккаунта', en: '🚪 Logout' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====

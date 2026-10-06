@@ -230,9 +230,10 @@ function renderDropdown() {
         `;
     }).join('');
 
+    const logoutText = (typeof t === 'function') ? t('account.logout_full') : '🚪 Выйти из аккаунта';
     const logoutHtml = `
         <button class="account-dropdown-logout" id="logout-active-btn">
-            🚪 Выйти из аккаунта
+            ${logoutText}
         </button>
     `;
 
