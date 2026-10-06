@@ -758,6 +758,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('lang') === lang) return;
             if (typeof setLanguage === 'function') {
                 setLanguage(lang);
+                // Перерисовываем switcher и dropdown на новом языке
+                if (typeof renderSwitcher === 'function') renderSwitcher();
+                if (typeof renderDropdown === 'function') renderDropdown();
             }
         });
     });
