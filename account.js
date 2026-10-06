@@ -688,15 +688,66 @@ document.addEventListener('DOMContentLoaded', () => {
     // Проверяем Telegram WebApp initData (открытие как Mini App)
     const tg = window.Telegram?.WebApp;
 
-    if (tg && tg.initData && tg.initData.length > 10) {
-
-        handleTelegramWebApp(tg.initData);
-        return;
+    // В Mini App скрываем magic link (он для браузера)
+    if (tg && tg.platform && tg.platform !== 'unknown') {
+        const magicSection = document.getElementById('magic-section');
+        const addHint = document.getElementById('add-account-hint');
+        if (magicSection) magicSection.style.display = 'none';
+        if (addHint) addHint.style.display = 'none';
     }
 
+    // ===== ОБРАБОТКА URL ПАРАМЕТРОВ (magic / token) =====
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryMagic = urlParams.get('magic');
+    const queryToken = urlParams.get('token');
+    const hash = window.location.hash;
+    const hashMagic = hash.startsWith('#magic=') ? hash.slice(7) : null;
+    const hashToken = hash.startsWith('#token=') ? hash.slice(7) : null;
+    const magicCode = queryMagic || hashMagic;
+    const urlToken = queryToken || hashToken;
+
+    // ===== АВТОЛОГИН (НЕ блокирует остальную инициализацию!) =====
+    if (tg && tg.initData && tg.initData.length > 10) {
+        // Mini App — автологин в фоне
+        handleTelegramWebApp(tg.initData);
+    } else if (magicCode) {
+        handleMagicCode(magicCode);
+    } else if (urlToken) {
+        handleBotToken(urlToken);
+    } else {
+        // Стартовый экран (только когда нет автологина)
+        let accounts = getAccounts();
+        const activeId = getActiveId();
+
+        const cleanAccounts = accounts.filter(a => a && a.user_id && a.token);
+        if (cleanAccounts.length !== accounts.length) {
+            saveAccounts(cleanAccounts);
+            accounts = cleanAccounts;
+        }
+
+        if (activeId && !accounts.some(a => a.user_id === activeId)) {
+            localStorage.removeItem('active_account_id');
+        }
+
+        if (accounts.length > 0 && getActiveId()) {
+            showDashboard();
+        } else {
+            showLogin();
+        }
+    }
 
     // Привязываем форму magic link
     bindMagicForm();
+
+    // ===== ОБРАБОТЧИК СВИТЧЕРА (главный фикс!) =====
+    const switcherBtn = document.getElementById('account-switcher');
+    if (switcherBtn) {
+        switcherBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleDropdown();
+        };
+    }
 
     // Переключатель языка
     document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -712,17 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     
-    // Прямые обработчики (надёжнее в WebView Telegram)
-    const switcherBtn = document.getElementById('account-switcher');
-    if (switcherBtn) {
-        switcherBtn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleDropdown();
-        };
-    }
-
-    // Обработчики внутри dropdown — через делегирование на контейнере
+    // Обработчики dropdown — делегирование на контейнере
     const dropdownEl = document.getElementById('account-dropdown');
     if (dropdownEl) {
         dropdownEl.onclick = (e) => {
@@ -777,29 +818,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.id === 'group-modal') closeModal();
     });
 
-    // Стартовый экран с защитой
-    let accounts = getAccounts();
-    const activeId = getActiveId();
-
-    // Чистим битые аккаунты (без user_id или token)
-    const cleanAccounts = accounts.filter(a => a && a.user_id && a.token);
-    if (cleanAccounts.length !== accounts.length) {
-        console.warn('Удалены битые аккаунты:', accounts.length - cleanAccounts.length);
-        saveAccounts(cleanAccounts);
-        accounts = cleanAccounts;
-    }
-
-    // Если active_id указывает на несуществующий аккаунт — сбрасываем
-    if (activeId && !accounts.some(a => a.user_id === activeId)) {
-        console.warn('Сброс active_account_id (аккаунт не найден)');
-        localStorage.removeItem('active_account_id');
-    }
-
-    if (accounts.length > 0 && getActiveId()) {
-        showDashboard();
-    } else {
-        showLogin();
-    }
 });
 
 // ===== ОБРАБОТЧИКИ =====
