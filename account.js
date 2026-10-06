@@ -349,9 +349,8 @@ function renderGroups(groups) {
         `;
     }).join('');
 
-    container.querySelectorAll('.group-card').forEach(card => {
-        card.addEventListener('click', () => openGroupModal(card));
-    });
+    // Клики обрабатываются через глобальное делегирование ниже
+    // (надёжнее, чем addEventListener на каждой карточке)
 }
 
 function escapeHtml(str) {
@@ -738,6 +737,15 @@ document.addEventListener('DOMContentLoaded', () => {
             showLogin();
         }
     }
+
+    // ===== ДЕЛЕГИРОВАНИЕ КЛИКОВ НА КАРТОЧКИ ГРУПП =====
+    document.addEventListener('click', (e) => {
+        const card = e.target.closest('.group-card');
+        if (card && !e.target.closest('.modal')) {
+            e.preventDefault();
+            openGroupModal(card);
+        }
+    });
 
     // Привязываем форму magic link
     bindMagicForm();
