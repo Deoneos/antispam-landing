@@ -437,7 +437,8 @@ async function loadModalChart(chatId) {
             ctx.fillStyle = '#667';
             ctx.font = '14px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('Нет данных', canvas.width / 2, canvas.height / 2);
+            const noDataText = (typeof t === 'function') ? t('modal.chart_no_data') : 'Нет данных';
+            ctx.fillText(noDataText, canvas.width / 2, canvas.height / 2);
             return;
         }
 
@@ -535,7 +536,8 @@ async function loadModalViolators(chatId) {
         const items = data.violators || [];
 
         if (items.length === 0) {
-            container.innerHTML = '<p class="modal-violators-empty">Нарушителей нет</p>';
+            const emptyText = (typeof t === 'function') ? t('account.modal_no_violators') : 'Нарушителей нет';
+            container.innerHTML = `<p class="modal-violators-empty">${emptyText}</p>`;
             return;
         }
 
