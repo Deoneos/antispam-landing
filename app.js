@@ -45,7 +45,7 @@ function setupScrollReveal() {
     sections.forEach(section => observer.observe(section));
 }
 // ===== LIVE STATS =====
-const API_BASE = 'https://antispam-api-zakharsakharov.amvera.io';
+const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
 
 async function loadGlobalStats() {
     try {
