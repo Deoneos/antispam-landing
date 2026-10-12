@@ -1,5 +1,5 @@
 // ===== ЛИЧНЫЙ КАБИНЕТ =====
-const API_BASE = 'https://antispam-api-zakharsakharov.amvera.io';
+const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
 
 // Ключи localStorage
 const ACCOUNTS_KEY = 'accounts';           // [{user_id, first_name, username, photo_url, token, added_at}]
