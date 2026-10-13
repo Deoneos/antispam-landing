@@ -611,7 +611,6 @@ function bindMagicForm() {
         let username = (input.value || '').trim();
         if (!username) return;
 
-        // Убираем @, если есть
         username = username.replace(/^@/, '');
 
         btn.disabled = true;
@@ -625,17 +624,31 @@ function bindMagicForm() {
                 body: JSON.stringify({ username }),
             });
 
-            if (!response.ok) {
-                throw new Error('Request failed');
-            }
+            if (!response.ok) throw new Error('Request failed');
 
             const data = await response.json();
 
             status.className = 'magic-status success';
-            status.textContent = data.message || 'Ссылка отправлена в Telegram!';
+            status.innerHTML = `
+                📱 <b>Ссылка отправлена в Telegram!</b><br>
+                Откройте сообщение на телефоне и нажмите на ссылку — кабинет
+                откроется на этом компьютере автоматически.
+                <div class="magic-waiting">
+                    <span class="magic-spinner"></span> Ожидаем подтверждения...
+                </div>
+            `;
             status.style.display = 'block';
 
             input.value = '';
+
+            if (data.poll_token) {
+                const ok = await pollMagicLink(data.poll_token);
+                if (!ok) {
+                    status.className = 'magic-status error';
+                    status.textContent = '⏱ Время ожидания истекло. Попробуйте снова.';
+                }
+                // при успехе showDashboard() переключит экран
+            }
         } catch (e) {
             console.error('Magic request error:', e);
             status.className = 'magic-status error';
@@ -646,6 +659,35 @@ function bindMagicForm() {
             btn.textContent = 'Получить ссылку для входа';
         }
     });
+}
+
+
+async function pollMagicLink(pollToken, maxAttempts = 200, interval = 3000) {
+    // 200 * 3s ≈ 10 минут — совпадает с TTL magic-ссылки
+    for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(r => setTimeout(r, interval));
+        try {
+            const resp = await fetch(
+                `${API_BASE}/api/auth/check_magic_link?poll_token=${encodeURIComponent(pollToken)}`
+            );
+            if (!resp.ok) continue;
+
+            const data = await resp.json();
+
+            if (data.status === 'used' && data.token && data.user) {
+                addOrUpdateAccount(data.user, data.token);
+                showDashboard();
+                return true;
+            }
+            if (data.status === 'expired' || data.status === 'not_found') {
+                return false;
+            }
+            // pending / used_no_token — продолжаем опрос
+        } catch (e) {
+            console.warn('poll error:', e);
+        }
+    }
+    return false;
 }
 
 

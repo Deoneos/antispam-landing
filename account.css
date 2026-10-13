@@ -871,3 +871,26 @@
         max-height: 95vh !important;
     }
 }
+/* ===== Ожидание magic-link ===== */
+.magic-waiting {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #5aa9e6;
+}
+
+.magic-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(90, 169, 230, 0.3);
+    border-top-color: #5aa9e6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
