@@ -162,6 +162,27 @@ function showLogin() {
     loginSection.style.display = 'block';
     dashboardSection.style.display = 'none';
     userHeader.style.display = 'none';
+
+    // Сбрасываем состояние magic-формы (плашку, поле, кнопку)
+    const status = document.getElementById('magic-status');
+    if (status) {
+        status.style.display = 'none';
+        status.className = 'magic-status';
+        status.textContent = '';
+    }
+
+    const input = document.getElementById('magic-username');
+    if (input) {
+        input.value = '';
+        input.disabled = false;
+    }
+
+    const btn = document.getElementById('magic-submit');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Получить ссылку для входа';
+    }
+
     renderTelegramWidget();
 }
 
@@ -608,8 +629,13 @@ function bindMagicForm() {
         const btn = document.getElementById('magic-submit');
         const status = document.getElementById('magic-status');
 
-        let username = (input.value || '').trim();
-        if (!username) return;
+let username = (input.value || '').trim();
+if (!username) {
+    status.className = 'magic-status error';
+    status.textContent = 'Введите @username в Telegram';
+    status.style.display = 'block';
+    return;
+}
 
         username = username.replace(/^@/, '');
 
