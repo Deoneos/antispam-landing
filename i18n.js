@@ -18,6 +18,15 @@ const TRANSLATIONS = {
     'hero.cta': { ru: 'Добавить бота в группу', en: 'Add bot to group' },
     'hero.cta_secondary': { ru: 'Открыть в Telegram', en: 'Open in Telegram' },
     // Live stats
+    'live.live': { ru: 'LIVE', en: 'LIVE' },
+    'live.updated_just_now': { ru: 'обновлено только что', en: 'updated just now' },
+    'live.updated_seconds_ago': { ru: 'обновлено {n} сек назад', en: 'updated {n} sec ago' },
+    'live.updated_minutes_ago': { ru: 'обновлено {n} мин назад', en: 'updated {n} min ago' },
+    'live.last_14d': { ru: '📈 Активность за 14 дней', en: '📈 Activity for 14 days' },
+    'live.stale': {
+        ru: '⚠️ Данные могут быть устаревшими',
+        en: '⚠️ Data may be outdated'
+    },
     'live.chats': { ru: 'групп под защитой', en: 'protected groups' },
     'live.deleted': { ru: 'сообщений удалено', en: 'messages deleted' },
     'live.bans': { ru: 'нарушителей забанено', en: 'violators banned' },

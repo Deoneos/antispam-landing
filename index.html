@@ -20,7 +20,7 @@
     <meta name="twitter:title" content="ANTI_SPAM Bot — модерация Telegram-групп">
     <meta name="twitter:description" content="Бот автоматически удаляет спам, рекламу и запрещённый контент из Telegram-групп.">
     <meta name="twitter:image" content="https://deoneos.github.io/antispam-landing/og-image.png">    
-    <link rel="stylesheet" href="style.css?v=16">
+    <link rel="stylesheet" href="style.css?v=17">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
@@ -87,6 +87,11 @@
     <!-- Live Stats -->
     <section class="live-stats">
         <div class="container">
+            <div class="live-header">
+                <span class="live-dot"></span>
+                <span class="live-badge" data-i18n="live.live">LIVE</span>
+                <span class="live-updated" id="live-updated"></span>
+            </div>
             <div class="live-stats-grid">
                 <div class="live-stat">
                     <div class="live-stat-icon">📢</div>
@@ -108,6 +113,13 @@
                     <div class="live-stat-value" id="stat-violations">—</div>
                     <div class="live-stat-label" data-i18n="live.violations">нарушений поймано</div>
                 </div>
+            </div>
+            <div class="live-sparkline-wrap">
+                <div class="live-sparkline-title" data-i18n="live.last_14d">📈 Активность за 14 дней</div>
+                <canvas id="live-sparkline" height="60"></canvas>
+            </div>
+            <div class="live-stale" id="live-stale" style="display:none;" data-i18n="live.stale">
+                ⚠️ Данные могут быть устаревшими
             </div>
         </div>
     </section>
@@ -304,7 +316,7 @@
         </div>
     </footer>
 
-    <script src="i18n.js?v=16"></script>
-    <script src="app.js?v=3"></script>
+    <script src="i18n.js?v=17"></script>
+    <script src="app.js?v=17"></script>
 </body>
 </html>

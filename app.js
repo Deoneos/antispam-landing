@@ -43,9 +43,12 @@ function setupScrollReveal() {
     });
 
     sections.forEach(section => observer.observe(section));
-}
-// ===== LIVE STATS =====
+}// ===== LIVE STATS =====
 const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
+
+let liveStatsLastUpdated = null;
+let liveStatsPrevValues = {};
+let liveStatsFailCount = 0;
 
 async function loadGlobalStats() {
     try {
@@ -53,52 +56,191 @@ async function loadGlobalStats() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
 
+        // Анимация перехода от старого к новому
         animateNumber('stat-chats', data.total_chats || 0);
         animateNumber('stat-deleted', data.total_deleted || 0);
         animateNumber('stat-bans', data.total_bans || 0);
         animateNumber('stat-violations', data.total_violations || 0);
+
+        // Скрываем плашку stale, если она была
+        const staleEl = document.getElementById('live-stale');
+        if (staleEl) staleEl.style.display = 'none';
+
+        liveStatsLastUpdated = Date.now();
+        liveStatsFailCount = 0;
+        updateTimeAgo();
     } catch (e) {
         console.warn('Failed to load global stats:', e);
-        // Показываем прочерки
-        ['stat-chats', 'stat-deleted', 'stat-bans', 'stat-violations'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '—';
-        });
+        liveStatsFailCount++;
+
+        // Показываем stale-плашку после 2 неудачных попыток
+        if (liveStatsFailCount >= 2) {
+            const staleEl = document.getElementById('live-stale');
+            if (staleEl) staleEl.style.display = 'block';
+        }
+
+        // Ставим прочерки, только если не было предыдущих данных
+        if (!liveStatsLastUpdated) {
+            ['stat-chats', 'stat-deleted', 'stat-bans', 'stat-violations'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '—';
+            });
+        }
     }
 }
 
-// Анимация числа от 0 до target
+// Таймер "обновлено X сек/мин назад"
+function updateTimeAgo() {
+    const el = document.getElementById('live-updated');
+    if (!el || !liveStatsLastUpdated) return;
+
+    const secondsAgo = Math.floor((Date.now() - liveStatsLastUpdated) / 1000);
+
+    let text;
+    if (secondsAgo < 5) {
+        text = (typeof t === 'function') ? t('live.updated_just_now') : 'обновлено только что';
+    } else if (secondsAgo < 60) {
+        text = (typeof t === 'function')
+            ? t('live.updated_seconds_ago', { n: secondsAgo })
+            : `обновлено ${secondsAgo} сек назад`;
+    } else {
+        const minutes = Math.floor(secondsAgo / 60);
+        text = (typeof t === 'function')
+            ? t('live.updated_minutes_ago', { n: minutes })
+            : `обновлено ${minutes} мин назад`;
+    }
+    el.textContent = text;
+}
+
+// Анимация числа от старого к новому
 function animateNumber(elementId, target) {
     const el = document.getElementById(elementId);
     if (!el) return;
 
-    const duration = 1200;
-    const start = performance.now();
+    const start = parseInt(liveStatsPrevValues[elementId] || 0);
+    liveStatsPrevValues[elementId] = target;
 
-    function update(now) {
-        const progress = Math.min((now - start) / duration, 1);
-        // easeOutCubic
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const current = Math.floor(eased * target);
-        el.textContent = current.toLocaleString('ru-RU');
-
-        if (progress < 1) {
-            requestAnimationFrame(update);
-        } else {
-            el.textContent = target.toLocaleString('ru-RU');
-        }
+    // Если число не изменилось — не перерисовываем
+    if (start === target) {
+        el.textContent = target.toLocaleString('ru-RU');
+        return;
     }
 
+    const duration = 1200;
+    const t0 = performance.now();
+
+    function update(now) {
+        const progress = Math.min((now - t0) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.floor(start + (target - start) * eased);
+        el.textContent = current.toLocaleString('ru-RU');
+
+        if (progress < 1) requestAnimationFrame(update);
+        else el.textContent = target.toLocaleString('ru-RU');
+    }
     requestAnimationFrame(update);
 }
 
-// Вызываем после загрузки страницы
+// ===== SPARKLINE (14 дней) =====
+async function loadSparkline() {
+    const canvas = document.getElementById('live-sparkline');
+    if (!canvas) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/global_daily_stats?days=14`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        drawSparkline(canvas, data.days || []);
+    } catch (e) {
+        console.warn('Sparkline load error:', e);
+    }
+}
+
+function drawSparkline(canvas, days) {
+    const ctx = canvas.getContext('2d');
+
+    // Адаптивный размер (для retina)
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.clientWidth || canvas.parentElement.clientWidth - 40;
+    const cssHeight = 60;
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    if (!days.length) return;
+
+    const values = days.map(d => d.deleted || 0);
+    const maxVal = Math.max(...values, 1);
+    const padding = { top: 8, right: 4, bottom: 4, left: 4 };
+    const w = cssWidth - padding.left - padding.right;
+    const h = cssHeight - padding.top - padding.bottom;
+
+    const stepX = w / Math.max(values.length - 1, 1);
+
+    // Точки
+    const points = values.map((v, i) => ({
+        x: padding.left + i * stepX,
+        y: padding.top + h - (v / maxVal) * h,
+    }));
+
+    // Заливка
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, padding.top + h);
+    points.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(points[points.length - 1].x, padding.top + h);
+    ctx.closePath();
+
+    const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + h);
+    grad.addColorStop(0, 'rgba(36, 129, 204, 0.35)');
+    grad.addColorStop(1, 'rgba(36, 129, 204, 0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Линия
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    points.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.strokeStyle = '#2481cc';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Точки на концах
+    ctx.fillStyle = '#5aa9e6';
+    points.forEach((p, i) => {
+        if (i === 0 || i === points.length - 1) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+}
+
+// Автозагрузка + периодическое обновление
 document.addEventListener('DOMContentLoaded', () => {
-    // Небольшая задержка для красоты — сначала появляется секция
     setTimeout(loadGlobalStats, 300);
+    setTimeout(loadSparkline, 500);
+
+    // Обновление каждые 30 секунд
+    setInterval(loadGlobalStats, 30000);
+    setInterval(loadSparkline, 60000);
+
+    // Таймер "обновлено X сек назад" — каждую секунду
+    setInterval(updateTimeAgo, 1000);
+
+    // Перерисовка sparkline при ресайзе
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(loadSparkline, 300);
+    });
 });
 
 window.loadGlobalStats = loadGlobalStats;
+window.loadSparkline = loadSparkline;
 // ===== АНАЛИТИКА: цели =====
 // Отслеживаем клики по кнопкам "Добавить бота"
 document.addEventListener('DOMContentLoaded', () => {
