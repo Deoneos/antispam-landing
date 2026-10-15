@@ -122,7 +122,40 @@ const TRANSLATIONS = {
     'cta.button': { ru: 'Добавить бота в группу', en: 'Add bot to group' },
 
     // Footer
+    'footer.home': { ru: 'Главная', en: 'Home' },
+    'footer.about': { ru: 'О проекте', en: 'About' },
     'footer.bot': { ru: 'Бот', en: 'Bot' },
+
+    // ===== Страница «О проекте» =====
+    'about.hero_badge': { ru: '🛡️ О проекте', en: '🛡️ About' },
+    'about.hero_title': {
+        ru: 'Кустос — хранитель порядка в Telegram-группах',
+        en: 'Kustos — keeper of order in Telegram groups'
+    },
+    'about.hero_subtitle': {
+        ru: 'Бесплатный бот модерации, который вырос из музейных чатов и теперь защищает сообщества по всей стране.',
+        en: 'A free moderation bot that grew out of museum chats and now protects communities across the country.'
+    },
+    'about.story_title': { ru: '📖 Как появился Кустос', en: '📖 How Kustos was born' },
+    'about.story_p1': {
+        ru: 'Проект начался с простой проблемы: в чатах музеев и культурных центров периодически появлялись спамеры — реклама сомнительных услуг, «лёгкий заработок», запрещённые вещества под видом обычных сообщений.',
+        en: 'The project started with a simple problem: spam appeared regularly in museum and cultural center chats — ads for dubious services, «easy money», banned substances disguised as regular messages.'
+    },
+    'about.story_p2': {
+        ru: 'Стандартных фильтров Telegram не хватало: спамеры обходили их, писали с ошибками, маскировали текст картинками и гомоглифами. Мы собрали инструмент, который видит спам сквозь эти уловки — с OCR для фото/GIF/видео, нормализацией текста и прогрессивными наказаниями.',
+        en: 'Standard Telegram filters were not enough: spammers bypassed them, wrote with errors, masked text with images and homoglyphs. We built a tool that sees spam through these tricks — with OCR for photos/GIFs/videos, text normalization, and progressive punishments.'
+    },
+    'about.story_p3': {
+        ru: 'Сегодня Кустос работает в музейных сообществах, IT-клубах и обычных дружеских чатах. Он бесплатный, с открытым исходным кодом и всегда будет таким — потому что порядок должен быть доступен всем.',
+        en: 'Today Kustos works in museum communities, IT clubs, and regular friendly chats. It is free, open source, and will always remain so — because order should be accessible to everyone.'
+    },
+    'about.features_title': { ru: '🎯 Что умеет Кустос', en: '🎯 What Kustos can do' },
+    'about.tech_title': { ru: '⚙️ Под капотом', en: '⚙️ Under the hood' },
+    'about.tech_python': { ru: 'Асинхронный бот', en: 'Async bot' },
+    'about.tech_api': { ru: 'REST API + JWT', en: 'REST API + JWT' },
+    'about.tech_hosting': { ru: 'Хостинг в РФ', en: 'Hosting in Russia' },
+    'about.tech_ocr': { ru: 'Распознавание текста', en: 'Text recognition' },
+    'about.stats_title': { ru: '📊 Кустос в цифрах', en: '📊 Kustos in numbers' },
     'footer.support': { ru: 'Поддержка', en: 'Support' },
     'footer.panel': { ru: 'Панель управления', en: 'Control panel' },
     'footer.made': { ru: 'Сделано с заботой о сообществах', en: 'Made with care for communities' },
