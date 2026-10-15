@@ -894,3 +894,39 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* ===== Переключатель периода графика ===== */
+.chart-period-switch {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.period-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #8899b0;
+    transition: all 0.15s;
+    font-family: inherit;
+    min-height: 36px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.period-btn.active {
+    background: #2481cc;
+    color: #fff;
+    border-color: #2481cc;
+}
+
+.period-btn:active {
+    transform: scale(0.97);
+}

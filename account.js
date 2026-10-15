@@ -405,7 +405,8 @@ function openGroupModal(card) {
         tgBtn.href = 'https://t.me/ANTI_SPAM_MWKbot';
     }
 
-    loadModalChart(chatId);
+    const savedDays = parseInt(localStorage.getItem('chart_days')) || 30;
+    loadModalChart(chatId, savedDays);
     loadModalViolators(chatId);
 
     document.getElementById('group-modal').classList.add('active');
@@ -435,9 +436,28 @@ async function downloadExport(chatId, title) {
 // ===== ГРАФИК В МОДАЛКЕ =====
 let modalChart = null;
 
-async function loadModalChart(chatId) {
+async function loadModalChart(chatId, days = 30) {
     const canvas = document.getElementById('modal-chart');
     if (!canvas || typeof Chart === 'undefined') return;
+
+    // Обновляем заголовок
+    const titleEl = document.getElementById('modal-chart-title');
+    if (titleEl) {
+        const titleKey = `account.modal_chart_title_${days}`;
+        titleEl.setAttribute('data-i18n', titleKey);
+        titleEl.textContent = (typeof t === 'function')
+            ? t(titleKey)
+            : `📊 Активность за ${days} дней`;
+    }
+
+    // Обновляем активную кнопку
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        const btnDays = parseInt(btn.getAttribute('data-days'));
+        btn.classList.toggle('active', btnDays === days);
+    });
+
+    // Запоминаем выбор
+    localStorage.setItem('chart_days', days);
 
     if (modalChart) {
         modalChart.destroy();
@@ -445,7 +465,7 @@ async function loadModalChart(chatId) {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/api/timeline?chat_id=${chatId}&days=30`);
+        const response = await fetch(`${API_BASE}/api/timeline?chat_id=${chatId}&days=${days}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
 
@@ -540,6 +560,36 @@ async function loadModalChart(chatId) {
         console.error('Modal chart error:', e);
     }
 }
+
+// ===== ПЕРЕКЛЮЧАТЕЛЬ ПЕРИОДА ГРАФИКА =====
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.period-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+
+    const days = parseInt(btn.getAttribute('data-days'));
+    if (!days) return;
+
+    // Не перезагружаем, если уже выбрано
+    const current = parseInt(localStorage.getItem('chart_days')) || 30;
+    if (days === current) return;
+
+    // Находим chatId текущей открытой модалки
+    const modal = document.getElementById('group-modal');
+    if (!modal || !modal.classList.contains('active')) return;
+
+    // chatId можно достать из заголовка модалки (subtitle: "ID: -100...")
+    const subtitle = document.getElementById('modal-subtitle');
+    if (!subtitle) return;
+
+    const match = subtitle.textContent.match(/-?\d+/);
+    if (!match) return;
+
+    const chatId = parseInt(match[0]);
+    loadModalChart(chatId, days);
+});
+
 
 // ===== ТОП НАРУШИТЕЛЕЙ =====
 async function loadModalViolators(chatId) {
