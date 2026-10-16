@@ -493,7 +493,7 @@ async function loadModalChart(chatId, days = 30) {
                 labels: labels,
                 datasets: [
                     {
-                        label: '🗑',
+                        label: (typeof t === 'function') ? t('chart.deleted') : '🗑',
                         data: items.map(d => d.deleted || 0),
                         borderColor: '#2481cc',
                         backgroundColor: 'rgba(36, 129, 204, 0.12)',
@@ -501,7 +501,7 @@ async function loadModalChart(chatId, days = 30) {
                         pointHoverRadius: 4, fill: true,
                     },
                     {
-                        label: '⚖️',
+                        label: (typeof t === 'function') ? t('chart.bans') : '⚖️',
                         data: items.map(d => d.bans || 0),
                         borderColor: '#e74c3c',
                         backgroundColor: 'rgba(231, 76, 60, 0.12)',
@@ -509,7 +509,7 @@ async function loadModalChart(chatId, days = 30) {
                         pointHoverRadius: 4, fill: true,
                     },
                     {
-                        label: '⚠️',
+                        label: (typeof t === 'function') ? t('chart.violations') : '⚠️',
                         data: items.map(d => d.violations || 0),
                         borderColor: '#f39c12',
                         backgroundColor: 'rgba(243, 156, 18, 0.12)',
@@ -622,7 +622,7 @@ async function loadModalViolators(chatId) {
                         <div class="violator-name">${escapeHtml(name)}</div>
                         <div class="violator-meta">${v.last_date || ''}</div>
                     </div>
-                    <div class="violator-count">${v.count} наруш.</div>
+                    <div class="violator-count">${(typeof t === 'function') ? t('violators.count', {n: v.count}) : v.count + ' наруш.'}</div>
                 </div>
             `;
         }).join('');

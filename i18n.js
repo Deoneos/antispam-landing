@@ -205,6 +205,14 @@ const TRANSLATIONS = {
     'account.modal_chart_title_7': { ru: '📊 Активность за 7 дней', en: '📊 Activity for 7 days' },
     'account.modal_chart_title_30': { ru: '📊 Активность за 30 дней', en: '📊 Activity for 30 days' },
     'account.modal_chart_title_90': { ru: '📊 Активность за 90 дней', en: '📊 Activity for 90 days' },
+
+    // ===== Легенды графика =====
+    'chart.deleted': { ru: '🗑 Удалено', en: '🗑 Deleted' },
+    'chart.bans': { ru: '⚖️ Баны', en: '⚖️ Bans' },
+    'chart.violations': { ru: '⚠️ Нарушения', en: '⚠️ Violations' },
+
+    // ===== Счётчик нарушителей =====
+    'violators.count': { ru: '{n} наруш.', en: '{n} viol.' },
     'account.chart_days_7': { ru: '7 дней', en: '7 days' },
     'account.chart_days_30': { ru: '30 дней', en: '30 days' },
     'account.chart_days_90': { ru: '90 дней', en: '90 days' },
