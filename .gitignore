@@ -8,3 +8,8 @@
 # Временное
 *.tmp
 .DS_Store
+
+*.bak.*
+*.db-wal
+*.db-shm
+api_data.db.empty_*
