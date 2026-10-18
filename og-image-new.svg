@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e1a"/>
+      <stop offset="100%" stop-color="#0d1420"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d8be0"/>
+      <stop offset="100%" stop-color="#1a5490"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Фон -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Радиальный блик сверху -->
+  <ellipse cx="600" cy="0" rx="800" ry="400" fill="rgba(36, 129, 204, 0.15)"/>
+
+  <!-- Щит с галочкой -->
+  <g transform="translate(600, 130)">
+    <path d="M -55 -55 L 0 -80 L 55 -55 L 55 30 Q 55 75 0 100 Q -55 75 -55 30 Z"
+          fill="url(#shield)"/>
+    <path d="M -25 0 L -8 18 L 30 -20"
+          fill="none" stroke="#ffffff" stroke-width="10"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Заголовок -->
+  <text x="600" y="310" font-family="Arial, Helvetica, sans-serif"
+        font-size="72" font-weight="900" fill="#ffffff" text-anchor="middle"
+        letter-spacing="-1">ANTI_SPAM Bot</text>
+
+  <!-- Подзаголовок -->
+  <text x="600" y="380" font-family="Arial, Helvetica, sans-serif"
+        font-size="32" font-weight="400" fill="#8899b0" text-anchor="middle">
+    Модерация Telegram-групп без спама
+  </text>
+
+  <!-- Разделитель -->
+  <line x1="450" y1="440" x2="750" y2="440" stroke="#2481cc" stroke-width="2" opacity="0.5"/>
+
+  <!-- Новый URL -->
+  <text x="600" y="510" font-family="Arial, Helvetica, sans-serif"
+        font-size="36" font-weight="600" fill="#5aa9e6" text-anchor="middle"
+        letter-spacing="0.5">kustos.ru</text>
+
+  <!-- Копирайт -->
+  <text x="600" y="580" font-family="Arial, Helvetica, sans-serif"
+        font-size="20" font-weight="400" fill="#667" text-anchor="middle">
+    Кустос © 2026
+  </text>
+</svg>
