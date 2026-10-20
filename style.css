@@ -643,9 +643,7 @@ a {
     .header-account-btn span {
         font-size: 16px;
     }
-    .header-account-btn span::before {
-        content: '🔐';
-    }
+
 }
 
 /* ===== СЕКЦИЯ ДОНАТОВ ===== */
