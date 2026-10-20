@@ -573,11 +573,34 @@
 
 /* ===== МОБИЛЬНАЯ ===== */
 @media (max-width: 640px) {
+    .account-switcher-btn {
+        flex-shrink: 0 !important;
+        padding: 4px 8px 4px 4px !important;
+        min-width: 44px;
+        height: 40px;
+    }
+    
     .account-switcher-name {
-        max-width: 80px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        display: none !important; /* Скрываем имя, чтобы не ломать шапку */
+    }
+    
+    .account-switcher-arrow {
+        display: inline-block !important; /* Стрелочку оставляем! */
+        font-size: 12px;
+        margin-left: 2px;
+        color: #e8e8e8;
+    }
+
+    .account-switcher-avatar {
+        width: 28px;
+        height: 28px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
     }
 
     .account-dropdown {
