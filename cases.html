@@ -28,15 +28,15 @@
 
         <div class="cases-hero">
             <h1>Спам не пройдет</h1>
-            <p>Более 118 удалённых сообщений и 68 заблокированных нарушителей в самых разных сообществах.</p>
+            <p>Уже 131 удалённых сообщений и 48 заблокированных нарушителей в самых разных сообществах.</p>
             
             <div class="stats-row">
                 <div class="stat-item">
-                    <div class="stat-value">1000+</div>
+                    <div class="stat-value">131</div>
                     <div class="stat-label">Удалено спама</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">50+</div>
+                    <div class="stat-value">6</div>
                     <div class="stat-label">Защищено групп</div>
                 </div>
                 <div class="stat-item">
@@ -46,11 +46,17 @@
             </div>
         </div>
 
+        
+        <!-- Сюда будут подгружаться одобренные отзывы -->
+        <div id="dynamic-reviews" class="cases-grid" style="margin-bottom: 20px;"></div>
+        
+        <h3 style="text-align: center; margin-top: 40px; color: #888;">Примеры использования</h3>
         <div class="cases-grid">
+
             <!-- Кейс 1 -->
             <div class="case-card">
                 <div class="case-icon">🏛️</div>
-                <div class="case-title">Музей «Моя история»</div>
+                <div class="case-title">Музейное сообщество</div>
                 <div class="case-subtitle">Сообщество в Telegram: 5 000+ участников</div>
                 <div class="case-text">
                     «До подключения бота в чате обсуждений постов каждые полчаса появлялись рекламные сообщения крипто-казино. Администраторы не успевали их удалять. <br><br>
@@ -59,7 +65,7 @@
                 <div class="case-author">
                     <div class="case-avatar">👨‍💼</div>
                     <div>
-                        <div class="case-author-name">Захар С.</div>
+                        <div class="case-author-name">Администратор</div>
                         <div class="case-author-role">Администратор сообщества</div>
                     </div>
                 </div>
@@ -68,7 +74,7 @@
             <!-- Кейс 2 -->
             <div class="case-card">
                 <div class="case-icon">💻</div>
-                <div class="case-title">IT-сообщество «Вайбкодеры»</div>
+                <div class="case-title">IT-сообщество</div>
                 <div class="case-subtitle">Чат программистов: 1 200+ участников</div>
                 <div class="case-text">
                     «У нас был настоящий ад с «хайп-ботаими», которые писали «Купите мой курс» под каждым вопросом новичка. <br><br>
@@ -77,14 +83,29 @@
                 <div class="case-author">
                     <div class="case-avatar">👩‍💻</div>
                     <div>
-                        <div class="case-author-name">Анна К.</div>
+                        <div class="case-author-name">Основатель чата</div>
                         <div class="case-author-role">Основатель чата</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 60px; margin-bottom: 60px;">
+        
+        <!-- Форма для отзыва -->
+        <div style="background: #17212b; border-radius: 16px; padding: 32px; margin-top: 40px; border: 1px solid #232e3c;">
+            <h2 style="margin-bottom: 8px; text-align: center;">Оставить отзыв</h2>
+            <p style="color: #888; text-align: center; margin-bottom: 24px; font-size: 14px;">Расскажите, как бот помог вашему сообществу</p>
+            
+            <form id="review-form" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="text" id="rev-name" placeholder="Ваше имя (или ник)" maxlength="50" required style="padding: 12px; border-radius: 8px; border: 1px solid #232e3c; background: #0e1621; color: #fff; font-size: 15px;">
+                <input type="text" id="rev-role" placeholder="Ваша роль (например: Администратор группы)" maxlength="100" style="padding: 12px; border-radius: 8px; border: 1px solid #232e3c; background: #0e1621; color: #fff; font-size: 15px;">
+                <textarea id="rev-text" placeholder="Текст отзыва..." rows="4" maxlength="1000" required style="padding: 12px; border-radius: 8px; border: 1px solid #232e3c; background: #0e1621; color: #fff; font-size: 15px; resize: vertical;"></textarea>
+                <button type="submit" class="btn btn-primary" style="padding: 14px; font-size: 16px; cursor: pointer;">Отправить отзыв</button>
+                <p id="rev-status" style="text-align: center; font-size: 14px; margin: 0;"></p>
+            </form>
+        </div>
+
+<div style="text-align: center; margin-top: 60px; margin-bottom: 60px;">
             <h2 style="margin-bottom: 20px;">Готовы навести порядок в своём чате?</h2>
             <a href="https://t.me/ANTI_SPAM_MWKbot?startgroup=true" class="btn btn-primary" style="display: inline-block; text-decoration: none; padding: 16px 32px; font-size: 18px;">➕ Добавить бота в группу</a>
         </div>
@@ -94,5 +115,66 @@
             <p style="margin-top: 8px;"><a href="https://t.me/KustosStats" target="_blank">Канал @KustosStats</a></p>
         </footer>
     </div>
+
+    <script>
+    // Загрузка отзывов
+    async function loadReviews() {
+        try {
+            const res = await fetch('https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/reviews');
+            const data = await res.json();
+            const container = document.getElementById('dynamic-reviews');
+            if (!container || !data.reviews || data.reviews.length === 0) return;
+            
+            container.innerHTML = data.reviews.map(r => `
+                <div class="case-card">
+                    <div class="case-icon">💬</div>
+                    <div class="case-title">${r.name}</div>
+                    <div class="case-subtitle">${r.role || 'Пользователь'}</div>
+                    <div class="case-text">${r.text.replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error('Ошибка загрузки отзывов:', e);
+        }
+    }
+    loadReviews();
+
+    // Отправка формы
+    document.getElementById('review-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const status = document.getElementById('rev-status');
+        
+        const name = document.getElementById('rev-name').value.trim();
+        const role = document.getElementById('rev-role').value.trim();
+        const text = document.getElementById('rev-text').value.trim();
+        
+        btn.disabled = true;
+        btn.textContent = 'Отправка...';
+        status.textContent = '';
+        
+        try {
+            const res = await fetch('https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, role, text })
+            });
+            
+            if (res.ok) {
+                status.textContent = '✅ Спасибо! Ваш отзыв отправлен на модерацию.';
+                status.style.color = '#2ecc71';
+                e.target.reset();
+            } else {
+                throw new Error('Ошибка сервера');
+            }
+        } catch (err) {
+            status.textContent = '❌ Ошибка при отправке. Попробуйте позже.';
+            status.style.color = '#e74c3c';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Отправить отзыв';
+        }
+    });
+    </script>
 </body>
 </html>
