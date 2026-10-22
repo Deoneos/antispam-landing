@@ -407,6 +407,7 @@ function openGroupModal(card) {
 
     const savedDays = parseInt(localStorage.getItem('chart_days')) || 30;
     loadModalChart(chatId, savedDays);
+    loadChatHealth(chatId);
     loadModalViolators(chatId);
 
     document.getElementById('group-modal').classList.add('active');
@@ -988,5 +989,99 @@ function handleDeleteAccount(userId) {
             renderDropdown();
             loadDashboard();
         }
+    }
+}
+
+
+// ===== ЗДОРОВЬЕ БОТА =====
+
+async function loadChatHealth(chatId) {
+    const dotEl = document.getElementById('health-dot');
+    const statusEl = document.getElementById('health-status');
+    const detailsEl = document.getElementById('health-details');
+    const lastSyncEl = document.getElementById('health-last-sync');
+    const pauseRow = document.getElementById('health-pause-row');
+    const pauseUntilEl = document.getElementById('health-pause-until');
+    const scheduleEl = document.getElementById('health-schedule');
+
+    if (!dotEl || !statusEl) return;
+
+    // Сброс в состояние загрузки
+    dotEl.textContent = '⏳';
+    statusEl.textContent = 'Проверка...';
+    statusEl.className = 'modal-health-status loading';
+    detailsEl.style.display = 'none';
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${user.id}`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+
+        if (!data.ok) throw new Error('API error');
+
+        // Статус
+        let dot, statusText, statusClass;
+
+        if (!data.is_active) {
+            dot = '🔴';
+            statusText = 'Бот не в группе';
+            statusClass = 'off';
+        } else if (data.is_paused) {
+            dot = '🟡';
+            statusText = 'На паузе';
+            statusClass = 'paused';
+        } else if (!data.moderation_enabled) {
+            dot = '🟡';
+            statusText = 'Модерация выключена';
+            statusClass = 'paused';
+        } else {
+            dot = '🟢';
+            statusText = 'Активен';
+            statusClass = 'ok';
+        }
+
+        dotEl.textContent = dot;
+        statusEl.textContent = statusText;
+        statusEl.className = 'modal-health-status ' + statusClass;
+
+        // Детали
+        if (data.last_sync) {
+            const syncDate = new Date(data.last_sync);
+            const now = new Date();
+            const diffMin = Math.round((now - syncDate) / 60000);
+            let syncText;
+            if (diffMin < 1) syncText = 'только что';
+            else if (diffMin < 60) syncText = `${diffMin} мин назад`;
+            else syncText = `${Math.round(diffMin / 60)} ч назад`;
+            lastSyncEl.textContent = syncText;
+        } else {
+            lastSyncEl.textContent = 'нет данных';
+        }
+
+        if (data.is_paused && data.paused_until) {
+            const pauseDate = new Date(data.paused_until);
+            pauseUntilEl.textContent = pauseDate.toLocaleString('ru-RU', {
+                day: '2-digit', month: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+            pauseRow.style.display = 'flex';
+        } else {
+            pauseRow.style.display = 'none';
+        }
+
+        // Расписание
+        const s = data.schedule;
+        if (s.start === '00:00' && s.end === '23:59' && s.weekends) {
+            scheduleEl.textContent = 'круглосуточно, 7 дней';
+        } else {
+            scheduleEl.textContent = `${s.start}–${s.end}${s.weekends ? ', выходные' : ', будни'}`;
+        }
+
+        detailsEl.style.display = 'block';
+    } catch (e) {
+        console.error('loadChatHealth error:', e);
+        dotEl.textContent = '⚪';
+        statusEl.textContent = 'Нет данных';
+        statusEl.className = 'modal-health-status loading';
     }
 }

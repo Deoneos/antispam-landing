@@ -953,3 +953,53 @@
 .period-btn:active {
     transform: scale(0.97);
 }
+
+
+/* ===== ЗДОРОВЬЕ БОТА В МОДАЛКЕ ===== */
+.modal-health {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-health-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-health-dot {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.modal-health-status {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.modal-health-status.ok { color: #2ecc71; }
+.modal-health-status.paused { color: #f39c12; }
+.modal-health-status.off { color: #e74c3c; }
+.modal-health-status.loading { color: #7d8b99; }
+
+.modal-health-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-health-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+    color: #b0b8c0;
+}
+
+.modal-health-item span:last-child {
+    color: #e8e8e8;
+    font-weight: 500;
+}

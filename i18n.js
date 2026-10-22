@@ -244,6 +244,11 @@ const TRANSLATIONS = {
     'account.logout_full': { ru: '🚪 Выйти из аккаунта', en: '🚪 Logout' },
 
     'modal.chart_no_data': { ru: 'Нет данных', en: 'No data' },
+    // Health status (F-9)
+    'account.health_loading': { ru: 'Проверка...', en: 'Checking...' },
+    'account.health_last_sync': { ru: 'Последний sync:', en: 'Last sync:' },
+    'account.health_pause': { ru: 'Пауза до:', en: 'Paused until:' },
+    'account.health_schedule': { ru: 'Расписание:', en: 'Schedule:' },
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====

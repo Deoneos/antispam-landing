@@ -190,6 +190,28 @@
                     <div class="modal-stat-label" data-i18n="account.modal_violations">Нарушений</div>
                 </div>
             </div>
+                        <!-- Здоровье бота -->
+            <div class="modal-health" id="modal-health">
+                <div class="modal-health-row">
+                    <span class="modal-health-dot" id="health-dot">⏳</span>
+                    <span class="modal-health-status" id="health-status" data-i18n="account.health_loading">Проверка...</span>
+                </div>
+                <div class="modal-health-details" id="health-details" style="display:none;">
+                    <div class="modal-health-item">
+                        <span data-i18n="account.health_last_sync">Последний sync:</span>
+                        <span id="health-last-sync">—</span>
+                    </div>
+                    <div class="modal-health-item" id="health-pause-row" style="display:none;">
+                        <span data-i18n="account.health_pause">Пауза до:</span>
+                        <span id="health-pause-until">—</span>
+                    </div>
+                    <div class="modal-health-item">
+                        <span data-i18n="account.health_schedule">Расписание:</span>
+                        <span id="health-schedule">—</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="modal-chart-container">
                 <h4 class="modal-chart-title" id="modal-chart-title" data-i18n="account.modal_chart_title_30">📊 Активность за 30 дней</h4>
                 <div class="modal-chart-wrap">
