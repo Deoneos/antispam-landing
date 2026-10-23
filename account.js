@@ -1012,8 +1012,19 @@ async function loadChatHealth(chatId) {
     statusEl.className = 'modal-health-status loading';
     detailsEl.style.display = 'none';
 
+    
+    const currentUserId = (window.currentUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_user_id'));
+    if (!currentUserId || currentUserId === '0' || currentUserId === 0) {
+        console.warn('loadChatHealth: ID пользователя не найден (вы не авторизованы или открыли вне Telegram).');
+        dotEl.textContent = '⚪';
+        statusEl.textContent = 'Требуется вход';
+        statusEl.className = 'modal-health-status loading';
+        detailsEl.style.display = 'none';
+        return;
+    }
+
     try {
-        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${(window.currentUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_user_id') || 0)}`);
+        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${(currentUserId)}`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
 
