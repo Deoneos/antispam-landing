@@ -1013,7 +1013,13 @@ async function loadChatHealth(chatId) {
     detailsEl.style.display = 'none';
 
     
-    const currentUserId = (window.currentUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_user_id'));
+    let currentUserId = (window.currentUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_user_id'));
+    if (!currentUserId) {
+        try {
+            const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+            if (accounts.length > 0) currentUserId = accounts[accounts.length - 1].user_id;
+        } catch (e) { console.warn('Ошибка парсинга accounts', e); }
+    }
     if (!currentUserId || currentUserId === '0' || currentUserId === 0) {
         console.warn('loadChatHealth: ID пользователя не найден (вы не авторизованы или открыли вне Telegram).');
         dotEl.textContent = '⚪';
@@ -1024,7 +1030,9 @@ async function loadChatHealth(chatId) {
     }
 
     try {
-        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${(currentUserId)}`);
+        const token = typeof getToken === 'function' ? getToken() : null;
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${currentUserId}`, { headers });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
 
