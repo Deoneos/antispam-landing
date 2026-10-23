@@ -1013,7 +1013,7 @@ async function loadChatHealth(chatId) {
     detailsEl.style.display = 'none';
 
     try {
-        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${user.id}`);
+        const resp = await fetch(`${API_BASE}/api/chat/${chatId}/health?user_id=${(window.currentUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_user_id') || 0)}`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
 
