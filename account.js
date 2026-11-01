@@ -2,6 +2,42 @@
 const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
 
 // Ключи localStorage
+
+const HEALTH_TRANSLATIONS = {
+    ru: {
+        active: 'Активен',
+        paused: 'На паузе',
+        off: 'Бот не в группе',
+        moderation_off: 'Модерация выключена',
+        loading: 'Проверка...',
+        no_data: 'Нет данных',
+        auth_required: 'Требуется вход',
+        last_sync: 'Последний sync:',
+        pause_until: 'Пауза до:',
+        schedule: 'Расписание:',
+        just_now: 'только что',
+        min_ago: 'мин назад',
+        hour_ago: 'ч назад',
+        round_the_clock: 'круглосуточно, 7 дней'
+    },
+    en: {
+        active: 'Active',
+        paused: 'Paused',
+        off: 'Bot is not in group',
+        moderation_off: 'Moderation off',
+        loading: 'Checking...',
+        no_data: 'No data',
+        auth_required: 'Login required',
+        last_sync: 'Last sync:',
+        pause_until: 'Paused until:',
+        schedule: 'Schedule:',
+        just_now: 'just now',
+        min_ago: 'min ago',
+        hour_ago: 'h ago',
+        round_the_clock: '24/7'
+    }
+};
+
 const ACCOUNTS_KEY = 'accounts';           // [{user_id, first_name, username, photo_url, token, added_at}]
 const ACTIVE_ID_KEY = 'active_account_id'; // user_id
 
@@ -996,6 +1032,8 @@ function handleDeleteAccount(userId) {
 // ===== ЗДОРОВЬЕ БОТА =====
 
 async function loadChatHealth(chatId) {
+    const lang = localStorage.getItem('lang') || 'ru';
+    const tr = HEALTH_TRANSLATIONS[lang] || HEALTH_TRANSLATIONS.ru;
     const dotEl = document.getElementById('health-dot');
     const statusEl = document.getElementById('health-status');
     const detailsEl = document.getElementById('health-details');
@@ -1008,7 +1046,7 @@ async function loadChatHealth(chatId) {
 
     // Сброс в состояние загрузки
     dotEl.textContent = '⏳';
-    statusEl.textContent = 'Проверка...';
+    statusEl.textContent = tr.loading;
     statusEl.className = 'modal-health-status loading';
     detailsEl.style.display = 'none';
 
@@ -1023,7 +1061,7 @@ async function loadChatHealth(chatId) {
     if (!currentUserId || currentUserId === '0' || currentUserId === 0) {
         console.warn('loadChatHealth: ID пользователя не найден (вы не авторизованы или открыли вне Telegram).');
         dotEl.textContent = '⚪';
-        statusEl.textContent = 'Требуется вход';
+        statusEl.textContent = tr.auth_required;
         statusEl.className = 'modal-health-status loading';
         detailsEl.style.display = 'none';
         return;
@@ -1043,19 +1081,19 @@ async function loadChatHealth(chatId) {
 
         if (!data.is_active) {
             dot = '🔴';
-            statusText = 'Бот не в группе';
+            statusText = tr.off;
             statusClass = 'off';
         } else if (data.is_paused) {
             dot = '🟡';
-            statusText = 'На паузе';
+            statusText = tr.paused;
             statusClass = 'paused';
         } else if (!data.moderation_enabled) {
             dot = '🟡';
-            statusText = 'Модерация выключена';
+            statusText = tr.moderation_off;
             statusClass = 'paused';
         } else {
             dot = '🟢';
-            statusText = 'Активен';
+            statusText = tr.active;
             statusClass = 'ok';
         }
 
@@ -1069,12 +1107,12 @@ async function loadChatHealth(chatId) {
             const now = new Date();
             const diffMin = Math.round((now - syncDate) / 60000);
             let syncText;
-            if (diffMin < 1) syncText = 'только что';
-            else if (diffMin < 60) syncText = `${diffMin} мин назад`;
-            else syncText = `${Math.round(diffMin / 60)} ч назад`;
+            if (diffMin < 1) syncText = tr.just_now;
+            else if (diffMin < 60) syncText = `${diffMin} ${tr.min_ago}`;
+            else syncText = `${Math.round(diffMin / 60)} ${tr.hour_ago}`;
             lastSyncEl.textContent = syncText;
         } else {
-            lastSyncEl.textContent = 'нет данных';
+            lastSyncEl.textContent = tr.no_data;
         }
 
         if (data.is_paused && data.paused_until) {
@@ -1091,7 +1129,7 @@ async function loadChatHealth(chatId) {
         // Расписание
         const s = data.schedule;
         if (s.start === '00:00' && s.end === '23:59' && s.weekends) {
-            scheduleEl.textContent = 'круглосуточно, 7 дней';
+            scheduleEl.textContent = tr.round_the_clock;
         } else {
             scheduleEl.textContent = `${s.start}–${s.end}${s.weekends ? ', выходные' : ', будни'}`;
         }
@@ -1100,7 +1138,7 @@ async function loadChatHealth(chatId) {
     } catch (e) {
         console.error('loadChatHealth error:', e);
         dotEl.textContent = '⚪';
-        statusEl.textContent = 'Нет данных';
+        statusEl.textContent = tr.no_data;
         statusEl.className = 'modal-health-status loading';
     }
 }
