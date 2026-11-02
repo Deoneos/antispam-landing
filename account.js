@@ -1,6 +1,46 @@
 // ===== ЛИЧНЫЙ КАБИНЕТ =====
 const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
 
+// === API FAILOVER (Client-side) ===
+const API_BACKUP = 'https://api.kustos.ru';
+(function() {
+    const origFetch = window.fetch.bind(window);
+    const TIMEOUT_MS = 3000;
+
+    window.fetch = async function(input, init) {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (!url.startsWith(API_BASE)) {
+            return origFetch(input, init);
+        }
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        try {
+            const resp = await origFetch(input, { ...init, signal: controller.signal });
+            clearTimeout(timer);
+            if (resp.status >= 500) throw new Error('Primary 5xx: ' + resp.status);
+            return resp;
+        } catch (e) {
+            clearTimeout(timer);
+            console.warn('🔌 API Failover: primary failed → ' + e.message + '. Retrying on backup...');
+        }
+        const backupUrl = url.replace(API_BASE, API_BACKUP);
+        try {
+            const resp = await origFetch(backupUrl, init);
+            console.info('✅ API Failover: backup responded ' + resp.status);
+            return resp;
+        } catch (e2) {
+            console.error('🔌 API Failover: backup also failed:', e2.message);
+            return new Response(JSON.stringify({ detail: 'API unavailable (both primary and backup)' }), {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+    };
+    console.log('🛡️ API Failover enabled: ' + API_BASE + ' → ' + API_BACKUP);
+})();
+// === END API FAILOVER ===
+
+
 // Ключи localStorage
 
 const HEALTH_TRANSLATIONS = {
