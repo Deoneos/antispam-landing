@@ -13,3 +13,8 @@
 *.db-wal
 *.db-shm
 api_data.db.empty_*
+
+*.bak*
+__pycache__/
+venv/
+*.pyc
