@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Захар Сахаров — DevOps-инженер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Анимации при скролле */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Шапка */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title {
+            font-size: 1.2rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .contacts {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-link:hover {
+            border-color: var(--accent);
+            color: var(--text-main);
+            transform: translateY(-2px);
+        }
+
+        /* Секции */
+        section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Карточки опыта */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .job {
+            position: relative;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+
+        .job:hover {
+            border-color: var(--accent);
+        }
+
+        .job::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 24px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg-color);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .job-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .job-company {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .job-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: rgba(148, 163, 184, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .job-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .job-desc ul {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .job-desc li {
+            margin-bottom: 6px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .job-desc li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* Навыки */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background: rgba(59, 130, 246, 0.1);
+            color: #93c5fd;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.2s;
+        }
+
+        .skill-tag:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Образование */
+        .edu-card {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .edu-title {
+            font-weight: 600;
+        }
+
+        .edu-sub {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 600px) {
+            .name { font-size: 2rem; }
+            .job-header { flex-direction: column; }
+            .contacts { flex-direction: column; align-items: stretch; }
+            .contact-link { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="fade-in">
+        <h1 class="name">Сахаров Захар Андреевич</h1>
+        <div class="title">DevOps-инженер / Системный администратор Linux</div>
+        <div class="contacts">
+            <a href="https://t.me/zakharsakharov" target="_blank" class="contact-link">
+                ✈️ @zakharsakharov
+            </a>
+            <a href="mailto:zaharsaharov25@gmail.com" class="contact-link">
+                ✉️ zaharsaharov25@gmail.com
+            </a>
+            <a href="tel:+79288270352" class="contact-link">
+                📞 +7 (928) 827-03-52
+            </a>
+            <span class="contact-link">
+                📍 Пятигорск (удаленно)
+            </span>
+        </div>
+    </header>
+
+    <section class="fade-in">
+        <h2 class="section-title">Обо мне</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">
+            Работаю в системном администрировании, активно развиваюсь в области DevOps. 
+            Обладаю навыками стрессоустойчивости, люблю многозадачность. С недавнего времени занимаю должность заведующего отделом ИТ. Повышаю квалификацию ежедневно.
+        </p>
+    </section>
+
+    <section class="fade-in">
+        <h2 class="section-title">Опыт работы (4 года 7 месяцев)</h2>
+        <div class="timeline">
+            
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <div class="job-title">Заведующий отделом ИТ</div>
+                        <div class="job-company">Исторический парк «Россия — Моя история»</div>
+                    </div>
+                    <div class="job-date">Фев 2026 — н.в.</div>
+                </div>
+                <div class="job-desc">
+                    <ul>
+                        <li>Управление ИТ-отделом, составление графиков и табелей, работа с охраной труда.</li>
+                        <li>Проведение закупок по 44-ФЗ, работа с ЭЦП, подписание документов в 1С (УПД).</li>
+                        <li>Курирование мероприятий, работа с CRM и Nextcloud, инвентаризация оборудования.</li>
+                        <li>Выполнение задач системного администратора.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <div class="job-title">Системный администратор</div>
+                        <div class="job-company">Исторический парк «Россия — Моя история»</div>
+                    </div>
+                    <div class="job-date">Янв 2025 — Фев 2026</div>
+                </div>
+                <div class="job-desc">
+                    <ul>
+                        <li>Администрирование более 300 устройств, работа с AD, Firewall, DHCP, DNS.</li>
+                        <li>Настройка сетевого оборудования (Juniper, Huawei, Unifi), настройка VLAN.</li>
+                        <li>Создание баз данных (PostgreSQL), настройка веб-серверов (Ubuntu) и сертификатов.</li>
+                        <li>Настройка и маппинг проекторов (VVVV), IP-телефонии, видеонаблюдения (Trassir).</li>
+                        <li>Развертывание систем мониторинга устройств.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <div class="job-title">Системный администратор</div>
+                        <div class="job-company">ООО "Бери-Рули"</div>
+                    </div>
+                    <div class="job-date">Янв 2022 — Окт 2023</div>
+                </div>
+                <div class="job-desc">
+                    <ul>
+                        <li>Настройка сетевого оборудования (Keenetic, Mikrotik), VPN, Proxy.</li>
+                        <li>Виртуализация (VMware, Virtualbox), развертывание Ubuntu Server для сайтов.</li>
+                        <li>Настройка Active Directory, общих папок, резервное копирование (AcronisTI).</li>
+                        <li>Сборка и тестирование ПК и серверов, работа с IP-камерами.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <div class="job-title">Специалист по тестированию</div>
+                        <div class="job-company">ООО "Информ-Поддержка"</div>
+                    </div>
+                    <div class="job-date">Фев 2021 — Ноя 2021</div>
+                </div>
+                <div class="job-desc">
+                    <ul>
+                        <li>Ручное функциональное и регрессионное тестирование веб-приложений.</li>
+                        <li>Тестирование REST API (Postman, Swagger) и СУБД (PostgreSQL/MariaDB).</li>
+                        <li>Развертывание тестовых сред в Docker, работа с логами (Kibana), Kafka, RabbitMQ.</li>
+                        <li>Написание bash-скриптов, работа в Linux.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="fade-in">
+        <h2 class="section-title">Навыки</h2>
+        <div class="skills-grid">
+            <span class="skill-tag">Linux (Ubuntu)</span>
+            <span class="skill-tag">Docker / Docker-compose</span>
+            <span class="skill-tag">Kubernetes</span>
+            <span class="skill-tag">GitLab CI</span>
+            <span class="skill-tag">Bash</span>
+            <span class="skill-tag">PostgreSQL</span>
+            <span class="skill-tag">REST API</span>
+            <span class="skill-tag">Active Directory</span>
+            <span class="skill-tag">Zabbix / Мониторинг</span>
+            <span class="skill-tag">Сети (VLAN, DNS, VPN)</span>
+            <span class="skill-tag">VMware</span>
+            <span class="skill-tag">Python (базовый)</span>
+            <span class="skill-tag">Git</span>
+            <span class="skill-tag">QA (Postman, Jira)</span>
+        </div>
+    </section>
+
+    <section class="fade-in">
+        <h2 class="section-title">Образование</h2>
+        <div class="edu-card">
+            <div class="edu-title">Высшее (2028)</div>
+            <div class="edu-sub">Таганрогский технологический институт ЮФУ — Прикладная математика и информатика</div>
+        </div>
+        <div class="edu-card">
+            <div class="edu-title">Среднее специальное (2023)</div>
+            <div class="edu-sub">Лермонтовский Региональный Многопрофильный Колледж — Программирование в компьютерных системах</div>
+        </div>
+    </section>
+
+    <footer class="fade-in">
+        <p>© 2026 Сахаров Захар. Сайт создан для резюме.</p>
+    </footer>
+</div>
+
+<script>
+    // Плавное появление элементов при скролле
+    document.addEventListener("DOMContentLoaded", function() {
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+    });
+</script>
+
+</body>
+</html>
