@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,82 +8,118 @@
     <title>Трекер малыша</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👶</text></svg>">
     <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js (скачаем локально, чтобы не зависисеть от блокировок) -->
+    
+    <!-- Шрифт Nunito для мягкого стиля -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="chart.js"></script>
     
     <style>
-        :root { --bg: #09090b; --card: rgba(24, 24, 27, 0.7); --text: #fafafa; --muted: #a1a1aa; --border: rgba(255, 255, 255, 0.08); --purple: #bf5af2; --blue: #3b82f6; --orange: #ef4444; --green: #30d158; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text); padding-top: env(safe-area-inset-top); padding-bottom: calc(70px + env(safe-area-inset-bottom)); min-height: 100vh; }
-        
-        .view { display: none; }
-        .view.active { display: block; }
-        
-        .header { position: sticky; top: 0; z-index: 10; padding: 20px; text-align: center; background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .header h1 { font-size: 22px; font-weight: 700; }
-        .last-feed-badge { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; }
-        
-        .timer-section { padding: 24px; text-align: center; background: var(--card); border-radius: 24px; margin: 20px 20px 10px 20px; border: 1px solid var(--border); animation: pulse-border 2s infinite; display: none; }
-        @keyframes pulse-border { 0% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2); } 50% { border-color: rgba(59, 130, 246, 0.8); box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.4); } 100% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2); } }
-        .timer-display { font-size: 52px; font-weight: 700; margin-bottom: 20px; color: #fff; }
-        .btn-stop { background: rgba(255, 69, 58, 0.15); color: #ff453a; border: 1px solid #ff453a; padding: 16px; border-radius: 16px; font-size: 17px; font-weight: 600; width: 100%; cursor: pointer; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 20px; margin-top: 10px; }
-        .action-btn { background: var(--card); border: 1px solid var(--border); color: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
-        .action-btn:active { transform: scale(0.95); }
-        .action-btn .icon { font-size: 32px; }
-        .btn-sleep { grid-column: span 2; background: var(--blue); }
-        .btn-feed { grid-column: span 2; background: var(--orange); }
-        .btn-noise { grid-column: span 2; background: var(--purple); }
+        /* УМНАЯ ТЕМА */
+        :root[data-theme="light"] {
+            --bg: #FDFBF7; --card: #FFFFFF; --text: #4A4A4A; --muted: #9CA3AF;
+            --border: #F0EAE0; --shadow: rgba(0,0,0,0.05);
+            --accent-feed: #FFB7B2; --accent-sleep: #C7CEEA; --accent-noise: #B5EAD7; --accent-sos: #FF9AA2;
+            --btn-text: #FFFFFF;
+        }
+        :root[data-theme="dark"] {
+            --bg: #1A1A1E; --card: #2A2A30; --text: #EAEAEA; --muted: #888888;
+            --border: #3A3A40; --shadow: rgba(0,0,0,0.3);
+            --accent-feed: #A35C58; --accent-sleep: #6A728C; --accent-noise: #6A8C7A; --accent-sos: #C26B6E;
+            --btn-text: #FFFFFF;
+        }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); padding-top: env(safe-area-inset-top); padding-bottom: calc(80px + env(safe-area-inset-bottom)); min-height: 100vh; transition: background 0.4s, color 0.4s; }
+        
+        .view { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .view.active { display: block; opacity: 1; animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .header { position: sticky; top: 0; z-index: 10; padding: 20px; text-align: center; background: rgba(var(--bg), 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .header h1 { font-size: 22px; font-weight: 800; }
+        .last-feed-badge { background: var(--accent-feed); color: var(--btn-text); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; display: none; box-shadow: 0 4px 10px var(--shadow); }
+        
+        /* Таймер */
+        .timer-section { padding: 24px; text-align: center; background: var(--card); border-radius: 28px; margin: 20px 20px 10px 20px; border: 1px solid var(--border); box-shadow: 0 8px 20px var(--shadow); animation: pulse-border 3s infinite; display: none; }
+        @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(199, 206, 234, 0.4); } 50% { box-shadow: 0 0 0 15px rgba(199, 206, 234, 0); } 100% { box-shadow: 0 0 0 0 rgba(199, 206, 234, 0); } }
+        .timer-display { font-size: 56px; font-weight: 800; margin-bottom: 20px; color: var(--text); }
+        .btn-stop { background: var(--accent-sos); color: white; border: none; padding: 16px; border-radius: 20px; font-size: 17px; font-weight: 800; width: 100%; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 15px var(--shadow); }
+        .btn-stop:active { transform: scale(0.95); }
+        
+        /* Сетка кнопок */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 20px; margin-top: 10px; }
+        .action-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 20px 10px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px var(--shadow); }
+        .action-btn:active { transform: scale(0.95); box-shadow: 0 2px 5px var(--shadow); }
+        .action-btn .icon { font-size: 36px; }
+        
+        .btn-feed { grid-column: span 2; background: var(--accent-feed); color: var(--btn-text); border: none; }
+        .btn-sleep { grid-column: span 2; background: var(--accent-sleep); color: var(--btn-text); border: none; }
+        .btn-noise { grid-column: span 2; background: var(--accent-noise); color: var(--btn-text); border: none; }
+        .btn-sos { grid-column: span 2; background: var(--accent-sos); color: var(--btn-text); border: none; font-size: 18px; padding: 16px; }
+
+        /* Лента */
         .log-section { padding: 20px; }
-        .log-list { background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .log-list { background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 12px var(--shadow); }
         .log-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
         .log-item:last-child { border-bottom: none; }
         .log-left { display: flex; align-items: center; gap: 12px; flex: 1; }
-        .log-icon { font-size: 24px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 12px; }
-        .log-name { font-weight: 600; font-size: 15px; }
-        .log-sub { color: var(--muted); font-size: 13px; }
+        .log-icon { font-size: 24px; background: var(--bg); padding: 8px; border-radius: 14px; }
+        .log-name { font-weight: 700; font-size: 16px; }
+        .log-sub { color: var(--muted); font-size: 13px; font-weight: 600; }
         .log-right { display: flex; align-items: center; gap: 10px; }
-        .log-time { color: var(--text); font-weight: 500; font-size: 14px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; }
-        .badge-duration { color: var(--green); font-size: 12px; font-weight: 600; }
-        .btn-delete { background: none; border: none; color: #ff453a; font-size: 20px; padding: 5px; opacity: 0.6; cursor: pointer; }
+        .log-time { color: var(--text); font-weight: 700; font-size: 14px; background: var(--bg); padding: 4px 10px; border-radius: 10px; }
+        .badge-duration { color: var(--text); font-size: 13px; font-weight: 700; background: var(--accent-noise); padding: 4px 10px; border-radius: 10px; }
+        .btn-delete { background: none; border: none; color: var(--muted); font-size: 20px; padding: 5px; cursor: pointer; transition: 0.2s; }
+        .btn-delete:active { color: var(--accent-sos); transform: scale(0.8); }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 500; cursor: pointer; background: none; border: none; width: 50%; transition: 0.2s; }
-        .nav-item.active { color: var(--blue); }
-        .nav-item .icon { font-size: 24px; }
+        /* Нижнее меню */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 50; box-shadow: 0 -4px 12px var(--shadow); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; background: none; border: none; width: 50%; transition: 0.2s; }
+        .nav-item.active { color: var(--text); }
+        .nav-item .icon { font-size: 26px; }
 
+        /* Статистика */
         .stats-container { padding: 20px; }
-        .stat-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 24px; }
-        .stat-card { background: var(--card); border: 1px solid var(--border); padding: 12px 8px; border-radius: 20px; text-align: center; }
-        .stat-card .value { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-        .stat-card .label { font-size: 11px; color: var(--muted); font-weight: 500; line-height: 1.2; }
-        .chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; }
+        .stat-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); padding: 16px 8px; border-radius: 24px; text-align: center; box-shadow: 0 4px 12px var(--shadow); }
+        .stat-card .value { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+        .stat-card .label { font-size: 12px; color: var(--muted); font-weight: 700; line-height: 1.2; }
+        .chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 12px var(--shadow); }
         .chart-wrap { position: relative; height: 220px; width: 100%; }
-        .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); text-align: center; }
+        .chart-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--text); text-align: center; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: flex-end; }
-        .modal-content { background: #1c1c1e; width: 100%; border-radius: 32px 32px 0 0; padding: 24px; border-top: 1px solid var(--border); animation: slide-up 0.3s; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+        /* Модалки */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; }
+        .modal-content { background: var(--card); width: 100%; border-radius: 32px 32px 0 0; padding: 24px; animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px var(--shadow); }
         @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .modal-header h2 { font-size: 22px; font-weight: 700; }
-        .btn-close { background: rgba(255,255,255,0.1); border: none; color: var(--muted); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+        .modal-header h2 { font-size: 22px; font-weight: 800; }
+        .btn-close { background: var(--bg); border: none; color: var(--muted); width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
         
-        .noise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; }
-        .noise-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 16px; border-radius: 20px; font-size: 14px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
-        .noise-btn.active { border-color: var(--purple); background: rgba(191, 90, 242, 0.15); }
+        /* Слайдер для мл */
+        .slider-container { text-align: center; margin-bottom: 20px; }
+        .slider-value { font-size: 48px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+        .slider-value span { font-size: 24px; color: var(--muted); }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 10px; background: var(--border); border-radius: 10px; outline: none; margin-bottom: 20px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; border-radius: 50%; background: var(--accent-feed); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+        .btn-save-ml { background: var(--accent-feed); color: white; border: none; padding: 16px; border-radius: 20px; font-size: 18px; font-weight: 800; width: 100%; cursor: pointer; box-shadow: 0 4px 15px var(--shadow); transition: transform 0.2s; }
+        .btn-save-ml:active { transform: scale(0.95); }
+
+        /* Белый шум */
+        .noise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .noise-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 16px; border-radius: 20px; font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+        .noise-btn.active { border-color: var(--accent-noise); background: var(--accent-noise); color: var(--btn-text); }
         .noise-btn .icon { font-size: 32px; }
         
-        .player-controls { display: flex; flex-direction: column; align-items: center; gap: 24px; background: rgba(0,0,0,0.4); padding: 24px; border-radius: 24px; }
-        .btn-play-main { background: var(--purple); border: none; color: white; width: 72px; height: 72px; border-radius: 50%; font-size: 28px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .player-controls { display: flex; flex-direction: column; align-items: center; gap: 24px; background: var(--bg); padding: 24px; border-radius: 24px; }
+        .btn-play-main { background: var(--accent-noise); border: none; color: white; width: 72px; height: 72px; border-radius: 50%; font-size: 28px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; box-shadow: 0 8px 20px var(--shadow); }
         .btn-play-main.playing { animation: pulse-glow 2s infinite; }
-        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(181, 234, 215, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(181, 234, 215, 0); } 100% { box-shadow: 0 0 0 0 rgba(181, 234, 215, 0); } }
 
-        .volume-container { display: flex; align-items: center; gap: 12px; width: 100%; }
-        .volume-slider { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; -webkit-appearance: none; }
-        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: white; cursor: pointer; }
+        .volume-container { display: flex; align-items: center; gap: 12px; width: 100%; color: var(--muted); font-size: 20px; }
+        .volume-slider { flex: 1; height: 6px; background: var(--border); border-radius: 10px; outline: none; -webkit-appearance: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--text); cursor: pointer; }
     </style>
 </head>
 <body>
@@ -96,7 +132,7 @@
 
         <div class="timer-section" id="timer-section">
             <div class="timer-display" id="timer-display">00:00:00</div>
-            <button class="btn-stop" onclick="stopSleep()">Проснулся</button>
+            <button class="btn-stop" onclick="stopSleep()">Малыш проснулся</button>
         </div>
 
         <div class="grid">
@@ -105,7 +141,8 @@
             <button class="action-btn" onclick="quickEvent('diaper', 'Какал')"><span class="icon">💩</span> Какал</button>
             <button class="action-btn btn-sleep" id="sleep-btn" onclick="startSleep()"><span class="icon">😴</span> Уложить спать</button>
             <button class="action-btn btn-noise" onclick="openNoiseModal()"><span class="icon">🎵</span> Белый шум</button>
-            <button class="action-btn" id="push-btn" onclick="subscribePush()" style="grid-column: span 2; background: #8b5cf6;">
+            <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Да блять!</button>
+            <button class="action-btn" id="push-btn" onclick="subscribePush()" style="grid-column: span 2; background: var(--bg);">
                 <span class="icon">🔔</span> Включить уведомления
             </button>        
         </div>
@@ -124,15 +161,15 @@
             <div class="stat-cards">
                 <div class="stat-card">
                     <div class="value" id="stat-feeds">0</div>
-                    <div class="label">Кормлений сегодня</div>
+                    <div class="label">Кормлений</div>
                 </div>
                 <div class="stat-card">
-                    <div class="value" id="stat-sleep">0ч 0м</div>
-                    <div class="label">Сна сегодня</div>
+                    <div class="value" id="stat-sleep">0ч</div>
+                    <div class="label">Сна</div>
                 </div>
                 <div class="stat-card">
-                    <div class="value" id="stat-volume">0 мл</div>
-                    <div class="label">Съел сегодня</div>
+                    <div class="value" id="stat-volume">0</div>
+                    <div class="label">Съел (мл)</div>
                 </div>
             </div>
 
@@ -157,23 +194,22 @@
         </button>
     </div>
 
+    <!-- МОДАЛКА КОРМЛЕНИЯ (СЛАЙДЕР) -->
     <div class="modal-overlay" id="feed-modal" onclick="closeFeedModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Сколько съел?</h2>
                 <button class="btn-close" onclick="closeFeedModal()">✕</button>
             </div>
-            <div class="noise-grid">
-                <button class="noise-btn" onclick="selectVolume(60)">60 мл</button>
-                <button class="noise-btn" onclick="selectVolume(90)">90 мл</button>
-                <button class="noise-btn" onclick="selectVolume(120)">120 мл</button>
-                <button class="noise-btn" onclick="selectVolume(150)">150 мл</button>
-                <button class="noise-btn" onclick="selectVolume(180)">180 мл</button>
-                <button class="noise-btn" onclick="selectVolume(210)">210 мл</button>
+            <div class="slider-container">
+                <div class="slider-value"><span id="ml-value">120</span> <span>мл</span></div>
+                <input type="range" id="ml-slider" min="10" max="240" step="10" value="120" oninput="document.getElementById('ml-value').innerText = this.value">
+                <button class="btn-save-ml" onclick="saveFeedVolume()">Записать кормление</button>
             </div>
         </div>
     </div>
 
+    <!-- МОДАЛКА БЕЛОГО ШУМА -->
     <div class="modal-overlay" id="noise-modal" onclick="closeNoiseModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -198,6 +234,11 @@
     </div>
 
     <script>
+        // УМНАЯ ТЕМА (День/Ночь)
+        const currentHour = new Date().getHours();
+        const theme = (currentHour >= 21 || currentHour < 8) ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+
         const API_URL = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/baby';
         let activeSleepId = null;
         let timerInterval = null;
@@ -212,10 +253,31 @@
             if (viewName === 'stats') loadStats();
         }
 
+        // --- КНОПКА SOS ---
+        async function sendSOS() {
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // Тревожная вибрация
+            try {
+                await fetch(`${API_URL}/sos`, { method: 'POST' });
+                alert("🆘 SOS отправлен партнеру!");
+            } catch(e) {
+                alert("Ошибка отправки SOS.");
+            }
+        }
+
+        // --- КОРМЛЕНИЕ (СЛАЙДЕР) ---
+        function openFeedModal() { document.getElementById('feed-modal').style.display = 'flex'; }
+        function closeFeedModal(e) { if (!e || e.target.id === 'feed-modal') document.getElementById('feed-modal').style.display = 'none'; }
+        async function saveFeedVolume() {
+            const ml = document.getElementById('ml-slider').value;
+            closeFeedModal();
+            if (navigator.vibrate) navigator.vibrate(50);
+            await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'feed', details: ml + ' мл'}) });
+            loadEvents();
+        }
+
         // --- АУДИО ---
         let audioCtx = null, gainNode = null, currentSource = null;
         let audioBuffers = {}, isPlaying = false, currentSound = 'white', isAudioLoading = false;
-        // Пути к звукам теперь локальные (в папке sounds)
         const sounds = { 'white': 'sounds/white.mp3', 'rain': 'sounds/rain.mp3', 'womb': 'sounds/womb.mp3', 'heart': 'sounds/heart.mp3' };
         const playPauseBtn = document.getElementById('play-pause-btn');
 
@@ -225,7 +287,6 @@
             if (audioCtx.state === 'suspended') await audioCtx.resume();
             gainNode = audioCtx.createGain(); gainNode.gain.value = 0.5; gainNode.connect(audioCtx.destination);
         }
-
         async function loadSound(soundName) {
             if (audioBuffers[soundName]) return audioBuffers[soundName];
             const response = await fetch(sounds[soundName]);
@@ -234,12 +295,10 @@
             audioBuffers[soundName] = await audioCtx.decodeAudioData(arrayBuffer);
             return audioBuffers[soundName];
         }
-
         function stopCurrentAudio() {
             if (currentSource) { try { currentSource.stop(); currentSource.disconnect(); } catch(e){} currentSource = null; }
             isPlaying = false; playPauseBtn.textContent = '▶'; playPauseBtn.classList.remove('playing');
         }
-
         async function playSound(soundName) {
             if (isAudioLoading) return;
             isAudioLoading = true;
@@ -253,27 +312,15 @@
             } catch (e) { alert("Ошибка загрузки звука."); }
             finally { isAudioLoading = false; }
         }
-
         async function changeNoise(btn) {
             document.querySelectorAll('.noise-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active'); currentSound = btn.getAttribute('data-sound');
             if (isPlaying) await playSound(currentSound);
         }
-
         async function toggleAudio() { if (isPlaying) { stopCurrentAudio(); } else { await playSound(currentSound); } }
         function setVolume(val) { if (gainNode) gainNode.gain.value = val; }
         function openNoiseModal() { document.getElementById('noise-modal').style.display = 'flex'; }
         function closeNoiseModal(e) { if (!e || e.target.id === 'noise-modal') document.getElementById('noise-modal').style.display = 'none'; }
-
-        // --- КОРМЛЕНИЕ ---
-        function openFeedModal() { document.getElementById('feed-modal').style.display = 'flex'; }
-        function closeFeedModal(e) { if (!e || e.target.id === 'feed-modal') document.getElementById('feed-modal').style.display = 'none'; }
-        async function selectVolume(ml) {
-            closeFeedModal();
-            if (navigator.vibrate) navigator.vibrate(50);
-            await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'feed', details: ml + ' мл'}) });
-            loadEvents();
-        }
 
         // --- ТРЕКЕР ---
         function formatDuration(ms) {
@@ -294,7 +341,7 @@
             try {
                 const res = await fetch(`${API_URL}/events/today`);
                 let events = await res.json();
-                if (!Array.isArray(events)) events = []; // Защита от падения, если API вернет ошибку
+                if (!Array.isArray(events)) events = [];
                 
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 if (activeSleep) {
@@ -313,7 +360,7 @@
                 const feedBadge = document.getElementById('last-feed-badge');
                 if (lastFeed) {
                     feedBadge.style.display = 'inline-block';
-                    feedBadge.textContent = `🍼 Последнее кормление: ${formatDuration(new Date() - new Date(lastFeed.start_time))} назад`;
+                    feedBadge.textContent = `🍼 Последнее: ${formatDuration(new Date() - new Date(lastFeed.start_time))} назад`;
                 } else { feedBadge.style.display = 'none'; }
 
                 const list = document.getElementById('log-list');
@@ -331,7 +378,7 @@
                     if (e.event_type === 'sleep' && e.end_time) {
                         icon = "🌙"; name = "Сон";
                         const endTime = new Date(e.end_time);
-                        sub = `с ${timeStr} до ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
+                        sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
                         timeStr = ""; 
                     } 
@@ -406,7 +453,7 @@
 
                 document.getElementById('stat-feeds').textContent = todayFeeds;
                 document.getElementById('stat-sleep').textContent = formatDuration(todaySleepMs);
-                document.getElementById('stat-volume').textContent = todayVolume + ' мл';
+                document.getElementById('stat-volume').textContent = todayVolume;
 
                 const days = [];
                 const feedsByDay = {};
@@ -438,12 +485,16 @@
         }
 
         function renderCharts(labels, feeds, diapers, sleep) {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#EAEAEA' : '#4A4A4A';
+            const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
             const commonOptions = {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 12 } } } },
+                plugins: { legend: { labels: { color: textColor, font: {family: 'Nunito', size: 12, weight: 'bold'} } } },
                 scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' }, beginAtZero: true }
+                    x: { grid: { color: gridColor }, ticks: { color: textColor, font: {family: 'Nunito'} } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor, font: {family: 'Nunito'} }, beginAtZero: true }
                 }
             };
 
@@ -456,8 +507,8 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Кормления', data: Object.values(feeds), backgroundColor: '#ef4444', borderRadius: 6 },
-                        { label: 'Подгузники', data: Object.values(diapers), backgroundColor: '#3b82f6', borderRadius: 6 }
+                        { label: 'Кормления', data: Object.values(feeds), backgroundColor: isDark ? '#A35C58' : '#FFB7B2', borderRadius: 6 },
+                        { label: 'Подгузники', data: Object.values(diapers), backgroundColor: isDark ? '#6A728C' : '#C7CEEA', borderRadius: 6 }
                     ]
                 },
                 options: commonOptions
@@ -471,15 +522,16 @@
                     datasets: [{
                         label: 'Часы сна',
                         data: Object.values(sleep).map(v => v.toFixed(1)),
-                        borderColor: '#bf5af2',
-                        backgroundColor: 'rgba(191, 90, 242, 0.2)',
+                        borderColor: isDark ? '#6A8C7A' : '#B5EAD7',
+                        backgroundColor: isDark ? 'rgba(106, 140, 122, 0.2)' : 'rgba(181, 234, 215, 0.4)',
                         fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4
                     }]
                 },
                 options: commonOptions
             });
         }
-        // ========== WEB PUSH ==========
+
+        // --- WEB PUSH ---
         async function subscribePush() {
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 alert("Ваш браузер не поддерживает Push-уведомления. На iPhone добавьте сайт на экран 'Домой'.");
@@ -523,7 +575,8 @@
             for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
             return outputArray;
         }
-                // Регистрация Service Worker для пушей
+
+        // Регистрация Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/baby/sw.js')
