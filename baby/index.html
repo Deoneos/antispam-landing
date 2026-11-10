@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Трекер малыша</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👶</text></svg>">
-    
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js (скачаем локально, чтобы не зависисеть от блокировок) -->
     <script src="chart.js"></script>
@@ -105,6 +105,9 @@
             <button class="action-btn" onclick="quickEvent('diaper', 'Какал')"><span class="icon">💩</span> Какал</button>
             <button class="action-btn btn-sleep" id="sleep-btn" onclick="startSleep()"><span class="icon">😴</span> Уложить спать</button>
             <button class="action-btn btn-noise" onclick="openNoiseModal()"><span class="icon">🎵</span> Белый шум</button>
+            <button class="action-btn" id="push-btn" onclick="subscribePush()" style="grid-column: span 2; background: #8b5cf6;">
+                <span class="icon">🔔</span> Включить уведомления
+            </button>        
         </div>
 
         <div class="log-section">
@@ -476,7 +479,50 @@
                 options: commonOptions
             });
         }
+        // ========== WEB PUSH ==========
+        async function subscribePush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                alert("Ваш браузер не поддерживает Push-уведомления. На iPhone добавьте сайт на экран 'Домой'.");
+                return;
+            }
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    alert("Вы отклонили уведомления.");
+                    return;
+                }
 
+                const res = await fetch(`${API_URL}/vapid-public-key`);
+                const { publicKey } = await res.json();
+                
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
+
+                await fetch(`${API_URL}/subscribe`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(subscription)
+                });
+
+                alert("✅ Уведомления включены!");
+                document.getElementById('push-btn').style.display = 'none';
+            } catch (e) {
+                console.error(e);
+                alert("Ошибка включения уведомлений. Проверьте, что вы добавили сайт на экран 'Домой'.");
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+            return outputArray;
+        }
         loadEvents();
         setInterval(loadEvents, 30000);
     </script>
