@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Трекер малыша</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👶</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js (скачаем локально, чтобы не зависисеть от блокировок) -->
+    <script src="chart.js"></script>
+    
+    <style>
+        :root { --bg: #09090b; --card: rgba(24, 24, 27, 0.7); --text: #fafafa; --muted: #a1a1aa; --border: rgba(255, 255, 255, 0.08); --purple: #bf5af2; --blue: #3b82f6; --orange: #ef4444; --green: #30d158; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); padding-top: env(safe-area-inset-top); padding-bottom: calc(70px + env(safe-area-inset-bottom)); min-height: 100vh; }
+        
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        .header { position: sticky; top: 0; z-index: 10; padding: 20px; text-align: center; background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .header h1 { font-size: 22px; font-weight: 700; }
+        .last-feed-badge { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; }
+        
+        .timer-section { padding: 24px; text-align: center; background: var(--card); border-radius: 24px; margin: 20px 20px 10px 20px; border: 1px solid var(--border); animation: pulse-border 2s infinite; display: none; }
+        @keyframes pulse-border { 0% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2); } 50% { border-color: rgba(59, 130, 246, 0.8); box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.4); } 100% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2); } }
+        .timer-display { font-size: 52px; font-weight: 700; margin-bottom: 20px; color: #fff; }
+        .btn-stop { background: rgba(255, 69, 58, 0.15); color: #ff453a; border: 1px solid #ff453a; padding: 16px; border-radius: 16px; font-size: 17px; font-weight: 600; width: 100%; cursor: pointer; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 20px; margin-top: 10px; }
+        .action-btn { background: var(--card); border: 1px solid var(--border); color: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
+        .action-btn:active { transform: scale(0.95); }
+        .action-btn .icon { font-size: 32px; }
+        .btn-sleep { grid-column: span 2; background: var(--blue); }
+        .btn-feed { grid-column: span 2; background: var(--orange); }
+        .btn-noise { grid-column: span 2; background: var(--purple); }
+
+        .log-section { padding: 20px; }
+        .log-list { background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+        .log-item:last-child { border-bottom: none; }
+        .log-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .log-icon { font-size: 24px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 12px; }
+        .log-name { font-weight: 600; font-size: 15px; }
+        .log-sub { color: var(--muted); font-size: 13px; }
+        .log-right { display: flex; align-items: center; gap: 10px; }
+        .log-time { color: var(--text); font-weight: 500; font-size: 14px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; }
+        .badge-duration { color: var(--green); font-size: 12px; font-weight: 600; }
+        .btn-delete { background: none; border: none; color: #ff453a; font-size: 20px; padding: 5px; opacity: 0.6; cursor: pointer; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 500; cursor: pointer; background: none; border: none; width: 50%; transition: 0.2s; }
+        .nav-item.active { color: var(--blue); }
+        .nav-item .icon { font-size: 24px; }
+
+        .stats-container { padding: 20px; }
+        .stat-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); padding: 12px 8px; border-radius: 20px; text-align: center; }
+        .stat-card .value { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+        .stat-card .label { font-size: 11px; color: var(--muted); font-weight: 500; line-height: 1.2; }
+        .chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; }
+        .chart-wrap { position: relative; height: 220px; width: 100%; }
+        .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); text-align: center; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: flex-end; }
+        .modal-content { background: #1c1c1e; width: 100%; border-radius: 32px 32px 0 0; padding: 24px; border-top: 1px solid var(--border); animation: slide-up 0.3s; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+        @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h2 { font-size: 22px; font-weight: 700; }
+        .btn-close { background: rgba(255,255,255,0.1); border: none; color: var(--muted); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+        
+        .noise-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 30px; }
+        .noise-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 16px; border-radius: 20px; font-size: 14px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .noise-btn.active { border-color: var(--purple); background: rgba(191, 90, 242, 0.15); }
+        .noise-btn .icon { font-size: 32px; }
+        
+        .player-controls { display: flex; flex-direction: column; align-items: center; gap: 24px; background: rgba(0,0,0,0.4); padding: 24px; border-radius: 24px; }
+        .btn-play-main { background: var(--purple); border: none; color: white; width: 72px; height: 72px; border-radius: 50%; font-size: 28px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .btn-play-main.playing { animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
+
+        .volume-container { display: flex; align-items: center; gap: 12px; width: 100%; }
+        .volume-slider { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; -webkit-appearance: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="view-tracker" class="view active">
+        <div class="header">
+            <h1>👶 Трекер малыша</h1>
+            <div class="last-feed-badge" id="last-feed-badge">🍼 Последнее кормление: давно</div>
+        </div>
+
+        <div class="timer-section" id="timer-section">
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <button class="btn-stop" onclick="stopSleep()">Проснулся</button>
+        </div>
+
+        <div class="grid">
+            <button class="action-btn btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
+            <button class="action-btn" onclick="quickEvent('diaper', 'Писал')"><span class="icon">💦</span> Писал</button>
+            <button class="action-btn" onclick="quickEvent('diaper', 'Какал')"><span class="icon">💩</span> Какал</button>
+            <button class="action-btn btn-sleep" id="sleep-btn" onclick="startSleep()"><span class="icon">😴</span> Уложить спать</button>
+            <button class="action-btn btn-noise" onclick="openNoiseModal()"><span class="icon">🎵</span> Белый шум</button>
+        </div>
+
+        <div class="log-section">
+            <div class="log-list" id="log-list"></div>
+        </div>
+    </div>
+
+    <div id="view-stats" class="view">
+        <div class="header">
+            <h1>📊 Статистика</h1>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div class="value" id="stat-feeds">0</div>
+                    <div class="label">Кормлений сегодня</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-sleep">0ч 0м</div>
+                    <div class="label">Сна сегодня</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-volume">0 мл</div>
+                    <div class="label">Съел сегодня</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Кормления и подгузники (7 дней)</div>
+                <div class="chart-wrap"><canvas id="chart-feeds"></canvas></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Часы сна (7 дней)</div>
+                <div class="chart-wrap"><canvas id="chart-sleep"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchView('tracker', this)">
+            <span class="icon">🏠</span> Трекер
+        </button>
+        <button class="nav-item" onclick="switchView('stats', this)">
+            <span class="icon">📊</span> Статистика
+        </button>
+    </div>
+
+    <div class="modal-overlay" id="feed-modal" onclick="closeFeedModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Сколько съел?</h2>
+                <button class="btn-close" onclick="closeFeedModal()">✕</button>
+            </div>
+            <div class="noise-grid">
+                <button class="noise-btn" onclick="selectVolume(60)">60 мл</button>
+                <button class="noise-btn" onclick="selectVolume(90)">90 мл</button>
+                <button class="noise-btn" onclick="selectVolume(120)">120 мл</button>
+                <button class="noise-btn" onclick="selectVolume(150)">150 мл</button>
+                <button class="noise-btn" onclick="selectVolume(180)">180 мл</button>
+                <button class="noise-btn" onclick="selectVolume(210)">210 мл</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="noise-modal" onclick="closeNoiseModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Белый шум</h2>
+                <button class="btn-close" onclick="closeNoiseModal()">✕</button>
+            </div>
+            <div class="noise-grid">
+                <button class="noise-btn active" data-sound="white" onclick="changeNoise(this)"><span class="icon">📻</span> Белый шум</button>
+                <button class="noise-btn" data-sound="rain" onclick="changeNoise(this)"><span class="icon">🌧️</span> Дождь</button>
+                <button class="noise-btn" data-sound="womb" onclick="changeNoise(this)"><span class="icon">🤰</span> Утроба</button>
+                <button class="noise-btn" data-sound="heart" onclick="changeNoise(this)"><span class="icon">❤️</span> Сердце</button>
+            </div>
+            <div class="player-controls">
+                <button class="btn-play-main" id="play-pause-btn" onclick="toggleAudio()">▶</button>
+                <div class="volume-container">
+                    <span>🔈</span>
+                    <input type="range" class="volume-slider" id="volume" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)">
+                    <span>🔊</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/baby';
+        let activeSleepId = null;
+        let timerInterval = null;
+        let chartFeeds = null;
+        let chartSleep = null;
+
+        function switchView(viewName, btn) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            btn.classList.add('active');
+            if (viewName === 'stats') loadStats();
+        }
+
+        // --- АУДИО ---
+        let audioCtx = null, gainNode = null, currentSource = null;
+        let audioBuffers = {}, isPlaying = false, currentSound = 'white', isAudioLoading = false;
+        // Пути к звукам теперь локальные (в папке sounds)
+        const sounds = { 'white': 'sounds/white.mp3', 'rain': 'sounds/rain.mp3', 'womb': 'sounds/womb.mp3', 'heart': 'sounds/heart.mp3' };
+        const playPauseBtn = document.getElementById('play-pause-btn');
+
+        async function unlockAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            gainNode = audioCtx.createGain(); gainNode.gain.value = 0.5; gainNode.connect(audioCtx.destination);
+        }
+
+        async function loadSound(soundName) {
+            if (audioBuffers[soundName]) return audioBuffers[soundName];
+            const response = await fetch(sounds[soundName]);
+            if (!response.ok) throw new Error("Файл не найден");
+            const arrayBuffer = await response.arrayBuffer();
+            audioBuffers[soundName] = await audioCtx.decodeAudioData(arrayBuffer);
+            return audioBuffers[soundName];
+        }
+
+        function stopCurrentAudio() {
+            if (currentSource) { try { currentSource.stop(); currentSource.disconnect(); } catch(e){} currentSource = null; }
+            isPlaying = false; playPauseBtn.textContent = '▶'; playPauseBtn.classList.remove('playing');
+        }
+
+        async function playSound(soundName) {
+            if (isAudioLoading) return;
+            isAudioLoading = true;
+            stopCurrentAudio();
+            await unlockAudio();
+            try {
+                const buffer = await loadSound(soundName);
+                currentSource = audioCtx.createBufferSource(); currentSource.buffer = buffer;
+                currentSource.loop = true; currentSource.connect(gainNode); currentSource.start(0);
+                isPlaying = true; playPauseBtn.textContent = '⏸'; playPauseBtn.classList.add('playing');
+            } catch (e) { alert("Ошибка загрузки звука."); }
+            finally { isAudioLoading = false; }
+        }
+
+        async function changeNoise(btn) {
+            document.querySelectorAll('.noise-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active'); currentSound = btn.getAttribute('data-sound');
+            if (isPlaying) await playSound(currentSound);
+        }
+
+        async function toggleAudio() { if (isPlaying) { stopCurrentAudio(); } else { await playSound(currentSound); } }
+        function setVolume(val) { if (gainNode) gainNode.gain.value = val; }
+        function openNoiseModal() { document.getElementById('noise-modal').style.display = 'flex'; }
+        function closeNoiseModal(e) { if (!e || e.target.id === 'noise-modal') document.getElementById('noise-modal').style.display = 'none'; }
+
+        // --- КОРМЛЕНИЕ ---
+        function openFeedModal() { document.getElementById('feed-modal').style.display = 'flex'; }
+        function closeFeedModal(e) { if (!e || e.target.id === 'feed-modal') document.getElementById('feed-modal').style.display = 'none'; }
+        async function selectVolume(ml) {
+            closeFeedModal();
+            if (navigator.vibrate) navigator.vibrate(50);
+            await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'feed', details: ml + ' мл'}) });
+            loadEvents();
+        }
+
+        // --- ТРЕКЕР ---
+        function formatDuration(ms) {
+            const totalMinutes = Math.floor(ms / 60000);
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            if (h > 0) return `${h}ч ${m}м`;
+            return `${m}м`;
+        }
+
+        async function deleteEvent(id) {
+            if (!confirm("Удалить эту запись?")) return;
+            await fetch(`${API_URL}/events/${id}`, { method: 'DELETE' });
+            loadEvents();
+        }
+
+        async function loadEvents() {
+            try {
+                const res = await fetch(`${API_URL}/events/today`);
+                const events = await res.json();
+                
+                const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
+                if (activeSleep) {
+                    activeSleepId = activeSleep.id;
+                    document.getElementById('timer-section').style.display = 'block';
+                    document.getElementById('sleep-btn').style.display = 'none';
+                    startTimer(new Date(activeSleep.start_time));
+                } else {
+                    activeSleepId = null;
+                    document.getElementById('timer-section').style.display = 'none';
+                    document.getElementById('sleep-btn').style.display = 'flex';
+                    if (timerInterval) clearInterval(timerInterval);
+                }
+
+                const lastFeed = events.find(e => e.event_type === 'feed');
+                const feedBadge = document.getElementById('last-feed-badge');
+                if (lastFeed) {
+                    feedBadge.style.display = 'inline-block';
+                    feedBadge.textContent = `🍼 Последнее кормление: ${formatDuration(new Date() - new Date(lastFeed.start_time))} назад`;
+                } else { feedBadge.style.display = 'none'; }
+
+                const list = document.getElementById('log-list');
+                list.innerHTML = '';
+                const today = new Date();
+                
+                events.forEach(e => {
+                    if (e.event_type === 'sleep' && !e.end_time) return; 
+
+                    let icon = "", name = "", sub = "", timeStr = "", badge = "";
+                    const startTime = new Date(e.start_time);
+                    const timeOptions = { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' };
+                    timeStr = startTime.toLocaleTimeString('ru-RU', timeOptions);
+
+                    if (e.event_type === 'sleep' && e.end_time) {
+                        icon = "🌙"; name = "Сон";
+                        const endTime = new Date(e.end_time);
+                        sub = `с ${timeStr} до ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
+                        badge = formatDuration(endTime - startTime);
+                        timeStr = ""; 
+                    } 
+                    else if (e.event_type === 'feed') { icon = "🍼"; name = "Кормление"; sub = e.details || "Бутылочка"; } 
+                    else if (e.event_type === 'diaper') { icon = e.details === 'Какал' ? "💩" : "💦"; name = "Подгузник"; sub = e.details; }
+
+                    let rightSide = timeStr ? `<div class="log-time">${timeStr}</div>` : `<div class="badge-duration">${badge}</div>`;
+
+                    list.innerHTML += `
+                        <div class="log-item">
+                            <div class="log-left">
+                                <div class="log-icon">${icon}</div>
+                                <div class="log-name">${name}<br><span class="log-sub">${sub}</span></div>
+                            </div>
+                            <div class="log-right">
+                                ${rightSide}
+                                <button class="btn-delete" onclick="deleteEvent(${e.id})">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error("Ошибка загрузки событий", e); }
+        }
+
+        function startTimer(startTime) {
+            if (timerInterval) clearInterval(timerInterval);
+            const display = document.getElementById('timer-display');
+            function update() {
+                const diff = Math.floor((new Date() - startTime) / 1000);
+                display.textContent = `${String(Math.floor(diff / 3600)).padStart(2, '0')}:${String(Math.floor((diff % 3600) / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}`;
+            }
+            update(); timerInterval = setInterval(update, 1000);
+        }
+
+        async function startSleep() {
+            if (navigator.vibrate) navigator.vibrate(50);
+            await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'sleep'}) });
+            loadEvents();
+        }
+
+        async function stopSleep() {
+            if (!activeSleepId) return;
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
+            loadEvents();
+        }
+
+        async function quickEvent(type, details) {
+            if (navigator.vibrate) navigator.vibrate(50);
+            await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: type, details: details}) });
+            loadEvents();
+        }
+
+        // --- СТАТИСТИКА ---
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/events/week`);
+                const events = await res.json();
+                
+                const todayStr = new Date().toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
+                let todayFeeds = 0;
+                let todayVolume = 0;
+                let todaySleepMs = 0;
+
+                events.forEach(e => {
+                    const d = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
+                    if (d === todayStr) {
+                        if (e.event_type === 'feed') { todayFeeds++; const ml = parseInt(e.details); if (!isNaN(ml)) todayVolume += ml; }
+                        if (e.event_type === 'sleep' && e.end_time) { todaySleepMs += (new Date(e.end_time) - new Date(e.start_time)); }
+                    }
+                });
+
+                document.getElementById('stat-feeds').textContent = todayFeeds;
+                document.getElementById('stat-sleep').textContent = formatDuration(todaySleepMs);
+                document.getElementById('stat-volume').textContent = todayVolume + ' мл';
+
+                const days = [];
+                const feedsByDay = {};
+                const diapersByDay = {};
+                const sleepByDay = {};
+
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const dateStr = d.toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' });
+                    days.push(dateStr);
+                    feedsByDay[dateStr] = 0;
+                    diapersByDay[dateStr] = 0;
+                    sleepByDay[dateStr] = 0;
+                }
+
+                events.forEach(e => {
+                    const dateStr = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' });
+                    if (feedsByDay[dateStr] !== undefined) {
+                        if (e.event_type === 'feed') feedsByDay[dateStr]++;
+                        if (e.event_type === 'diaper') diapersByDay[dateStr]++;
+                        if (e.event_type === 'sleep' && e.end_time) sleepByDay[dateStr] += (new Date(e.end_time) - new Date(e.start_time)) / (1000 * 60 * 60);
+                    }
+                });
+
+                renderCharts(days, feedsByDay, diapersByDay, sleepByDay);
+
+            } catch(e) { console.error("Ошибка статистики", e); }
+        }
+
+        function renderCharts(labels, feeds, diapers, sleep) {
+            const commonOptions = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 12 } } } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' }, beginAtZero: true }
+                }
+            };
+
+            if (chartFeeds) chartFeeds.destroy();
+            if (chartSleep) chartSleep.destroy();
+
+            const ctx1 = document.getElementById('chart-feeds').getContext('2d');
+            chartFeeds = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Кормления', data: Object.values(feeds), backgroundColor: '#ef4444', borderRadius: 6 },
+                        { label: 'Подгузники', data: Object.values(diapers), backgroundColor: '#3b82f6', borderRadius: 6 }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            const ctx2 = document.getElementById('chart-sleep').getContext('2d');
+            chartSleep = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Часы сна',
+                        data: Object.values(sleep).map(v => v.toFixed(1)),
+                        borderColor: '#bf5af2',
+                        backgroundColor: 'rgba(191, 90, 242, 0.2)',
+                        fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        loadEvents();
+        setInterval(loadEvents, 30000);
+    </script>
+</body>
+</html>
