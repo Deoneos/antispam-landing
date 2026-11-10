@@ -290,7 +290,8 @@
         async function loadEvents() {
             try {
                 const res = await fetch(`${API_URL}/events/today`);
-                const events = await res.json();
+                let events = await res.json();
+                if (!Array.isArray(events)) events = []; // Защита от падения, если API вернет ошибку
                 
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 if (activeSleep) {
