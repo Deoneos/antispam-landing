@@ -16,15 +16,15 @@
     <style>
         /* УМНАЯ ТЕМА */
         :root[data-theme="light"] {
-            --bg: #FDFBF7; --card: #FFFFFF; --text: #4A4A4A; --muted: #9CA3AF;
-            --border: #F0EAE0; --shadow: rgba(0,0,0,0.05);
-            --accent-feed: #FFB7B2; --accent-sleep: #C7CEEA; --accent-noise: #B5EAD7; --accent-sos: #FF9AA2;
+            --bg: #F3F4F6; --card: #FFFFFF; --text: #1F2937; --muted: #6B7280;
+            --border: #E5E7EB; --shadow: rgba(0,0,0,0.05);
+            --accent-feed: #FCA5A5; --accent-sleep: #93C5FD; --accent-noise: #6EE7B7; --accent-sos: #F87171;
             --btn-text: #FFFFFF;
         }
         :root[data-theme="dark"] {
-            --bg: #1A1A1E; --card: #2A2A30; --text: #EAEAEA; --muted: #888888;
-            --border: #3A3A40; --shadow: rgba(0,0,0,0.3);
-            --accent-feed: #A35C58; --accent-sleep: #6A728C; --accent-noise: #6A8C7A; --accent-sos: #C26B6E;
+            --bg: #0F1014; --card: #1C1D22; --text: #E5E7EB; --muted: #9CA3AF;
+            --border: #2D2E36; --shadow: rgba(0,0,0,0.5);
+            --accent-feed: #7F1D1D; --accent-sleep: #1E3A8A; --accent-noise: #064E3B; --accent-sos: #991B1B;
             --btn-text: #FFFFFF;
         }
 
@@ -234,9 +234,10 @@
     </div>
 
     <script>
-        // УМНАЯ ТЕМА (День/Ночь)
+        // УМНАЯ ТЕМА (По умолчанию — темная)
         const currentHour = new Date().getHours();
-        const theme = (currentHour >= 21 || currentHour < 8) ? 'dark' : 'light';
+        // Включаем светлую только днем (с 9 до 19), иначе темная
+        const theme = (currentHour >= 9 && currentHour < 19) ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', theme);
 
         const API_URL = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/baby';
