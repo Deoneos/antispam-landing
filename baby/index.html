@@ -523,6 +523,15 @@
             for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
             return outputArray;
         }
+                // Регистрация Service Worker для пушей
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/baby/sw.js')
+                    .then(reg => console.log('✅ SW зарегистрирован:', reg.scope))
+                    .catch(err => console.error('❌ Ошибка SW:', err));
+            });
+        }
+
         loadEvents();
         setInterval(loadEvents, 30000);
     </script>
