@@ -59,6 +59,7 @@
         /* ЛЕНТА */
         .log-section { padding: 20px; }
         .log-list { background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 12px var(--shadow); }
+        .log-date-title { padding: 12px 16px; background: var(--bg); font-weight: 800; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--border); }
         .log-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
         .log-item:last-child { border-bottom: none; }
         .log-left { display: flex; align-items: center; gap: 12px; flex: 1; }
@@ -154,13 +155,17 @@
                 <div class="timer-label">👀 Бодрствует</div>
                 <div class="timer-value" id="timer-awake">00:00:00</div>
             </div>
+            <div class="timer-row" id="row-walk">
+                <div class="timer-label">🚶‍♀️ Гуляет</div>
+                <div class="timer-value" id="timer-walk">00:00:00</div>
+            </div>
         </div>
 
         <div class="grid">
             <button class="action-btn btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
             
-            <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="toggleAwake()">
-                <span class="icon" id="awake-icon">👀</span> <span id="awake-text">Бодрствует</span>
+            <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="cycleState()">
+                <span class="icon" id="state-icon">👀</span> <span id="state-text">Бодрствует</span>
             </button>
 
             <button class="action-btn btn-diaper" onclick="quickEvent('diaper', 'Посранунькала')"><span class="icon">💩</span> Посранунькала</button>
@@ -212,12 +217,23 @@
     </div>
 
     <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+    
+    <div id="view-calendar" class="view">
+        <div class="header"><h1>📅 Календарь</h1></div>
+        <div class="stats-container">
+            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--awake); color: #111827;" onclick="openAppModal()">➕ Добавить запись</button>
+            <div class="log-list" id="app-list"></div>
+        </div>
+    </div>
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchView('tracker', this)">
             <span class="icon">🏠</span> Трекер
         </button>
         <button class="nav-item" onclick="switchView('stats', this)">
             <span class="icon">📊</span> Статистика
+        </button>
+        <button class="nav-item" onclick="switchView('calendar', this)">
+            <span class="icon">📅</span> Календарь
         </button>
     </div>
 
@@ -255,6 +271,17 @@
                     <span>🔊</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="app-modal" onclick="closeAppModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header"><h2>Новая запись</h2><button class="btn-close" onclick="closeAppModal()">✕</button></div>
+            <input type="text" id="app-title" placeholder="Название (например, Педиатр)" style="width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif;">
+            <input type="datetime-local" id="app-date" style="width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif;">
+            <textarea id="app-notes" placeholder="Заметки (что взять, вопросы)" style="width: 100%; padding: 14px; margin-bottom: 20px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif; resize: none; height: 80px;"></textarea>
+            <button class="btn-save-ml" style="background: var(--awake); color: #111827;" onclick="saveAppointment()">Сохранить</button>
         </div>
     </div>
 
@@ -362,17 +389,21 @@
             loadEvents();
         }
 
-        async function toggleAwake() {
+        let activeWalkId = null;
+        let walkTimerInterval = null;
+
+        async function cycleState() {
+            // Логика переключения: Сон -> Бодрствование -> Прогулка -> Сон
             if (activeSleepId) {
-                // Если спит — будим
                 await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
             } else if (activeAwakeId) {
-                // Если бодрствует — укладываем спать
                 await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
+                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'walk'}) });
+            } else if (activeWalkId) {
+                await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'sleep'}) });
             } else {
-                // По умолчанию начинаем бодрствовать
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
             }
             loadEvents();
@@ -386,6 +417,7 @@
                 
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 const activeAwake = events.find(e => e.event_type === 'awake' && !e.end_time);
+                activeWalkId = events.find(e => e.event_type === 'walk' && !e.end_time)?.id || null;
 
                 // Настройка таймеров
                 if (activeSleep) {
@@ -393,8 +425,8 @@
                     document.getElementById('row-sleep').classList.add('timer-active');
                     startTimer('timer-sleep', new Date(activeSleep.start_time), 'sleep');
                     document.getElementById('awake-btn').style.background = 'var(--sleep)';
-                    document.getElementById('awake-text').innerText = 'Разбудить (Спит)';
-                    document.getElementById('awake-icon').innerText = '🌙';
+                    document.getElementById('state-text').innerText = 'Разбудить (Спит)';
+                    document.getElementById('state-icon').innerText = '🌙';
                 } else {
                     activeSleepId = null;
                     document.getElementById('row-sleep').classList.remove('timer-active');
@@ -406,12 +438,23 @@
                     document.getElementById('row-awake').classList.add('timer-active');
                     startTimer('timer-awake', new Date(activeAwake.start_time), 'awake');
                     document.getElementById('awake-btn').style.background = 'var(--awake)';
-                    document.getElementById('awake-text').innerText = 'Уложить спать';
-                    document.getElementById('awake-icon').innerText = '👀';
+                    document.getElementById('state-text').innerText = 'Пойти гулять';
+                    document.getElementById('state-icon').innerText = '👀';
                 } else {
                     activeAwakeId = null;
                     document.getElementById('row-awake').classList.remove('timer-active');
                     if (awakeTimerInterval) clearInterval(awakeTimerInterval);
+                }
+
+                if (activeWalkId) {
+                    document.getElementById('row-walk').classList.add('timer-active');
+                    startTimer('timer-walk', new Date(events.find(e=>e.id===activeWalkId).start_time), 'walk');
+                    document.getElementById('awake-btn').style.background = 'var(--noise)';
+                    document.getElementById('state-text').innerText = 'Уложить спать';
+                    document.getElementById('state-icon').innerText = '🚶‍♀️';
+                } else {
+                    document.getElementById('row-walk').classList.remove('timer-active');
+                    if (walkTimerInterval) clearInterval(walkTimerInterval);
                 }
 
                 // Лента
@@ -425,7 +468,30 @@
                 const list = document.getElementById('log-list');
                 list.innerHTML = '';
                 
+                // --- ЛОГИКА АККОРДЕОНА ПО ДНЯМ ---
+                const grouped = {};
+                const todayStr = new Date().toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
+                
                 events.forEach(e => {
+                    if ((e.event_type === 'sleep' || e.event_type === 'awake' || e.event_type === 'walk') && !e.end_time) return;
+                    const d = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: 'long' });
+                    if (!grouped[d]) grouped[d] = [];
+                    grouped[d].push(e);
+                });
+
+                Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)).forEach(dateStr => {
+                    const isToday = dateStr.includes(todayStr.split('.')[0]);
+                    
+                    if (isToday) {
+                        list.innerHTML += `<div class="log-date-title">Сегодня</div>`;
+                    } else {
+                        list.innerHTML += `<div class="log-date-title" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'" style="cursor: pointer;">📅 ${dateStr} ▼</div>`;
+                    }
+                    
+                    const containerStyle = isToday ? '' : 'display: none;';
+                    list.innerHTML += `<div style="${containerStyle}">`;
+                    
+                    grouped[dateStr].forEach(e => {
                     if ((e.event_type === 'sleep' || e.event_type === 'awake') && !e.end_time) return; 
 
                     let icon = "", name = "", sub = "", timeStr = "", badge = "";
@@ -464,6 +530,8 @@
                             </div>
                         </div>
                     `;
+                    });
+                    list.innerHTML += `</div>`;
                 });
             } catch(e) { console.error("Ошибка загрузки событий", e); }
         }
@@ -639,7 +707,70 @@
             });
         }
 
+        
+        // --- КАЛЕНДАРЬ ---
+        function openAppModal() { 
+            document.getElementById('app-modal').style.display = 'flex'; 
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('app-date').value = now.toISOString().slice(0,16);
+        }
+        function closeAppModal(e) { if (!e || e.target.id === 'app-modal') document.getElementById('app-modal').style.display = 'none'; }
+        
+        async function saveAppointment() {
+            const title = document.getElementById('app-title').value;
+            const dateTime = document.getElementById('app-date').value;
+            const notes = document.getElementById('app-notes').value;
+            if (!title || !dateTime) { alert("Заполните название и дату!"); return; }
+            await fetch(`${API_URL}/appointments`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ title: title, date_time: dateTime, notes: notes })
+            });
+            closeAppModal();
+            document.getElementById('app-title').value = '';
+            document.getElementById('app-notes').value = '';
+            loadAppointments();
+        }
+
+        async function loadAppointments() {
+            try {
+                const res = await fetch(`${API_URL}/appointments`);
+                let apps = await res.json();
+                if (!Array.isArray(apps)) apps = [];
+                const list = document.getElementById('app-list');
+                list.innerHTML = '';
+                if (apps.length === 0) {
+                    list.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Нет записей. Добавьте первую!</div>';
+                    return;
+                }
+                apps.forEach(a => {
+                    const dt = new Date(a.date_time);
+                    const dateStr = dt.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const timeStr = dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                    list.innerHTML += `
+                        <div class="log-item">
+                            <div class="log-left">
+                                <div class="log-icon">🏥</div>
+                                <div class="log-name">${a.title}<br><span class="log-sub">${dateStr} в ${timeStr} ${a.notes ? '· ' + a.notes : ''}</span></div>
+                            </div>
+                            <div class="log-right">
+                                <button class="btn-delete" onclick="deleteAppointment(${a.id})">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error("Ошибка календаря", e); }
+        }
+
+        async function deleteAppointment(id) {
+            if (!confirm("Удалить эту запись?")) return;
+            await fetch(`${API_URL}/appointments/${id}`, { method: 'DELETE' });
+            loadAppointments();
+        }
+
         loadEvents();
+        loadAppointments();
         setInterval(loadEvents, 30000);
     </script>
 </body>
