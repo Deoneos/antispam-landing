@@ -67,7 +67,7 @@
         .nav-item { 
             display: flex; flex-direction: column; align-items: center; gap: 4px; 
             color: var(--muted); font-size: 12px; font-weight: 700; 
-            cursor: pointer; background: none; border: none; width: 50%;
+            cursor: pointer; background: none; border: none; flex: 1; width: auto;
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .nav-item:active { transform: scale(0.85); }
@@ -137,3 +137,21 @@
         .day-toggle .chev { font-size: 11px; color: var(--muted); transition: transform .2s ease; }
         .day-section.open .chev { transform: rotate(180deg); }
         .log-empty { padding: 24px 16px; text-align: center; color: var(--muted); font-weight: 700; }
+
+/* АНАЛИТИКА */
+.period-chips { display: flex; gap: 8px; margin-bottom: 18px; }
+.chip {
+    flex: 1; padding: 11px 6px; border-radius: 16px; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); font: inherit; font-size: 13px;
+    font-weight: 800; cursor: pointer; transition: background .2s, color .2s;
+}
+.chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.corr-list { display: flex; flex-direction: column; gap: 10px; }
+.corr-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    background: var(--bg); border-radius: 16px; padding: 13px 15px;
+}
+.corr-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.corr-value { font-size: 13px; font-weight: 800; color: var(--muted); white-space: nowrap; }
+.corr-strong .corr-value { color: #10b981; }
+.corr-note { margin-top: 12px; font-size: 11px; line-height: 1.4; color: var(--muted); font-weight: 600; }

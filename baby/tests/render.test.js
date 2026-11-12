@@ -101,8 +101,22 @@ try {
   errors.push('EVAL: ' + e.message);
 }
 
-setTimeout(() => {
+setTimeout(async () => {
   console.error = realError;
+
+  // --- аналитика: считаем агрегаты и корреляции на тех же данных ---
+  let analyticsOk = false;
+  let analyticsDetail = '';
+  try {
+    await loadAnalytics();
+    const feeds = elements['an-feeds'] ? elements['an-feeds'].textContent : '';
+    const corr = elements['an-correlations'] ? elements['an-correlations'].innerHTML : '';
+    analyticsOk = feeds !== '' && feeds !== '0' && corr.includes('r = ');
+    analyticsDetail = `кормлений/день=${feeds}, корреляций=${(corr.match(/class="corr-item/g) || []).length}`;
+  } catch (e) {
+    analyticsDetail = e.message;
+  }
+
   const html = elements['log-list'] ? elements['log-list'].innerHTML : '';
   const count = (re) => (html.match(re) || []).length;
 
@@ -119,7 +133,8 @@ setTimeout(() => {
     ['сегодняшняя секция раскрыта', count(/day-section today open/g) === 1, `найдено: ${count(/day-section today open/g)}`],
     ['вчерашняя секция сворачиваемая', count(/class="log-date-title day-toggle"/g) === 1, `кнопок: ${count(/class="log-date-title day-toggle"/g)}`],
     ['вчерашняя секция закрыта', count(/aria-expanded="false"/g) === 1, `найдено: ${count(/aria-expanded="false"/g)}`],
-    ['удаление доступно по id', /onclick="deleteEvent\(\d+\)"/.test(html), 'нет обработчика удаления']
+    ['удаление доступно по id', /onclick="deleteEvent\(\d+\)"/.test(html), 'нет обработчика удаления'],
+    ['аналитика посчитана', analyticsOk, analyticsDetail]
   ];
 
   let failed = 0;

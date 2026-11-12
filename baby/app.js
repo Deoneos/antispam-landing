@@ -31,6 +31,7 @@
             btn.classList.add('active');
             if (viewName === 'stats') loadStats();
             if (viewName === 'calendar') loadAppointments();
+            if (viewName === 'analytics') loadAnalytics();
         }
 
         // --- УВЕДОМЛЕНИЯ ---
@@ -782,6 +783,175 @@
             if (willOpen) expandedDays.add(btn.dataset.day);
             else expandedDays.delete(btn.dataset.day);
         });
+
+
+        // ===== АНАЛИТИКА =====
+        let analyticsDays = 7;
+        let analyticsEvents = [];
+        const anCharts = { cycle: null, hours: null };
+
+        const isoDay = (value) => new Date(value).toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' });
+
+        function setPeriod(days, btn) {
+            analyticsDays = days;
+            document.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            loadAnalytics();
+        }
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch(`${API_URL}/events/history?days=${analyticsDays}`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
+                const events = await res.json();
+                analyticsEvents = Array.isArray(events) ? events : [];
+                mergeIntoCache(analyticsEvents);
+                await renderAnalytics();
+            } catch (e) {
+                console.error('Аналитика:', e);
+                toast('Не удалось загрузить аналитику', true);
+            }
+        }
+
+        function pearson(xs, ys) {
+            const n = xs.length;
+            if (n < 3) return null;
+            const mx = xs.reduce((a, b) => a + b, 0) / n;
+            const my = ys.reduce((a, b) => a + b, 0) / n;
+            let num = 0, dx = 0, dy = 0;
+            for (let i = 0; i < n; i++) {
+                const a = xs[i] - mx;
+                const b = ys[i] - my;
+                num += a * b; dx += a * a; dy += b * b;
+            }
+            if (dx === 0 || dy === 0) return null;
+            return num / Math.sqrt(dx * dy);
+        }
+
+        function describeR(r) {
+            const a = Math.abs(r);
+            if (a >= 0.7) return 'сильная';
+            if (a >= 0.5) return 'умеренная';
+            if (a >= 0.2) return 'слабая';
+            return 'связи нет';
+        }
+
+        async function renderAnalytics() {
+            const days = analyticsDays;
+            const today = new Date();
+            const daysList = [];
+            for (let i = days - 1; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                daysList.push(isoDay(d));
+            }
+
+            const byDay = {};
+            const rows = daysList.map((k) => {
+                const row = { day: k, feeds: 0, volume: 0, diapers: 0, sleep: 0, awake: 0, walk: 0 };
+                byDay[k] = row;
+                return row;
+            });
+            const hours = new Array(24).fill(0);
+
+            analyticsEvents.forEach((e) => {
+                const row = byDay[isoDay(e.start_time)];
+                if (!row) return;
+                if (e.event_type === 'feed') {
+                    row.feeds += 1;
+                    const ml = parseInt(e.details, 10);
+                    if (!isNaN(ml)) row.volume += ml;
+                    const hour = parseInt(new Date(e.start_time).toLocaleString('ru-RU', {
+                        timeZone: 'Europe/Moscow', hour: '2-digit', hour12: false
+                    }), 10);
+                    if (hour >= 0 && hour < 24) hours[hour] += 1;
+                } else if (e.event_type === 'diaper') {
+                    row.diapers += 1;
+                } else if (e.end_time && (e.event_type === 'sleep' || e.event_type === 'awake' || e.event_type === 'walk')) {
+                    row[e.event_type] += (new Date(e.end_time) - new Date(e.start_time)) / 3600000;
+                }
+            });
+
+            const total = (key) => rows.reduce((a, r) => a + r[key], 0);
+            const perDay = (key) => (days ? total(key) / days : 0);
+
+            document.getElementById('an-feeds').textContent = perDay('feeds').toFixed(1);
+            document.getElementById('an-volume').textContent = Math.round(perDay('volume'));
+            document.getElementById('an-sleep').textContent = perDay('sleep').toFixed(1) + 'ч';
+            document.getElementById('an-awake').textContent = perDay('awake').toFixed(1) + 'ч';
+            document.getElementById('an-walk').textContent = perDay('walk').toFixed(1) + 'ч';
+            document.getElementById('an-diapers').textContent = perDay('diapers').toFixed(1);
+
+            const pairs = [
+                ['Кормления ↔ Сон', rows.map((r) => r.feeds), rows.map((r) => r.sleep)],
+                ['Объём смеси ↔ Сон', rows.map((r) => r.volume), rows.map((r) => r.sleep)],
+                ['Прогулка ↔ Сон', rows.map((r) => r.walk), rows.map((r) => r.sleep)],
+                ['Подгузники ↔ Кормления', rows.map((r) => r.diapers), rows.map((r) => r.feeds)]
+            ];
+
+            let html = '';
+            pairs.forEach(([name, xs, ys]) => {
+                const r = pearson(xs, ys);
+                if (r === null) {
+                    html += '<div class="corr-item"><div class="corr-name">' + name + '</div><div class="corr-value">мало данных</div></div>';
+                    return;
+                }
+                const cls = Math.abs(r) >= 0.5 ? ' corr-strong' : '';
+                const dir = Math.abs(r) >= 0.2 ? (r > 0 ? ', прямая' : ', обратная') : '';
+                html += '<div class="corr-item' + cls + '"><div class="corr-name">' + name +
+                        '</div><div class="corr-value">r = ' + r.toFixed(2) + ' · ' + describeR(r) + dir + '</div></div>';
+            });
+            document.getElementById('an-correlations').innerHTML = html;
+
+            const note = document.getElementById('an-correlation-note');
+            const daysWithData = rows.filter((r) => r.feeds || r.sleep || r.diapers).length;
+            note.textContent = daysWithData < 5
+                ? 'Данных пока мало (' + daysWithData + ' дн.) — корреляции ориентировочные, не принимайте их за закономерность.'
+                : 'r — коэффициент Пирсона по ' + daysWithData + ' дням. Корреляция не означает причинную связь.';
+
+            try { await loadChartLib(); } catch (e) { return; }
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#F3F4F6' : '#111827';
+            const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+            const baseOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: textColor, font: { family: 'Nunito', size: 11, weight: 'bold' } } } },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Nunito', size: 10 } } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Nunito', size: 10 } }, beginAtZero: true }
+                }
+            };
+
+            const labels = rows.map((r) => r.day.slice(8, 10) + '.' + r.day.slice(5, 7));
+
+            if (anCharts.cycle) anCharts.cycle.destroy();
+            anCharts.cycle = new Chart(document.getElementById('an-chart-cycle'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Сон', data: rows.map((r) => +r.sleep.toFixed(2)), backgroundColor: '#3b82f6', stack: 'cycle', borderRadius: 4 },
+                        { label: 'Бодрствует', data: rows.map((r) => +r.awake.toFixed(2)), backgroundColor: '#fcd34d', stack: 'cycle', borderRadius: 4 },
+                        { label: 'Гуляет', data: rows.map((r) => +r.walk.toFixed(2)), backgroundColor: '#10b981', stack: 'cycle', borderRadius: 4 }
+                    ]
+                },
+                options: Object.assign({}, baseOptions, {
+                    scales: { x: baseOptions.scales.x, y: Object.assign({}, baseOptions.scales.y, { stacked: true }) }
+                })
+            });
+
+            if (anCharts.hours) anCharts.hours.destroy();
+            anCharts.hours = new Chart(document.getElementById('an-chart-hours'), {
+                type: 'bar',
+                data: {
+                    labels: hours.map((_, i) => String(i).padStart(2, '0')),
+                    datasets: [{ label: 'Кормлений', data: hours, backgroundColor: '#FCA5A5', borderRadius: 4 }]
+                },
+                options: baseOptions
+            });
+        }
 
         loadEvents();
         loadAppointments();

@@ -113,6 +113,47 @@
             <div class="log-list" id="app-list"></div>
         </div>
     </div>
+    <div id="view-analytics" class="view">
+        <div class="header">
+            <h1>📈 Аналитика</h1>
+        </div>
+        <div class="stats-container">
+            <div class="period-chips">
+                <button class="chip active" onclick="setPeriod(7, this)">7 дней</button>
+                <button class="chip" onclick="setPeriod(14, this)">14</button>
+                <button class="chip" onclick="setPeriod(30, this)">30</button>
+                <button class="chip" onclick="setPeriod(90, this)">90</button>
+            </div>
+
+            <div class="stat-cards">
+                <div class="stat-card"><div class="value" id="an-feeds">0</div><div class="label">Кормлений в день</div></div>
+                <div class="stat-card"><div class="value" id="an-volume">0</div><div class="label">мл в день</div></div>
+                <div class="stat-card"><div class="value" id="an-sleep">0ч</div><div class="label">Сна в день</div></div>
+            </div>
+            <div class="stat-cards">
+                <div class="stat-card"><div class="value" id="an-awake">0ч</div><div class="label">Бодрствует</div></div>
+                <div class="stat-card"><div class="value" id="an-walk">0ч</div><div class="label">Гуляет</div></div>
+                <div class="stat-card"><div class="value" id="an-diapers">0</div><div class="label">Подгузников</div></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Сон и бодрствование по дням</div>
+                <div class="chart-wrap"><canvas id="an-chart-cycle"></canvas></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Кормления по часам</div>
+                <div class="chart-wrap"><canvas id="an-chart-hours"></canvas></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Корреляции</div>
+                <div class="corr-list" id="an-correlations"></div>
+                <div class="corr-note" id="an-correlation-note"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchView('tracker', this)">
             <span class="icon">🏠</span> Трекер
@@ -122,6 +163,9 @@
         </button>
         <button class="nav-item" onclick="switchView('calendar', this)">
             <span class="icon">📅</span> Календарь
+        </button>
+        <button class="nav-item" onclick="switchView('analytics', this)">
+            <span class="icon">📈</span> Аналитика
         </button>
     </div>
 
