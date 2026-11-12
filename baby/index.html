@@ -144,6 +144,15 @@
 
         /* ИНДИКАТОР СЕТИ */
         .net-status { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
+        /* ШТОРКИ ПО ДНЯМ */
+        .day-section { border-bottom: 1px solid var(--border); }
+        .day-section:last-child { border-bottom: none; }
+        .day-body { display: none; }
+        .day-section.open .day-body { display: block; }
+        .day-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; border: none; font: inherit; text-align: left; background: var(--bg); cursor: pointer; }
+        .day-toggle .chev { font-size: 11px; color: var(--muted); transition: transform .2s ease; }
+        .day-section.open .chev { transform: rotate(180deg); }
+        .log-empty { padding: 24px 16px; text-align: center; color: var(--muted); font-weight: 700; }
     </style>
 </head>
 <body>
@@ -547,6 +556,7 @@
             loadEvents();
         }
 
+        const expandedDays = new Set();
         let activeWalkId = null;
 
         async function toggleSleepAwake() {
@@ -647,9 +657,8 @@
                 } else { feedBadge.style.display = 'none'; }
 
                 const list = document.getElementById('log-list');
-                list.innerHTML = '';
-                
-                // --- ЛОГИКА АККОРДЕОНА ПО ДНЯМ ---
+
+                // --- АККОРДЕОН ПО ДНЯМ ---
                 const grouped = {};
                 const dayKey = (d) => new Date(d).toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' });
                 const todayKey = dayKey(new Date());
@@ -663,21 +672,25 @@
                     grouped[k].push(e);
                 });
 
+                let html = '';
                 Object.keys(grouped).sort().reverse().forEach(key => {
                     const isToday = key === todayKey;
                     const dateStr = labelOf(key);
-                    
+                    const open = isToday || expandedDays.has(key);
+
+                    html += `<div class="day-section${isToday ? ' today' : ''}${open ? ' open' : ''}">`;
+
                     if (isToday) {
-                        list.innerHTML += `<div class="log-date-title">Сегодня</div>`;
+                        html += `<div class="log-date-title">Сегодня</div>`;
                     } else {
-                        list.innerHTML += `<div class="log-date-title" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'" style="cursor: pointer;">📅 ${dateStr} ▼</div>`;
+                        html += `<button type="button" class="log-date-title day-toggle" data-day="${key}" aria-expanded="${open}">`
+                            + `<span>📅 ${dateStr}</span><span class="chev" aria-hidden="true">▼</span></button>`;
                     }
-                    
-                    const containerStyle = isToday ? '' : 'display: none;';
-                    list.innerHTML += `<div style="${containerStyle}">`;
-                    
+
+                    html += `<div class="day-body">`;
+
                     grouped[key].forEach(e => {
-                    if ((e.event_type === 'sleep' || e.event_type === 'awake') && !e.end_time) return; 
+                    if ((e.event_type === 'sleep' || e.event_type === 'awake') && !e.end_time) return;
 
                     let icon = "", name = "", sub = "", timeStr = "", badge = "";
                     const startTime = new Date(e.start_time);
@@ -689,28 +702,28 @@
                         const endTime = new Date(e.end_time);
                         sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
-                        timeStr = ""; 
-                    } 
+                        timeStr = "";
+                    }
                     else if (e.event_type === 'awake' && e.end_time) {
                         icon = "👀"; name = "Бодрствовала";
                         const endTime = new Date(e.end_time);
                         sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
-                        timeStr = ""; 
+                        timeStr = "";
                     }
-                    else if (e.event_type === 'feed') { icon = "🍼"; name = "Покушала"; sub = e.details || "Бутылочка"; } 
+                    else if (e.event_type === 'feed') { icon = "🍼"; name = "Покушала"; sub = e.details || "Бутылочка"; }
                     else if (e.event_type === 'diaper') { const det = e.details || ''; icon = det.includes('Пописиюлькала') ? "💦" : "💩"; name = det || "Подгузник"; sub = ""; }
                     else if (e.event_type === 'walk' && e.end_time) {
                         icon = "🚶‍♀️"; name = "Гуляла";
                         const endTime = new Date(e.end_time);
                         sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
-                        timeStr = ""; 
+                        timeStr = "";
                     }
 
-                    let rightSide = timeStr ? `<div class="log-time">${timeStr}</div>` : `<div class="badge-duration">${badge}</div>`;
+                    const rightSide = timeStr ? `<div class="log-time">${timeStr}</div>` : `<div class="badge-duration">${badge}</div>`;
 
-                    list.innerHTML += `
+                    html += `
                         <div class="log-item">
                             <div class="log-left">
                                 <div class="log-icon">${icon}</div>
@@ -723,8 +736,15 @@
                         </div>
                     `;
                     });
-                    list.innerHTML += `</div>`;
+
+                    html += `</div></div>`;
                 });
+
+                if (html) {
+                    if (list.innerHTML !== html) list.innerHTML = html;
+                } else {
+                    list.innerHTML = '<div class="log-empty">Пока нет записей за последние сутки</div>';
+                }
             } catch(e) { console.error("Ошибка загрузки событий", e); }
         }
 
@@ -1021,6 +1041,17 @@
             await fetch(`${API_URL}/appointments/${id}`, { method: 'DELETE' });
             loadAppointments();
         }
+
+        document.getElementById('log-list').addEventListener('click', (ev) => {
+            const btn = ev.target.closest('.day-toggle');
+            if (!btn) return;
+            const section = btn.closest('.day-section');
+            const willOpen = !section.classList.contains('open');
+            section.classList.toggle('open', willOpen);
+            btn.setAttribute('aria-expanded', String(willOpen));
+            if (willOpen) expandedDays.add(btn.dataset.day);
+            else expandedDays.delete(btn.dataset.day);
+        });
 
         loadEvents();
         loadAppointments();
