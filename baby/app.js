@@ -58,12 +58,60 @@
         }
 
         // Понятная диагностика вместо «пустого списка» при неверном токене
+        let tokenModalShown = false;
+
         function handleAuthError(res) {
             if (res.status === 401) {
-                toast('Нет доступа: откройте приложение по ссылке с токеном', true);
+                if (!tokenModalShown) {
+                    tokenModalShown = true;
+                    toast('Нужен токен доступа', true);
+                    setTimeout(openTokenModal, 200);
+                }
                 return true;
             }
             return false;
+        }
+
+        function openTokenModal() {
+            const modal = document.getElementById('token-modal');
+            if (!modal) return;
+            const input = document.getElementById('token-input');
+            if (input) {
+                input.value = apiToken();
+                setTimeout(() => input.focus(), 150);
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeTokenModal(e) {
+            if (!e || e.target.id === 'token-modal') {
+                const modal = document.getElementById('token-modal');
+                if (modal) modal.style.display = 'none';
+            }
+        }
+
+        function saveTokenFromInput() {
+            const input = document.getElementById('token-input');
+            const value = (input && input.value ? input.value : '').trim();
+            if (!value) {
+                toast('Вставьте токен', true);
+                return;
+            }
+            try {
+                localStorage.setItem('baby_api_token', value);
+            } catch (e) {
+                toast('Не удалось сохранить токен', true);
+                return;
+            }
+            tokenModalShown = false;
+            closeTokenModal();
+            toast('Токен сохранён');
+            loadEvents();
+            loadAppointments();
+            if (document.getElementById('view-analytics') &&
+                document.getElementById('view-analytics').classList.contains('active')) {
+                loadAnalytics();
+            }
         }
 
         // Экранирование пользовательских данных перед вставкой в HTML
@@ -907,5 +955,8 @@
         loadAppointments();
         renderStatus();
         flushQueue();
+        if (!apiToken()) {
+            setTimeout(openTokenModal, 600);
+        }
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
