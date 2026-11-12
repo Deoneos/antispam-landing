@@ -1,4 +1,4 @@
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = 'baby-' + VERSION;
 
 // Предзагружаем только оболочку приложения. Аудио (16 МБ!) грузится по требованию.
@@ -88,15 +88,22 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
-    // Статика того же origin: stale-while-revalidate
+    // Статика того же origin: сначала сеть, кэш — только если сети нет.
+    // Так обновления кода прилетают сразу, без «застрявшей» старой версии.
     if (url.origin === self.location.origin) {
         e.respondWith((async () => {
-            const cached = await caches.match(req);
-            const network = fetch(req).then((res) => {
-                if (res.ok) caches.open(CACHE).then(c => c.put(req, res.clone()));
+            try {
+                const res = await fetchWithTimeout(req, 3000);
+                if (res && res.ok) {
+                    const cache = await caches.open(CACHE);
+                    cache.put(req, res.clone());
+                }
                 return res;
-            }).catch(() => cached);
-            return cached || network;
+            } catch (err) {
+                return (await caches.match(req))
+                    || (await caches.match(url.pathname))
+                    || new Response('', { status: 504 });
+            }
         })());
     }
 });
