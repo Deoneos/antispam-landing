@@ -951,6 +951,133 @@
             });
         }
 
+        // ===== PDF-ОТЧЁТ ДЛЯ ВРАЧА =====
+        function loadScriptOnce(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error('Не загрузилось: ' + src));
+                (document.head || document.body).appendChild(script);
+            });
+        }
+
+        async function downloadDoctorReport() {
+            try {
+                toast('Готовлю отчёт…');
+
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+                }
+                if (!window.REPORT_FONT_BASE64) {
+                    await loadScriptOnce('report-font.js');
+                }
+
+                const res = await fetch(`${API_URL}/events/history?days=7`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
+                const events = await res.json();
+                if (!Array.isArray(events)) throw new Error('нет данных');
+
+                const today = new Date();
+                const rows = [];
+                const byDay = {};
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const key = isoDay(d);
+                    const row = { key: key, feeds: 0, volume: 0, sleep: 0, diapers: 0 };
+                    byDay[key] = row;
+                    rows.push(row);
+                }
+
+                events.forEach((e) => {
+                    const row = byDay[isoDay(e.start_time)];
+                    if (!row) return;
+                    if (e.event_type === 'feed') {
+                        row.feeds += 1;
+                        const ml = parseInt(e.details, 10);
+                        if (!isNaN(ml)) row.volume += ml;
+                    } else if (e.event_type === 'diaper') {
+                        row.diapers += 1;
+                    } else if (e.event_type === 'sleep' && e.end_time) {
+                        row.sleep += (new Date(e.end_time) - new Date(e.start_time)) / 3600000;
+                    }
+                });
+
+                const sum = (key) => rows.reduce((a, r) => a + r[key], 0);
+                const avgSleep = sum('sleep') / 7;
+
+                const jsPDFCtor = window.jspdf.jsPDF;
+                const doc = new jsPDFCtor({ unit: 'mm', format: 'a4' });
+                doc.addFileToVFS('report.ttf', window.REPORT_FONT_BASE64);
+                doc.addFont('report.ttf', 'Report', 'normal');
+                doc.setFont('Report');
+
+                const fmt = (d) => d.toLocaleDateString('ru-RU');
+                const first = new Date(today);
+                first.setDate(first.getDate() - 6);
+
+                doc.setFontSize(18);
+                doc.text('Отчёт о ребёнке', 15, 20);
+                doc.setFontSize(10);
+                doc.setTextColor(110);
+                doc.text(`Период: ${fmt(first)} — ${fmt(today)}`, 15, 27);
+                doc.setTextColor(0);
+
+                doc.setFontSize(13);
+                doc.text('Итоги за неделю', 15, 42);
+                doc.setFontSize(10);
+                const summary = [
+                    `Сон в среднем: ${avgSleep.toFixed(1)} ч в сутки`,
+                    `Кормлений: ${sum('feeds')} (в среднем ${(sum('feeds') / 7).toFixed(1)} в сутки)`,
+                    `Объём смеси: ${sum('volume')} мл (в среднем ${Math.round(sum('volume') / 7)} мл в сутки)`,
+                    `Подгузников: ${sum('diapers')}`
+                ];
+                let y = 50;
+                summary.forEach((line) => {
+                    doc.text(line, 15, y);
+                    y += 6;
+                });
+
+                y += 8;
+                doc.setFontSize(13);
+                doc.text('По дням', 15, y);
+                y += 9;
+
+                doc.setFontSize(9);
+                const cols = [15, 42, 78, 112, 148];
+                const header = ['Дата', 'Кормлений', 'Смесь, мл', 'Сон, ч', 'Подгузники'];
+                header.forEach((h, i) => doc.text(h, cols[i], y));
+                y += 3;
+                doc.line(15, y, 195, y);
+                y += 6;
+
+                rows.forEach((r) => {
+                    const label = new Date(r.key + 'T12:00:00+03:00')
+                        .toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                    doc.text(label, cols[0], y);
+                    doc.text(String(r.feeds), cols[1], y);
+                    doc.text(String(r.volume), cols[2], y);
+                    doc.text(r.sleep.toFixed(1), cols[3], y);
+                    doc.text(String(r.diapers), cols[4], y);
+                    y += 6;
+                });
+
+                y += 8;
+                doc.setFontSize(8);
+                doc.setTextColor(130);
+                doc.text('Отчёт сформирован автоматически в приложении «Трекер малыша».', 15, y);
+                doc.text('Не является медицинским заключением.', 15, y + 4);
+
+                doc.save('otchet-' + new Date().toISOString().slice(0, 10) + '.pdf');
+                toast('Отчёт готов');
+            } catch (e) {
+                console.error('PDF:', e);
+                toast('Не удалось сформировать отчёт', true);
+            }
+        }
+
         loadEvents();
         loadAppointments();
         renderStatus();
