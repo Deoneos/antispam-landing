@@ -306,7 +306,7 @@
             try {
                 let events = [];
                 try {
-                    const res = await fetch(`${API_URL}/events/today`, { headers: apiHeaders() });
+                    const res = await fetch(`${API_URL}/events/history?days=14`, { headers: apiHeaders() });
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     events = await res.json();
                     if (!Array.isArray(events)) events = [];
@@ -462,7 +462,7 @@
                 if (html) {
                     if (list.innerHTML !== html) list.innerHTML = html;
                 } else {
-                    list.innerHTML = '<div class="log-empty">Пока нет записей за последние сутки</div>';
+                    list.innerHTML = '<div class="log-empty">Пока нет записей за две недели</div>';
                 }
             } catch(e) { console.error("Ошибка загрузки событий", e); }
         }

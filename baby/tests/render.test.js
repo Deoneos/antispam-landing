@@ -88,7 +88,7 @@ global.confirm = () => false;
 global.alert = () => {};
 global.fetch = async (url) => {
   const u = String(url);
-  const body = (u.includes('events/today') || u.includes('events/week')) ? events : [];
+  const body = (u.includes('events/today') || u.includes('events/week') || u.includes('events/history')) ? events : [];
   return { ok: true, status: 200, json: async () => body, text: async () => '' };
 };
 
