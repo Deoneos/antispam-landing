@@ -208,13 +208,18 @@
             </div>
 
             <div class="chart-container">
-                <div class="chart-title">Кормления и подгузники (7 дней)</div>
+                <div class="chart-title">Кормления и подгузники</div>
                 <div class="chart-wrap"><canvas id="chart-feeds"></canvas></div>
             </div>
 
             <div class="chart-container">
-                <div class="chart-title">Сон и Бодрствование (7 дней)</div>
+                <div class="chart-title">Суточный цикл (часы)</div>
                 <div class="chart-wrap"><canvas id="chart-sleep"></canvas></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Выпито смеси (мл)</div>
+                <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
             </div>
         </div>
     </div>
@@ -594,6 +599,7 @@
                 let todayVolume = 0;
                 let todaySleepMs = 0;
 
+                // Считаем карточки за сегодня
                 events.forEach(e => {
                     const d = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
                     if (d === todayStr) {
@@ -610,6 +616,9 @@
                 const feedsByDay = {};
                 const diapersByDay = {};
                 const sleepByDay = {};
+                const awakeByDay = {};
+                const walkByDay = {};
+                const volumeByDay = {};
 
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date();
@@ -619,23 +628,36 @@
                     feedsByDay[dateStr] = 0;
                     diapersByDay[dateStr] = 0;
                     sleepByDay[dateStr] = 0;
+                    awakeByDay[dateStr] = 0;
+                    walkByDay[dateStr] = 0;
+                    volumeByDay[dateStr] = 0;
                 }
 
+                // Считаем графики по дням
                 events.forEach(e => {
                     const dateStr = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' });
                     if (feedsByDay[dateStr] !== undefined) {
-                        if (e.event_type === 'feed') feedsByDay[dateStr]++;
+                        if (e.event_type === 'feed') { 
+                            feedsByDay[dateStr]++; 
+                            const ml = parseInt(e.details); if (!isNaN(ml)) volumeByDay[dateStr] += ml; 
+                        }
                         if (e.event_type === 'diaper') diapersByDay[dateStr]++;
-                        if (e.event_type === 'sleep' && e.end_time) sleepByDay[dateStr] += (new Date(e.end_time) - new Date(e.start_time)) / (1000 * 60 * 60);
+                        
+                        if (e.end_time) {
+                            const hours = (new Date(e.end_time) - new Date(e.start_time)) / (1000 * 60 * 60);
+                            if (e.event_type === 'sleep') sleepByDay[dateStr] += hours;
+                            if (e.event_type === 'awake') awakeByDay[dateStr] += hours;
+                            if (e.event_type === 'walk') walkByDay[dateStr] += hours;
+                        }
                     }
                 });
 
-                renderCharts(days, feedsByDay, diapersByDay, sleepByDay);
+                renderCharts(days, feedsByDay, diapersByDay, sleepByDay, awakeByDay, walkByDay, volumeByDay);
 
             } catch(e) { console.error("Ошибка статистики", e); }
         }
 
-        function renderCharts(labels, feeds, diapers, sleep) {
+        function renderCharts(labels, feeds, diapers, sleep, awake, walk, volume) {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const textColor = isDark ? '#F3F4F6' : '#111827';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
@@ -665,17 +687,39 @@
                 options: commonOptions
             });
 
+            // График 2: Суточный цикл (Столбчатая диаграмма с накоплением)
             const ctx2 = document.getElementById('chart-sleep').getContext('2d');
             chartSleep = new Chart(ctx2, {
-                type: 'line',
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Сон', data: Object.values(sleep).map(v => v.toFixed(1)), backgroundColor: '#3b82f6', borderRadius: 4, stack: 'Stack 0' },
+                        { label: 'Бодрствует', data: Object.values(awake).map(v => v.toFixed(1)), backgroundColor: '#fcd34d', borderRadius: 4, stack: 'Stack 0' },
+                        { label: 'Гуляет', data: Object.values(walk).map(v => v.toFixed(1)), backgroundColor: '#10b981', borderRadius: 4, stack: 'Stack 0' }
+                    ]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: { 
+                        x: commonOptions.scales.x, 
+                        y: { ...commonOptions.scales.y, stacked: true } 
+                    }
+                }
+            });
+
+            // График 3: Объем смеси
+            const ctx3 = document.getElementById('chart-volume').getContext('2d');
+            if (window.chartVolume) window.chartVolume.destroy();
+            window.chartVolume = new Chart(ctx3, {
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Часы сна',
-                        data: Object.values(sleep).map(v => v.toFixed(1)),
-                        borderColor: isDark ? '#1E3A8A' : '#93C5FD',
-                        backgroundColor: isDark ? 'rgba(30, 58, 138, 0.2)' : 'rgba(147, 197, 253, 0.4)',
-                        fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4
+                        label: 'Выпито (мл)',
+                        data: Object.values(volume),
+                        backgroundColor: isDark ? '#7F1D1D' : '#FCA5A5',
+                        borderRadius: 6
                     }]
                 },
                 options: commonOptions
