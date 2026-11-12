@@ -1,10 +1,12 @@
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = 'baby-' + VERSION;
 
 // Предзагружаем только оболочку приложения. Аудио (16 МБ!) грузится по требованию.
 const PRECACHE = [
     '/baby/',
     '/baby/index.html',
+    '/baby/styles.css',
+    '/baby/app.js',
     '/baby/chart.js',
     '/baby/manifest.json',
     '/baby/icons/icon-192.png',
