@@ -142,6 +142,9 @@
         .toast { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 12px 18px; border-radius: 16px; font-size: 14px; font-weight: 700; box-shadow: 0 8px 24px var(--shadow); opacity: 0; transform: translateY(10px); transition: opacity .25s ease, transform .25s ease; text-align: center; }
         .toast.show { opacity: 1; transform: translateY(0); }
         .toast.error { border-color: #ef4444; }
+
+        /* ИНДИКАТОР СЕТИ */
+        .net-status { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
     </style>
 </head>
 <body>
@@ -149,6 +152,7 @@
     <div id="view-tracker" class="view active">
         <div class="header">
             <h1>👧 Трекер Таисии</h1>
+            <div class="net-status" id="net-status" style="display: none;"></div>
             <div class="last-feed-badge" id="last-feed-badge">🍼 Последнее: давно</div>
         </div>
 
@@ -237,6 +241,7 @@
         <div class="header"><h1>📅 Календарь</h1></div>
         <div class="stats-container">
             <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--awake); color: #111827;" onclick="openAppModal()">➕ Добавить запись</button>
+            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="exportData()">⬇️ Экспорт данных</button>
             <div class="log-list" id="app-list"></div>
         </div>
     </div>
@@ -319,6 +324,7 @@
             document.getElementById(`view-${viewName}`).classList.add('active');
             btn.classList.add('active');
             if (viewName === 'stats') loadStats();
+            if (viewName === 'calendar') loadAppointments();
         }
 
         // --- УВЕДОМЛЕНИЯ ---
@@ -349,6 +355,108 @@
             return res;
         }
 
+        // ===== ЛОКАЛЬНЫЙ КЭШ, ОЧЕРЕДЬ И ЭКСПОРТ =====
+        const CACHE_KEY = 'baby_events_cache_v1';
+        const QUEUE_KEY = 'baby_queue_v1';
+
+        function readJSON(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return fallback;
+                const v = JSON.parse(raw);
+                return v == null ? fallback : v;
+            } catch (e) { return fallback; }
+        }
+        function writeJSON(key, value) {
+            try { localStorage.setItem(key, JSON.stringify(value)); }
+            catch (e) { console.warn('localStorage:', e); }
+        }
+
+        function mergeIntoCache(events) {
+            if (!Array.isArray(events) || !events.length) return;
+            const cache = readJSON(CACHE_KEY, {});
+            let changed = false;
+            for (const e of events) {
+                if (!e || e.id == null) continue;
+                if (JSON.stringify(cache[e.id]) !== JSON.stringify(e)) { cache[e.id] = e; changed = true; }
+            }
+            if (changed) writeJSON(CACHE_KEY, cache);
+        }
+
+        function cachedEvents() {
+            return Object.values(readJSON(CACHE_KEY, {}))
+                .sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+        }
+
+        function newId() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            return String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+        }
+
+        function enqueue(item) {
+            const q = readJSON(QUEUE_KEY, []);
+            q.push(Object.assign({ ts: Date.now() }, item));
+            writeJSON(QUEUE_KEY, q);
+            renderStatus();
+        }
+
+        async function flushQueue() {
+            const q = readJSON(QUEUE_KEY, []);
+            if (!q.length) { renderStatus(); return; }
+            const left = [];
+            for (const item of q) {
+                try {
+                    const res = await fetch(item.url, {
+                        method: item.method || 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: item.body
+                    });
+                    if (!res.ok) left.push(item);
+                } catch (e) { left.push(item); }
+            }
+            writeJSON(QUEUE_KEY, left);
+            renderStatus();
+            if (left.length !== q.length) {
+                toast(`Отправлено из очереди: ${q.length - left.length}`);
+                loadEvents();
+            }
+        }
+
+        function renderStatus() {
+            const el = document.getElementById('net-status');
+            if (!el) return;
+            const pending = readJSON(QUEUE_KEY, []).length;
+            const offline = !navigator.onLine;
+            if (!pending && !offline) { el.style.display = 'none'; el.textContent = ''; return; }
+            el.style.display = 'inline-block';
+            el.textContent = offline
+                ? (pending ? `📴 офлайн · ${pending} в очереди` : '📴 офлайн')
+                : `⏳ ждут отправки: ${pending}`;
+        }
+
+        window.addEventListener('online', () => { renderStatus(); flushQueue(); });
+        window.addEventListener('offline', renderStatus);
+
+        function exportData() {
+            const payload = {
+                app: 'baby-tracker',
+                exported_at: new Date().toISOString(),
+                events: cachedEvents(),
+                appointments: window.__lastAppointments || [],
+                pending: readJSON(QUEUE_KEY, [])
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'baby-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+            toast(`Экспортировано записей: ${payload.events.length}`);
+        }
+
         // --- SOS ---
         async function sendSOS() {
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
@@ -365,9 +473,14 @@
             const ml = document.getElementById('ml-slider').value;
             closeFeedModal();
             if (navigator.vibrate) navigator.vibrate(50);
+            const body = JSON.stringify({ event_type: 'feed', details: ml + ' мл', client_uuid: newId() });
             try {
-                await apiFetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'feed', details: ml + ' мл'}) });
+                const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: body });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 toast(`Записано: ${ml} мл`);
+            } catch (e) {
+                enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `feed: ${ml} мл` });
+                toast("Нет связи — кормление в очереди", true);
             } finally {
                 loadEvents();
             }
@@ -463,9 +576,18 @@
 
         async function loadEvents() {
             try {
-                const res = await fetch(`${API_URL}/events/today`);
-                let events = await res.json();
-                if (!Array.isArray(events)) events = [];
+                let events = [];
+                try {
+                    const res = await fetch(`${API_URL}/events/today`);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    events = await res.json();
+                    if (!Array.isArray(events)) events = [];
+                    mergeIntoCache(events);
+                } catch (netErr) {
+                    events = cachedEvents();
+                    if (events.length) toast("Нет связи — показаны сохранённые записи", true);
+                }
+                renderStatus();
                 
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 const activeAwake = events.find(e => e.event_type === 'awake' && !e.end_time);
@@ -620,8 +742,13 @@
 
         async function quickEvent(type, details) {
             if (navigator.vibrate) navigator.vibrate(50);
+            const body = JSON.stringify({ event_type: type, details: details, client_uuid: newId() });
             try {
-                await apiFetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: type, details: details}) });
+                const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: body });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+            } catch (e) {
+                enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `${type}: ${details}` });
+                toast("Нет связи — запись в очереди", true);
             } finally {
                 loadEvents();
             }
@@ -632,6 +759,7 @@
             try {
                 const res = await fetch(`${API_URL}/events/week`);
                 const events = await res.json();
+                if (Array.isArray(events)) mergeIntoCache(events);
                 
                 const todayStr = new Date().toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
                 let todayFeeds = 0;
@@ -846,6 +974,7 @@
                 const res = await fetch(`${API_URL}/appointments`);
                 let apps = await res.json();
                 if (!Array.isArray(apps)) apps = [];
+                window.__lastAppointments = apps;
                 const list = document.getElementById('app-list');
                 list.innerHTML = '';
                 if (apps.length === 0) {
@@ -879,6 +1008,8 @@
 
         loadEvents();
         loadAppointments();
+        renderStatus();
+        flushQueue();
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
     </script>
