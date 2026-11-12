@@ -56,6 +56,15 @@
             return headers;
         }
 
+        // Понятная диагностика вместо «пустого списка» при неверном токене
+        function handleAuthError(res) {
+            if (res.status === 401) {
+                toast('Нет доступа: откройте приложение по ссылке с токеном', true);
+                return true;
+            }
+            return false;
+        }
+
         // Экранирование пользовательских данных перед вставкой в HTML
         function esc(value) {
             return String(value == null ? '' : value)
@@ -188,7 +197,7 @@
         async function sendSOS() {
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
             try {
-                await fetch(`${API_URL}/sos`, { method: 'POST' });
+                await fetch(`${API_URL}/sos`, { method: 'POST', headers: apiHeaders() });
                 toast("🆘 SOS отправлен!");
             } catch(e) { toast("Ошибка отправки SOS", true); }
         }
@@ -203,7 +212,7 @@
             const body = JSON.stringify({ event_type: 'feed', details: ml + ' мл', client_uuid: newId() });
             try {
                 const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
+                if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
                 toast(`Записано: ${ml} мл`);
             } catch (e) {
                 enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `feed: ${ml} мл` });
@@ -271,7 +280,7 @@
 
         async function deleteEvent(id) {
             if (!confirm("Удалить эту запись?")) return;
-            await fetch(`${API_URL}/events/${id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/events/${id}`, { method: 'DELETE', headers: apiHeaders() });
             loadEvents();
         }
 
@@ -281,11 +290,11 @@
         async function toggleSleepAwake() {
             if (activeSleepId) {
                 // Если спит — будим (гуляние не трогаем)
-                await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
+                await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST', headers: apiHeaders() });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'awake'}) });
             } else {
                 // Укладываем спать (гуляние не трогаем)
-                if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
+                if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST', headers: apiHeaders() });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'sleep'}) });
             }
             loadEvents();
@@ -294,7 +303,7 @@
         async function toggleWalk() {
             if (activeWalkId) {
                 // Если гуляет — просто заканчиваем прогулку (остальное не трогаем)
-                await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
+                await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST', headers: apiHeaders() });
             } else {
                 // Начинаем прогулку (сон или бодрствование не трогаем)
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'walk'}) });
@@ -307,7 +316,7 @@
                 let events = [];
                 try {
                     const res = await fetch(`${API_URL}/events/history?days=14`, { headers: apiHeaders() });
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
                     events = await res.json();
                     if (!Array.isArray(events)) events = [];
                     mergeIntoCache(events);
@@ -483,7 +492,7 @@
             const body = JSON.stringify({ event_type: type, details: details, client_uuid: newId() });
             try {
                 const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
+                if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
             } catch (e) {
                 enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `${type}: ${details}` });
                 toast("Нет связи — запись в очереди", true);
@@ -496,6 +505,7 @@
         async function loadStats() {
             try {
                 const res = await fetch(`${API_URL}/events/week`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
                 const events = await res.json();
                 if (Array.isArray(events)) mergeIntoCache(events);
                 
@@ -727,6 +737,7 @@
         async function loadAppointments() {
             try {
                 const res = await fetch(`${API_URL}/appointments`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
                 let apps = await res.json();
                 if (!Array.isArray(apps)) apps = [];
                 window.__lastAppointments = apps;
@@ -757,7 +768,7 @@
 
         async function deleteAppointment(id) {
             if (!confirm("Удалить эту запись?")) return;
-            await fetch(`${API_URL}/appointments/${id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/appointments/${id}`, { method: 'DELETE', headers: apiHeaders() });
             loadAppointments();
         }
 
