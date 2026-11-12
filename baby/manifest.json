@@ -1,15 +1,36 @@
 {
     "name": "Трекер малыша",
     "short_name": "Малыш",
+    "description": "Трекер сна, кормлений, прогулок и подгузников малыша",
+    "lang": "ru",
+    "dir": "ltr",
+    "id": "/baby/",
     "start_url": "/baby/",
+    "scope": "/baby/",
     "display": "standalone",
-    "background_color": "#09090b",
-    "theme_color": "#09090b",
+    "display_override": ["standalone", "minimal-ui"],
+    "orientation": "portrait",
+    "background_color": "#0F1014",
+    "theme_color": "#0F1014",
+    "categories": ["health", "lifestyle", "utilities"],
     "icons": [
         {
-            "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👶</text></svg>",
+            "src": "icons/icon-192.png",
             "sizes": "192x192",
-            "type": "image/svg+xml"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ]
 }
