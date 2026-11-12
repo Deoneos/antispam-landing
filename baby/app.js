@@ -813,29 +813,6 @@
             }
         }
 
-        function pearson(xs, ys) {
-            const n = xs.length;
-            if (n < 3) return null;
-            const mx = xs.reduce((a, b) => a + b, 0) / n;
-            const my = ys.reduce((a, b) => a + b, 0) / n;
-            let num = 0, dx = 0, dy = 0;
-            for (let i = 0; i < n; i++) {
-                const a = xs[i] - mx;
-                const b = ys[i] - my;
-                num += a * b; dx += a * a; dy += b * b;
-            }
-            if (dx === 0 || dy === 0) return null;
-            return num / Math.sqrt(dx * dy);
-        }
-
-        function describeR(r) {
-            const a = Math.abs(r);
-            if (a >= 0.7) return 'сильная';
-            if (a >= 0.5) return 'умеренная';
-            if (a >= 0.2) return 'слабая';
-            return 'связи нет';
-        }
-
         async function renderAnalytics() {
             const days = analyticsDays;
             const today = new Date();
@@ -881,33 +858,6 @@
             document.getElementById('an-awake').textContent = perDay('awake').toFixed(1) + 'ч';
             document.getElementById('an-walk').textContent = perDay('walk').toFixed(1) + 'ч';
             document.getElementById('an-diapers').textContent = perDay('diapers').toFixed(1);
-
-            const pairs = [
-                ['Кормления ↔ Сон', rows.map((r) => r.feeds), rows.map((r) => r.sleep)],
-                ['Объём смеси ↔ Сон', rows.map((r) => r.volume), rows.map((r) => r.sleep)],
-                ['Прогулка ↔ Сон', rows.map((r) => r.walk), rows.map((r) => r.sleep)],
-                ['Подгузники ↔ Кормления', rows.map((r) => r.diapers), rows.map((r) => r.feeds)]
-            ];
-
-            let html = '';
-            pairs.forEach(([name, xs, ys]) => {
-                const r = pearson(xs, ys);
-                if (r === null) {
-                    html += '<div class="corr-item"><div class="corr-name">' + name + '</div><div class="corr-value">мало данных</div></div>';
-                    return;
-                }
-                const cls = Math.abs(r) >= 0.5 ? ' corr-strong' : '';
-                const dir = Math.abs(r) >= 0.2 ? (r > 0 ? ', прямая' : ', обратная') : '';
-                html += '<div class="corr-item' + cls + '"><div class="corr-name">' + name +
-                        '</div><div class="corr-value">r = ' + r.toFixed(2) + ' · ' + describeR(r) + dir + '</div></div>';
-            });
-            document.getElementById('an-correlations').innerHTML = html;
-
-            const note = document.getElementById('an-correlation-note');
-            const daysWithData = rows.filter((r) => r.feeds || r.sleep || r.diapers).length;
-            note.textContent = daysWithData < 5
-                ? 'Данных пока мало (' + daysWithData + ' дн.) — корреляции ориентировочные, не принимайте их за закономерность.'
-                : 'r — коэффициент Пирсона по ' + daysWithData + ' дням. Корреляция не означает причинную связь.';
 
             try { await loadChartLib(); } catch (e) { return; }
 

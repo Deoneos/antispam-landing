@@ -110,9 +110,9 @@ setTimeout(async () => {
   try {
     await loadAnalytics();
     const feeds = elements['an-feeds'] ? elements['an-feeds'].textContent : '';
-    const corr = elements['an-correlations'] ? elements['an-correlations'].innerHTML : '';
-    analyticsOk = feeds !== '' && feeds !== '0' && corr.includes('r = ');
-    analyticsDetail = `кормлений/день=${feeds}, корреляций=${(corr.match(/class="corr-item/g) || []).length}`;
+    const sleep = elements['an-sleep'] ? elements['an-sleep'].textContent : '';
+    analyticsOk = feeds !== '' && feeds !== '0' && sleep !== '' && sleep !== '0ч';
+    analyticsDetail = `кормлений/день=${feeds}, сна/день=${sleep}`;
   } catch (e) {
     analyticsDetail = e.message;
   }
