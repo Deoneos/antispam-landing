@@ -12,7 +12,6 @@
     <link rel="apple-touch-icon" href="icons/icon-180.png">
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="chart.js" defer></script>
     
     <style>
         :root[data-theme="light"] {
@@ -819,9 +818,26 @@
                     }
                 });
 
+                await loadChartLib();
                 renderCharts(days, feedsByDay, diapersByDay, sleepByDay, awakeByDay, walkByDay, volumeByDay);
 
-            } catch(e) { console.error("Ошибка статистики", e); }
+            } catch(e) { console.error("Ошибка статистики", e); toast("Не удалось загрузить статистику", true); }
+        }
+
+        // Chart.js (210 КБ) грузим только при первом открытии статистики
+        let chartLibPromise = null;
+        function loadChartLib() {
+            if (typeof Chart !== 'undefined') return Promise.resolve();
+            if (!chartLibPromise) {
+                chartLibPromise = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'chart.js';
+                    script.onload = () => resolve();
+                    script.onerror = () => { chartLibPromise = null; reject(new Error('chart.js не загрузился')); };
+                    (document.head || document.body).appendChild(script);
+                });
+            }
+            return chartLibPromise;
         }
 
         function renderCharts(labels, feeds, diapers, sleep, awake, walk, volume) {
