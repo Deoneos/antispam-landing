@@ -533,6 +533,13 @@
                     }
                     else if (e.event_type === 'feed') { icon = "🍼"; name = "Покушала"; sub = e.details || "Бутылочка"; } 
                     else if (e.event_type === 'diaper') { icon = e.details.includes('Пописиюлькала') ? "💦" : "💩"; name = e.details; sub = ""; }
+                    else if (e.event_type === 'walk' && e.end_time) {
+                        icon = "🚶‍♀️"; name = "Гуляла";
+                        const endTime = new Date(e.end_time);
+                        sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
+                        badge = formatDuration(endTime - startTime);
+                        timeStr = ""; 
+                    }
 
                     let rightSide = timeStr ? `<div class="log-time">${timeStr}</div>` : `<div class="badge-duration">${badge}</div>`;
 
