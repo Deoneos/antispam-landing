@@ -677,7 +677,7 @@
                     const containerStyle = isToday ? '' : 'display: none;';
                     list.innerHTML += `<div style="${containerStyle}">`;
                     
-                    grouped[dateStr].forEach(e => {
+                    grouped[key].forEach(e => {
                     if ((e.event_type === 'sleep' || e.event_type === 'awake') && !e.end_time) return; 
 
                     let icon = "", name = "", sub = "", timeStr = "", badge = "";
