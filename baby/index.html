@@ -347,6 +347,16 @@
             setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 2600);
         }
 
+        // Экранирование пользовательских данных перед вставкой в HTML
+        function esc(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // Обёртка над fetch: единая обработка сетевых ошибок
         async function apiFetch(url, options) {
             let res;
@@ -727,7 +737,7 @@
                         <div class="log-item">
                             <div class="log-left">
                                 <div class="log-icon">${icon}</div>
-                                <div class="log-name">${name}<br><span class="log-sub">${sub}</span></div>
+                                <div class="log-name">${esc(name)}<br><span class="log-sub">${esc(sub)}</span></div>
                             </div>
                             <div class="log-right">
                                 ${rightSide}
@@ -1025,7 +1035,7 @@
                         <div class="log-item">
                             <div class="log-left">
                                 <div class="log-icon">🏥</div>
-                                <div class="log-name">${a.title}<br><span class="log-sub">${dateStr} в ${timeStr} ${a.notes ? '· ' + a.notes : ''}</span></div>
+                                <div class="log-name">${esc(a.title)}<br><span class="log-sub">${esc(dateStr)} в ${esc(timeStr)} ${a.notes ? '· ' + esc(a.notes) : ''}</span></div>
                             </div>
                             <div class="log-right">
                                 <button class="btn-delete" onclick="deleteAppointment(${a.id})">✕</button>
