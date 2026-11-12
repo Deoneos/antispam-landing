@@ -320,6 +320,20 @@
         document.documentElement.setAttribute('data-theme', theme);
 
         const API_URL = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/baby';
+
+        // Токен доступа: один раз приходит в ссылке ?token=..., дальше живёт в localStorage
+        (function bootToken() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const fromUrl = params.get('token');
+                if (fromUrl) {
+                    localStorage.setItem('baby_api_token', fromUrl);
+                    params.delete('token');
+                    const clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                    window.history.replaceState({}, '', clean);
+                }
+            } catch (e) { /* приватный режим — работаем без токена */ }
+        })();
         let activeSleepId = null;
         let activeAwakeId = null;
         const timerIntervals = {};
@@ -345,6 +359,17 @@
             host.appendChild(el);
             requestAnimationFrame(() => el.classList.add('show'));
             setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 2600);
+        }
+
+        function apiToken() {
+            try { return localStorage.getItem('baby_api_token') || ''; } catch (e) { return ''; }
+        }
+
+        function apiHeaders(isJson) {
+            const headers = isJson ? { 'Content-Type': 'application/json' } : {};
+            const t = apiToken();
+            if (t) headers['X-Api-Token'] = t;
+            return headers;
         }
 
         // Экранирование пользовательских данных перед вставкой в HTML
@@ -493,7 +518,7 @@
             if (navigator.vibrate) navigator.vibrate(50);
             const body = JSON.stringify({ event_type: 'feed', details: ml + ' мл', client_uuid: newId() });
             try {
-                const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: body });
+                const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 toast(`Записано: ${ml} мл`);
             } catch (e) {
@@ -573,11 +598,11 @@
             if (activeSleepId) {
                 // Если спит — будим (гуляние не трогаем)
                 await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
+                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'awake'}) });
             } else {
                 // Укладываем спать (гуляние не трогаем)
                 if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'sleep'}) });
+                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'sleep'}) });
             }
             loadEvents();
         }
@@ -588,7 +613,7 @@
                 await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
             } else {
                 // Начинаем прогулку (сон или бодрствование не трогаем)
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'walk'}) });
+                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'walk'}) });
             }
             loadEvents();
         }
@@ -597,7 +622,7 @@
             try {
                 let events = [];
                 try {
-                    const res = await fetch(`${API_URL}/events/today`);
+                    const res = await fetch(`${API_URL}/events/today`, { headers: apiHeaders() });
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     events = await res.json();
                     if (!Array.isArray(events)) events = [];
@@ -773,7 +798,7 @@
             if (navigator.vibrate) navigator.vibrate(50);
             const body = JSON.stringify({ event_type: type, details: details, client_uuid: newId() });
             try {
-                const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: body });
+                const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
             } catch (e) {
                 enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `${type}: ${details}` });
@@ -786,7 +811,7 @@
         // --- СТАТИСТИКА ---
         async function loadStats() {
             try {
-                const res = await fetch(`${API_URL}/events/week`);
+                const res = await fetch(`${API_URL}/events/week`, { headers: apiHeaders() });
                 const events = await res.json();
                 if (Array.isArray(events)) mergeIntoCache(events);
                 
@@ -949,7 +974,7 @@
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') { toast("Уведомления отклонены", true); return; }
 
-                const res = await fetch(`${API_URL}/vapid-public-key`);
+                const res = await fetch(`${API_URL}/vapid-public-key`, { headers: apiHeaders() });
                 const { publicKey } = await res.json();
                 
                 const registration = await navigator.serviceWorker.ready;
@@ -960,7 +985,7 @@
 
                 await fetch(`${API_URL}/subscribe`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: apiHeaders(true),
                     body: JSON.stringify(subscription)
                 });
 
@@ -1006,7 +1031,7 @@
             if (!title || !dateTime) { toast("Заполните название и дату", true); return; }
             await fetch(`${API_URL}/appointments`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: apiHeaders(true),
                 body: JSON.stringify({ title: title, date_time: dateTime, notes: notes })
             });
             closeAppModal();
@@ -1017,7 +1042,7 @@
 
         async function loadAppointments() {
             try {
-                const res = await fetch(`${API_URL}/appointments`);
+                const res = await fetch(`${API_URL}/appointments`, { headers: apiHeaders() });
                 let apps = await res.json();
                 if (!Array.isArray(apps)) apps = [];
                 window.__lastAppointments = apps;
