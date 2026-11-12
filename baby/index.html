@@ -397,13 +397,12 @@
 
         async function toggleSleepAwake() {
             if (activeSleepId) {
-                // Если спит — будим
+                // Если спит — будим (гуляние не трогаем)
                 await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
             } else {
-                // Если бодрствует или гуляет — укладываем спать
+                // Укладываем спать (гуляние не трогаем)
                 if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
-                if (activeWalkId) await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'sleep'}) });
             }
             loadEvents();
@@ -411,13 +410,10 @@
 
         async function toggleWalk() {
             if (activeWalkId) {
-                // Если гуляет — заканчиваем прогулку (становится бодрствовать)
+                // Если гуляет — просто заканчиваем прогулку (остальное не трогаем)
                 await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
             } else {
-                // Если хочет гулять — заканчиваем сон или бодрствование
-                if (activeSleepId) await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
-                if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
+                // Начинаем прогулку (сон или бодрствование не трогаем)
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'walk'}) });
             }
             loadEvents();
