@@ -164,8 +164,11 @@
         <div class="grid">
             <button class="action-btn btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
             
-            <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="cycleState()">
-                <span class="icon" id="state-icon">👀</span> <span id="state-text">Бодрствует</span>
+            <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="toggleSleepAwake()">
+                <span class="icon" id="state-icon">👀</span> <span id="state-text">Уложить спать</span>
+            </button>
+            <button class="action-btn" id="walk-btn" onclick="toggleWalk()" style="grid-column: span 2; padding: 22px; font-size: 18px; font-weight: 700;">
+                <span class="icon" id="walk-icon">🚶‍♀️</span> <span id="walk-text">Погулять</span>
             </button>
 
             <button class="action-btn btn-diaper" onclick="quickEvent('diaper', 'Посранунькала')"><span class="icon">💩</span> Посранунькала</button>
@@ -392,19 +395,30 @@
         let activeWalkId = null;
         let walkTimerInterval = null;
 
-        async function cycleState() {
-            // Логика переключения: Сон -> Бодрствование -> Прогулка -> Сон
+        async function toggleSleepAwake() {
             if (activeSleepId) {
+                // Если спит — будим
                 await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
-            } else if (activeAwakeId) {
-                await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'walk'}) });
-            } else if (activeWalkId) {
-                await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'sleep'}) });
             } else {
+                // Если бодрствует или гуляет — укладываем спать
+                if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
+                if (activeWalkId) await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
+                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'sleep'}) });
+            }
+            loadEvents();
+        }
+
+        async function toggleWalk() {
+            if (activeWalkId) {
+                // Если гуляет — заканчиваем прогулку (становится бодрствовать)
+                await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST' });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'awake'}) });
+            } else {
+                // Если хочет гулять — заканчиваем сон или бодрствование
+                if (activeSleepId) await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST' });
+                if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST' });
+                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({event_type: 'walk'}) });
             }
             loadEvents();
         }
@@ -431,30 +445,38 @@
                     activeSleepId = null;
                     document.getElementById('row-sleep').classList.remove('timer-active');
                     if (sleepTimerInterval) clearInterval(sleepTimerInterval);
+                    document.getElementById('awake-btn').style.background = 'var(--awake)';
+                    document.getElementById('state-text').innerText = 'Уложить спать';
+                    document.getElementById('state-icon').innerText = '👀';
                 }
 
                 if (activeAwake) {
                     activeAwakeId = activeAwake.id;
                     document.getElementById('row-awake').classList.add('timer-active');
                     startTimer('timer-awake', new Date(activeAwake.start_time), 'awake');
-                    document.getElementById('awake-btn').style.background = 'var(--awake)';
-                    document.getElementById('state-text').innerText = 'Пойти гулять';
-                    document.getElementById('state-icon').innerText = '👀';
                 } else {
                     activeAwakeId = null;
                     document.getElementById('row-awake').classList.remove('timer-active');
                     if (awakeTimerInterval) clearInterval(awakeTimerInterval);
                 }
 
+                const walkBtn = document.getElementById('walk-btn');
                 if (activeWalkId) {
                     document.getElementById('row-walk').classList.add('timer-active');
                     startTimer('timer-walk', new Date(events.find(e=>e.id===activeWalkId).start_time), 'walk');
-                    document.getElementById('awake-btn').style.background = 'var(--noise)';
-                    document.getElementById('state-text').innerText = 'Уложить спать';
-                    document.getElementById('state-icon').innerText = '🚶‍♀️';
+                    if (walkBtn) {
+                        walkBtn.style.background = 'var(--noise)';
+                        walkBtn.style.color = '#111827';
+                        document.getElementById('walk-text').innerText = 'Закончить прогулку';
+                    }
                 } else {
                     document.getElementById('row-walk').classList.remove('timer-active');
                     if (walkTimerInterval) clearInterval(walkTimerInterval);
+                    if (walkBtn) {
+                        walkBtn.style.background = 'var(--card)';
+                        walkBtn.style.color = 'var(--text)';
+                        document.getElementById('walk-text').innerText = 'Погулять';
+                    }
                 }
 
                 // Лента
