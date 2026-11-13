@@ -483,6 +483,7 @@ function openGroupModal(card) {
 
     const savedDays = parseInt(localStorage.getItem('chart_days')) || 30;
     loadModalChart(chatId, savedDays);
+    markLockedPeriods();
     loadChatHealth(chatId);
     loadModalViolators(chatId);
 
@@ -638,8 +639,39 @@ async function loadModalChart(chatId, days = 30) {
     }
 }
 
+
+// ===== PREMIUM =====
+const FREE_ANALYTICS_DAYS = 14;
+let accountPremium = null;
+
+async function isAccountPremium() {
+    if (accountPremium !== null) return accountPremium;
+    const active = (typeof getActiveAccount === 'function') ? getActiveAccount() : null;
+    if (!active) return (accountPremium = false);
+    try {
+        const resp = await fetch(`${API_BASE}/api/premium/status?owner_id=${active.user_id}`);
+        const data = await resp.json();
+        accountPremium = !!data.is_premium;
+    } catch (e) {
+        console.error('premium status:', e);
+        accountPremium = false;
+    }
+    return accountPremium;
+}
+
+async function markLockedPeriods() {
+    const premium = await isAccountPremium();
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        const days = parseInt(btn.getAttribute('data-days'));
+        if (!days) return;
+        const locked = days > FREE_ANALYTICS_DAYS && !premium;
+        btn.classList.toggle('locked', locked);
+        btn.title = locked ? 'Доступно в Кустос Premium' : '';
+    });
+}
+
 // ===== ПЕРЕКЛЮЧАТЕЛЬ ПЕРИОДА ГРАФИКА =====
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.period-btn');
     if (!btn) return;
 
@@ -647,6 +679,14 @@ document.addEventListener('click', (e) => {
 
     const days = parseInt(btn.getAttribute('data-days'));
     if (!days) return;
+
+    if (days > FREE_ANALYTICS_DAYS && !(await isAccountPremium())) {
+        alert(
+            `Периоды больше ${FREE_ANALYTICS_DAYS} дней доступны в Кустос Premium ⭐\n\n` +
+            'Оформить: бот @ANTI_SPAM_MWKbot → /premium'
+        );
+        return;
+    }
 
     // Не перезагружаем, если уже выбрано
     const current = parseInt(localStorage.getItem('chart_days')) || 30;

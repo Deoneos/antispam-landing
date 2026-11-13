@@ -944,6 +944,14 @@
     user-select: none;
 }
 
+.period-btn.locked {
+    opacity: 0.55;
+}
+
+.period-btn.locked::before {
+    content: '🔒 ';
+}
+
 .period-btn.active {
     background: #2481cc;
     color: #fff;
