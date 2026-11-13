@@ -60,13 +60,34 @@
         // Понятная диагностика вместо «пустого списка» при неверном токене
         let tokenModalShown = false;
 
+        function showApiBanner(text) {
+            const banner = document.getElementById('api-banner');
+            const label = document.getElementById('api-banner-text');
+            if (!banner || !label) return;
+            label.textContent = text;
+            banner.style.display = 'flex';
+        }
+
+        function hideApiBanner() {
+            const banner = document.getElementById('api-banner');
+            if (banner) banner.style.display = 'none';
+        }
+
         function handleAuthError(res) {
             if (res.status === 401) {
+                // Баннер висит постоянно, пока доступ не восстановится:
+                // иначе приложение молча показывает пустые таймеры.
+                showApiBanner('Нет доступа к данным — проверьте токен');
                 if (!tokenModalShown) {
                     tokenModalShown = true;
                     toast('Нужен токен доступа', true);
                     setTimeout(openTokenModal, 200);
                 }
+                return true;
+            }
+            if (res.status === 429) {
+                showApiBanner('Слишком много попыток доступа — подождите минуту');
+                toast('Слишком много попыток, подождите минуту', true);
                 return true;
             }
             return false;
@@ -556,7 +577,10 @@
                 const res = await fetch(`${API_URL}/events/week`, { headers: apiHeaders() });
                 if (handleAuthError(res) || !res.ok) return;
                 const events = await res.json();
-                if (Array.isArray(events)) mergeIntoCache(events);
+                if (Array.isArray(events)) {
+                    mergeIntoCache(events);
+                    hideApiBanner();
+                }
                 
                 const todayStr = new Date().toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
                 let todayFeeds = 0;

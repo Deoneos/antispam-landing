@@ -146,3 +146,30 @@
     font-weight: 800; cursor: pointer; transition: background .2s, color .2s;
 }
 .chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* Сообщение о проблемах с доступом к данным */
+.api-banner {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #7f1d1d;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.35;
+}
+.api-banner-btn {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
