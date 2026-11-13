@@ -392,7 +392,14 @@
                     mergeIntoCache(events);
                 } catch (netErr) {
                     events = cachedEvents();
-                    if (events.length) toast("Нет связи — показаны сохранённые записи", true);
+                    const banner = document.getElementById('api-banner');
+                    const bannerHidden = !banner || banner.style.display === 'none';
+                    if (events.length) {
+                        toast("Нет связи — показаны сохранённые записи", true);
+                    } else if (bannerHidden) {
+                        // Ни данных, ни кэша: молчать нельзя — иначе «таймер не работает» без причины
+                        showApiBanner('Не удалось загрузить записи: ' + (netErr && netErr.message ? netErr.message : 'ошибка'));
+                    }
                 }
                 renderStatus();
                 
