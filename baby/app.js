@@ -419,6 +419,7 @@
                     activeSleepId = null;
                     document.getElementById('row-sleep').classList.remove('timer-active');
                     if (timerIntervals.sleep) clearInterval(timerIntervals.sleep);
+                    document.getElementById('timer-sleep').textContent = '00:00:00';
                     document.getElementById('awake-btn').style.background = 'var(--awake)';
                     document.getElementById('state-text').innerText = 'Уложить спать';
                     document.getElementById('state-icon').innerText = '👀';
@@ -432,6 +433,7 @@
                     activeAwakeId = null;
                     document.getElementById('row-awake').classList.remove('timer-active');
                     if (timerIntervals.awake) clearInterval(timerIntervals.awake);
+                    document.getElementById('timer-awake').textContent = '00:00:00';
                 }
 
                 const walkBtn = document.getElementById('walk-btn');
@@ -446,6 +448,7 @@
                 } else {
                     document.getElementById('row-walk').classList.remove('timer-active');
                     if (timerIntervals.walk) clearInterval(timerIntervals.walk);
+                    document.getElementById('timer-walk').textContent = '00:00:00';
                     if (walkBtn) {
                         walkBtn.style.background = 'var(--card)';
                         walkBtn.style.color = 'var(--text)';
