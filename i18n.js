@@ -98,8 +98,8 @@ const TRANSLATIONS = {
     'faq.title': { ru: 'Частые вопросы', en: 'Frequently asked questions' },
     'faq.q1': { ru: 'Сколько это стоит?', en: 'How much does it cost?' },
     'faq.a1': {
-        ru: 'Бесплатно. Бот создан для поддержки любых Telegram-групп: музеев, IT-сообществ, клубов и просто дружеских чатов.',
-        en: 'Free. The bot was created to support museum groups.',
+        ru: 'Базовые функции бесплатны навсегда: 1 группа, антиспам, правила и антифлуд, аналитика за 7 и 14 дней. Нужно несколько групп или ML-фильтр — есть Premium за 100 ⭐ на 365 дней.',
+        en: 'Core features are free forever: 1 group, spam filtering, rules and antiflood, analytics for 7 and 14 days. Need more groups or the ML filter — Premium is 100 ⭐ for 365 days.',
     },
     'faq.q2': { ru: 'Нужен ли программист для настройки?', en: 'Do I need a programmer to set it up?' },
     'faq.a2': {
