@@ -249,6 +249,30 @@ const TRANSLATIONS = {
     'account.health_last_sync': { ru: 'Последний sync:', en: 'Last sync:' },
     'account.health_pause': { ru: 'Пауза до:', en: 'Paused until:' },
     'account.health_schedule': { ru: 'Расписание:', en: 'Schedule:' },
+    'pricing.title': { ru: 'Тарифы', en: 'Pricing' },
+    'pricing.subtitle': {
+        ru: 'Начните бесплатно — расширяйте возможности, когда понадобится.',
+        en: 'Start free — scale when you need it.'
+    },
+    'pricing.free.name': { ru: 'Бесплатно', en: 'Free' },
+    'pricing.free.price': { ru: '0 ₽', en: '$0' },
+    'pricing.free.f1': { ru: '1 группа', en: '1 group' },
+    'pricing.free.f2': { ru: 'Спам-слова, правила, антифлуд', en: 'Word filters, rules, antiflood' },
+    'pricing.free.f3': { ru: 'Аналитика за 7 и 14 дней', en: 'Analytics for 7 and 14 days' },
+    'pricing.free.cta': { ru: 'Добавить бота', en: 'Add bot' },
+    'pricing.premium.name': { ru: 'Premium', en: 'Premium' },
+    'pricing.premium.price': { ru: '100 ⭐', en: '100 ⭐' },
+    'pricing.premium.note': { ru: 'разово, на 365 дней', en: 'one-time, 365 days' },
+    'pricing.premium.badge': { ru: 'Расширенные возможности', en: 'Extended features' },
+    'pricing.premium.f1': { ru: 'Групп без ограничений', en: 'Unlimited groups' },
+    'pricing.premium.f2': { ru: '🤖 ML-фильтр спама', en: '🤖 ML spam filter' },
+    'pricing.premium.f3': { ru: 'Аналитика за 30 и 90 дней', en: 'Analytics for 30 and 90 days' },
+    'pricing.premium.cta': { ru: 'Оформить Premium', en: 'Get Premium' },
+    'pricing.note': {
+        ru: 'Оплата в Telegram Stars — без карт и подписок.',
+        en: 'Paid with Telegram Stars — no cards, no subscriptions.'
+    },
+
 };
 
 // ===== ОПРЕДЕЛЕНИЕ ЯЗЫКА =====
