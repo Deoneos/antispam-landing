@@ -1,18 +1,25 @@
 {
-    "name": "Трекер малыша",
-    "short_name": "Малыш",
-    "description": "Трекер сна, кормлений, прогулок и подгузников малыша",
+    "name": "Лад — трекер малыша",
+    "short_name": "Лад",
+    "description": "Трекер сна, кормлений и прогулок: спокойный дневник малыша",
     "lang": "ru",
     "dir": "ltr",
     "id": "/baby/",
     "start_url": "/baby/",
     "scope": "/baby/",
     "display": "standalone",
-    "display_override": ["standalone", "minimal-ui"],
+    "display_override": [
+        "standalone",
+        "minimal-ui"
+    ],
     "orientation": "portrait",
     "background_color": "#0F1014",
     "theme_color": "#0F1014",
-    "categories": ["health", "lifestyle", "utilities"],
+    "categories": [
+        "health",
+        "lifestyle",
+        "utilities"
+    ],
     "icons": [
         {
             "src": "icons/icon-192.png",
