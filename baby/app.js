@@ -1123,9 +1123,13 @@
             }
         }
 
-        loadEvents();
-        loadAppointments();
-        renderStatus();
+        if (ladToken() || apiToken()) {
+            loadEvents();
+            loadAppointments();
+            renderStatus();
+        } else {
+            showLoginGate();
+        }
         flushQueue();
         if (!apiToken()) {
             setTimeout(openTokenModal, 600);
@@ -1145,8 +1149,10 @@
         }
 
         function ladStatus(text) {
-            const el = document.getElementById('profile-status');
-            if (el) el.textContent = text || '';
+            ['profile-status', 'login-status'].forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text || '';
+            });
         }
 
         async function prepareTelegramLogin(force) {
@@ -1203,6 +1209,7 @@
                     ladLoginCode = null;
                     try { localStorage.removeItem('lad_login_code'); } catch (e) {}
                     ladStatus('');
+                    if (gateVisible()) { location.reload(); return; }
                     toast('Вы вошли: ' + ((data.user && data.user.name) || 'родитель'));
                     loadProfile();
                     return;
@@ -1296,3 +1303,50 @@
                 }
             } catch (e) {}
         })();
+
+        // ===== ЭКРАН ВХОДА =====
+        function gateVisible() {
+            const gate = document.getElementById('login-gate');
+            return !!gate && gate.style.display !== 'none';
+        }
+
+        function showLoginGate() {
+            const gate = document.getElementById('login-gate');
+            if (gate) gate.style.display = 'flex';
+        }
+
+        async function submitPasswordLogin() {
+            const login = (document.getElementById('login-name').value || '').trim();
+            const password = document.getElementById('login-pass').value || '';
+            const status = document.getElementById('login-status');
+            if (!login || !password) {
+                status.textContent = 'Заполните логин и пароль';
+                return;
+            }
+            status.textContent = 'Входим…';
+            try {
+                const res = await fetch(`${API_URL}/auth/password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: login, password: password })
+                });
+                const data = await res.json().catch(function () { return {}; });
+                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
+                location.reload();
+            } catch (e) {
+                status.textContent = e.message;
+            }
+        }
+
+        async function gateTelegramLogin() {
+            const status = document.getElementById('login-status');
+            status.textContent = 'Открываю Telegram…';
+            await prepareTelegramLogin(true);
+            if (ladLoginUrl) {
+                startLoginPolling();
+                window.location.href = ladLoginUrl;
+            } else {
+                status.textContent = 'Не получилось получить ссылку';
+            }
+        }
