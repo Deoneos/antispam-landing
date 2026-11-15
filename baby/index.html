@@ -13,7 +13,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -26,6 +26,7 @@
     <div id="view-tracker" class="view active">
         <div class="header">
             <h1>👧 Трекер Таисии</h1>
+            <button class="profile-btn" onclick="openProfile()" aria-label="Профиль">👤</button>
             <div class="net-status" id="net-status" style="display: none;"></div>
             <div class="last-feed-badge" id="last-feed-badge">🍼 Последнее: давно</div>
         </div>
@@ -158,6 +159,34 @@
         </div>
     </div>
 
+    <!-- ПРОФИЛЬ -->
+    <div class="modal-overlay" id="profile-modal" onclick="closeProfileModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Профиль</h2>
+                <button class="btn-close" onclick="closeProfileModal()">✕</button>
+            </div>
+
+            <div id="profile-login">
+                <p class="profile-lead">Один аккаунт на семью. Войдите — и записи будут привязаны к вам, а не к ссылке с токеном.</p>
+                <div id="tg-widget" class="tg-wrap"></div>
+                <p class="profile-hint">Вход через Telegram, бесплатно, без пароля. Если кнопка не открылась в установленном приложении — откройте kustos.ru/baby в Safari.</p>
+            </div>
+
+            <div id="profile-me" style="display:none">
+                <div class="profile-ava" id="profile-ava">👤</div>
+                <div class="profile-name" id="profile-name">—</div>
+                <div class="profile-sub" id="profile-sub">—</div>
+                <div class="profile-rows">
+                    <div class="profile-row"><span>Семья</span><b id="profile-family">—</b></div>
+                    <div class="profile-row"><span>Ребёнок</span><b id="profile-child">—</b></div>
+                    <div class="profile-row"><span>Записей</span><b id="profile-events">0</b></div>
+                </div>
+                <button class="pbtn danger" onclick="logoutProfile()">Выйти</button>
+            </div>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchView('tracker', this)">
             <span class="icon">🏠</span> Трекер
@@ -221,7 +250,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=7" defer></script>
+    <script src="app.js?v=8" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

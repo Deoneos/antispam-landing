@@ -1129,3 +1129,109 @@
         }
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
+
+
+        // ===== ПРОФИЛЬ / ЛК «ЛАД» =====
+        const LAD_TOKEN_KEY = 'lad_token';
+        let ladWidgetLoaded = false;
+
+        function ladToken() {
+            try { return localStorage.getItem(LAD_TOKEN_KEY) || ''; } catch (e) { return ''; }
+        }
+
+        function ensureTelegramWidget() {
+            if (ladWidgetLoaded) return;
+            const box = document.getElementById('tg-widget');
+            if (!box) return;
+            ladWidgetLoaded = true;
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://telegram.org/js/telegram-widget.js?22';
+            s.setAttribute('data-telegram-login', 'Lad_passed_bot');
+            s.setAttribute('data-size', 'large');
+            s.setAttribute('data-radius', '14');
+            s.setAttribute('data-onauth', 'onTelegramAuth(user)');
+            s.setAttribute('data-request-access', 'write');
+            box.appendChild(s);
+        }
+
+        function openProfile() {
+            document.getElementById('profile-modal').style.display = 'flex';
+            loadProfile();
+        }
+
+        function closeProfileModal(e) {
+            if (!e || e.target.id === 'profile-modal') {
+                document.getElementById('profile-modal').style.display = 'none';
+            }
+        }
+
+        async function loadProfile() {
+            const login = document.getElementById('profile-login');
+            const me = document.getElementById('profile-me');
+            const token = ladToken();
+            if (!token) {
+                login.style.display = 'block';
+                me.style.display = 'none';
+                ensureTelegramWidget();
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/me`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                renderProfile(await res.json());
+                login.style.display = 'none';
+                me.style.display = 'block';
+            } catch (e) {
+                try { localStorage.removeItem(LAD_TOKEN_KEY); } catch (err) {}
+                login.style.display = 'block';
+                me.style.display = 'none';
+                ensureTelegramWidget();
+            }
+        }
+
+        function renderProfile(data) {
+            const u = data.user || {};
+            document.getElementById('profile-name').textContent = u.name || 'Родитель';
+            document.getElementById('profile-sub').textContent = u.username ? '@' + u.username : 'Telegram';
+            document.getElementById('profile-family').textContent = (data.family && data.family.name) || '—';
+            const child = data.children && data.children[0];
+            document.getElementById('profile-child').textContent = (child && child.name) || '—';
+            document.getElementById('profile-events').textContent = (data.stats && data.stats.events) || 0;
+
+            const ava = document.getElementById('profile-ava');
+            ava.innerHTML = '';
+            if (u.photo_url) {
+                const img = document.createElement('img');
+                img.src = u.photo_url;
+                img.alt = '';
+                ava.appendChild(img);
+            } else {
+                ava.textContent = (u.name || '👤').trim().charAt(0).toUpperCase();
+            }
+        }
+
+        async function onTelegramAuth(user) {
+            try {
+                const res = await fetch(`${API_URL}/auth/telegram`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(user)
+                });
+                const data = await res.json().catch(function () { return {}; });
+                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
+                toast('Вы вошли: ' + ((data.user && data.user.name) || 'родитель'));
+                loadProfile();
+            } catch (e) {
+                toast('Не удалось войти: ' + e.message, true);
+            }
+        }
+
+        function logoutProfile() {
+            try { localStorage.removeItem(LAD_TOKEN_KEY); } catch (e) {}
+            toast('Вы вышли');
+            loadProfile();
+        }
