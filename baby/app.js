@@ -558,9 +558,17 @@
 
         function startTimer(elementId, startTime, type) {
             const display = document.getElementById(elementId);
+            if (!display) return;
+            const startedAt = startTime instanceof Date ? startTime.getTime() : new Date(startTime).getTime();
             function update() {
-                const diff = Math.floor((new Date() - startTime) / 1000);
-                display.textContent = `${String(Math.floor(diff / 3600)).padStart(2, '0')}:${String(Math.floor((diff % 3600) / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}`;
+                // Часы телефона и сервера расходятся на секунды: start_time может
+                // оказаться «в будущем», и счётчик уходил в -1:-1:-1. Ждём нуля.
+                const elapsed = Number.isFinite(startedAt) ? Date.now() - startedAt : 0;
+                const diff = Math.max(0, Math.floor(elapsed / 1000));
+                const h = Math.floor(diff / 3600);
+                const m = Math.floor((diff % 3600) / 60);
+                const s = diff % 60;
+                display.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             }
             update();
             if (timerIntervals[type]) clearInterval(timerIntervals[type]);
