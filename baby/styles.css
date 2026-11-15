@@ -210,3 +210,5 @@
     cursor: pointer;
 }
 .pbtn.danger { color: #F87171; }
+
+.profile-status { margin-top: 12px; min-height: 18px; text-align: center; font-size: 12px; line-height: 1.5; color: var(--muted); }

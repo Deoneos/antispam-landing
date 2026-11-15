@@ -1133,27 +1133,73 @@
 
         // ===== ПРОФИЛЬ / ЛК «ЛАД» =====
         const LAD_TOKEN_KEY = 'lad_token';
-        let ladWidgetLoaded = false;
+        let ladLoginCode = null;
+        let ladPollTimer = null;
 
         function ladToken() {
             try { return localStorage.getItem(LAD_TOKEN_KEY) || ''; } catch (e) { return ''; }
         }
 
-        function ensureTelegramWidget() {
-            if (ladWidgetLoaded) return;
-            const box = document.getElementById('tg-widget');
-            if (!box) return;
-            ladWidgetLoaded = true;
-            const s = document.createElement('script');
-            s.async = true;
-            s.src = 'https://telegram.org/js/telegram-widget.js?22';
-            s.setAttribute('data-telegram-login', 'Lad_passed_bot');
-            s.setAttribute('data-size', 'large');
-            s.setAttribute('data-radius', '14');
-            s.setAttribute('data-onauth', 'onTelegramAuth(user)');
-            s.setAttribute('data-request-access', 'write');
-            box.appendChild(s);
+        function ladStatus(text) {
+            const el = document.getElementById('profile-status');
+            if (el) el.textContent = text || '';
         }
+
+        async function startTelegramLogin() {
+            try {
+                ladStatus('Готовлю ссылку…');
+                const res = await fetch(`${API_URL}/auth/start`, { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                ladLoginCode = data.code;
+
+                const link = document.createElement('a');
+                link.href = data.url;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+
+                ladStatus('Нажмите «Start» в боте — вход подтвердится сам.');
+                pollTelegramLogin();
+            } catch (e) {
+                ladStatus('Не получилось: ' + e.message);
+            }
+        }
+
+        async function pollTelegramLogin() {
+            if (!ladLoginCode) return;
+            clearTimeout(ladPollTimer);
+            try {
+                const res = await fetch(`${API_URL}/auth/poll?code=${encodeURIComponent(ladLoginCode)}`);
+                if (res.status === 202) {
+                    ladPollTimer = setTimeout(pollTelegramLogin, 2000);
+                    return;
+                }
+                const data = await res.json().catch(function () { return {}; });
+                if (res.ok && data.token) {
+                    try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
+                    ladLoginCode = null;
+                    ladStatus('');
+                    toast('Вы вошли: ' + ((data.user && data.user.name) || 'родитель'));
+                    loadProfile();
+                    return;
+                }
+                if (res.status === 410) {
+                    ladLoginCode = null;
+                    ladStatus('Ссылка уже использована. Попробуйте войти снова.');
+                    return;
+                }
+                throw new Error(data.detail || ('HTTP ' + res.status));
+            } catch (e) {
+                ladPollTimer = setTimeout(pollTelegramLogin, 3000);
+            }
+        }
+
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && ladLoginCode) pollTelegramLogin();
+        });
 
         function openProfile() {
             document.getElementById('profile-modal').style.display = 'flex';
@@ -1173,7 +1219,6 @@
             if (!token) {
                 login.style.display = 'block';
                 me.style.display = 'none';
-                ensureTelegramWidget();
                 return;
             }
             try {
@@ -1188,7 +1233,6 @@
                 try { localStorage.removeItem(LAD_TOKEN_KEY); } catch (err) {}
                 login.style.display = 'block';
                 me.style.display = 'none';
-                ensureTelegramWidget();
             }
         }
 
@@ -1210,23 +1254,6 @@
                 ava.appendChild(img);
             } else {
                 ava.textContent = (u.name || '👤').trim().charAt(0).toUpperCase();
-            }
-        }
-
-        async function onTelegramAuth(user) {
-            try {
-                const res = await fetch(`${API_URL}/auth/telegram`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(user)
-                });
-                const data = await res.json().catch(function () { return {}; });
-                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
-                try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
-                toast('Вы вошли: ' + ((data.user && data.user.name) || 'родитель'));
-                loadProfile();
-            } catch (e) {
-                toast('Не удалось войти: ' + e.message, true);
             }
         }
 
