@@ -54,6 +54,9 @@
             const headers = isJson ? { 'Content-Type': 'application/json' } : {};
             const t = apiToken();
             if (t) headers['X-Api-Token'] = t;
+            // Вошли через Telegram — ходим от имени семьи, а не ссылки с токеном.
+            const lad = ladToken();
+            if (lad) headers['Authorization'] = 'Bearer ' + lad;
             return headers;
         }
 
