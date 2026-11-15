@@ -1134,6 +1134,7 @@
         // ===== ПРОФИЛЬ / ЛК «ЛАД» =====
         const LAD_TOKEN_KEY = 'lad_token';
         let ladLoginCode = null;
+        let ladLoginUrl = '';
         let ladPollTimer = null;
 
         function ladToken() {
@@ -1145,27 +1146,43 @@
             if (el) el.textContent = text || '';
         }
 
-        async function startTelegramLogin() {
+        async function prepareTelegramLogin(force) {
+            if (ladLoginUrl && !force) return;
             try {
                 ladStatus('Готовлю ссылку…');
                 const res = await fetch(`${API_URL}/auth/start`, { method: 'POST' });
                 const data = await res.json();
                 if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
                 ladLoginCode = data.code;
-
-                const link = document.createElement('a');
-                link.href = data.url;
-                link.target = '_blank';
-                link.rel = 'noopener';
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-
-                ladStatus('Нажмите «Start» в боте — вход подтвердится сам.');
-                pollTelegramLogin();
+                ladLoginUrl = data.url;
+                try { localStorage.setItem('lad_login_code', data.code); } catch (e) {}
+                const link = document.getElementById('tg-login-btn');
+                if (link) link.href = data.url;
+                ladStatus('');
             } catch (e) {
                 ladStatus('Не получилось: ' + e.message);
             }
+        }
+
+        function onLoginClick(e) {
+            if (!ladLoginUrl) {
+                // Ссылки ещё нет — готовим и открываем после ответа.
+                if (e) e.preventDefault();
+                prepareTelegramLogin(true).then(function () {
+                    if (ladLoginUrl) {
+                        startLoginPolling();
+                        window.location.href = ladLoginUrl;
+                    }
+                });
+                return true;
+            }
+            startLoginPolling();
+            return true;
+        }
+
+        function startLoginPolling() {
+            ladStatus('Нажмите «Start» в боте — вход подтвердится сам.');
+            pollTelegramLogin();
         }
 
         async function pollTelegramLogin() {
@@ -1181,6 +1198,7 @@
                 if (res.ok && data.token) {
                     try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
                     ladLoginCode = null;
+                    try { localStorage.removeItem('lad_login_code'); } catch (e) {}
                     ladStatus('');
                     toast('Вы вошли: ' + ((data.user && data.user.name) || 'родитель'));
                     loadProfile();
@@ -1188,6 +1206,7 @@
                 }
                 if (res.status === 410) {
                     ladLoginCode = null;
+                    try { localStorage.removeItem('lad_login_code'); } catch (e) {}
                     ladStatus('Ссылка уже использована. Попробуйте войти снова.');
                     return;
                 }
@@ -1219,6 +1238,7 @@
             if (!token) {
                 login.style.display = 'block';
                 me.style.display = 'none';
+                prepareTelegramLogin();
                 return;
             }
             try {
@@ -1262,3 +1282,14 @@
             toast('Вы вышли');
             loadProfile();
         }
+
+        // Продолжаем ожидание входа, если страница перезагрузилась
+        (function resumeLadLogin() {
+            try {
+                const saved = localStorage.getItem('lad_login_code');
+                if (saved && !ladToken()) {
+                    ladLoginCode = saved;
+                    startLoginPolling();
+                }
+            } catch (e) {}
+        })();

@@ -205,7 +205,8 @@
 .profile-row:last-child { border-bottom: 0; }
 .profile-row b { color: var(--text); font-weight: 800; }
 .pbtn {
-    width: 100%; height: 48px; border-radius: 16px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; width: 100%; height: 48px; border-radius: 16px; border: 1px solid var(--border);
     background: var(--bg); color: var(--text); font-weight: 700; font-size: 15px;
     cursor: pointer;
 }
