@@ -1556,6 +1556,7 @@
 
         if (ladToken() || apiToken()) {
             refreshPushSubscription();
+            loadBilling();
             loadChildGender();
             maybeJoinInvite();
             sendConsentIfNeeded();
