@@ -1268,7 +1268,10 @@
             }
         }
 
+        let ladProfile = null;
+
         function renderProfile(data) {
+            ladProfile = data;
             const u = data.user || {};
             document.getElementById('profile-name').textContent = u.name || 'Родитель';
             document.getElementById('profile-sub').textContent = u.username ? '@' + u.username : 'Telegram';
@@ -1458,4 +1461,50 @@
                     history.replaceState(null, '', location.pathname);
                 }
             } catch (e) {}
+        }
+
+        // ===== РЕБЁНОК =====
+        function toggleChildEdit() {
+            const box = document.getElementById('child-edit');
+            if (!box) return;
+            const show = box.style.display === 'none';
+            box.style.display = show ? 'flex' : 'none';
+            if (show && ladProfile) {
+                const child = (ladProfile.children || [])[0] || {};
+                document.getElementById('child-name').value = child.name || '';
+                document.getElementById('child-birth').value = child.birth_date || '';
+                document.getElementById('child-status').textContent = '';
+            }
+        }
+
+        async function saveChild() {
+            const token = ladToken();
+            const status = document.getElementById('child-status');
+            const name = (document.getElementById('child-name').value || '').trim();
+            const birth = document.getElementById('child-birth').value || '';
+            if (!ladProfile || !ladProfile.children || !ladProfile.children.length) {
+                status.textContent = 'Ребёнок не найден';
+                return;
+            }
+            if (!name) {
+                status.textContent = 'Введите имя';
+                return;
+            }
+            const childId = ladProfile.children[0].id;
+            status.textContent = 'Сохраняю…';
+            try {
+                const res = await fetch(`${API_URL}/child/${childId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ name: name, birth_date: birth })
+                });
+                const data = await res.json().catch(function () { return {}; });
+                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                status.textContent = '';
+                document.getElementById('child-edit').style.display = 'none';
+                toast('Сохранено');
+                loadProfile();
+            } catch (e) {
+                status.textContent = e.message;
+            }
         }

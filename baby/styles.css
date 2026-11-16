@@ -245,3 +245,8 @@ a.row { text-decoration: none; color: inherit; }
     word-break: break-all; }
 .invite-box a { color: var(--text); display: block; margin-bottom: 8px; }
 .invite-box .pbtn { height: 40px; font-size: 13px; }
+
+.child-edit { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.link-btn { margin-left: auto; background: none; border: none; color: var(--muted);
+    font-size: 12px; font-family: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
+.child-edit .pbtn { margin-top: 4px; }

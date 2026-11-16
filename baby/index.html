@@ -181,7 +181,13 @@
                 <div class="profile-sub" id="profile-sub">—</div>
                 <div class="profile-rows">
                     <div class="profile-row"><span>Семья</span><b id="profile-family">—</b></div>
-                    <div class="profile-row"><span>Ребёнок</span><b id="profile-child">—</b></div>
+                    <div class="profile-row"><span>Ребёнок</span><b id="profile-child">—</b><button class="link-btn" onclick="toggleChildEdit()">Изменить</button></div>
+                    <div id="child-edit" class="child-edit" style="display:none">
+                        <input id="child-name" class="login-input" placeholder="Имя ребёнка" maxlength="60">
+                        <input id="child-birth" class="login-input" type="date">
+                        <button class="pbtn" onclick="saveChild()">Сохранить</button>
+                        <p class="login-status" id="child-status"></p>
+                    </div>
                     <div class="profile-row"><span>Записей</span><b id="profile-events">0</b></div>
                 </div>
                 <div class="profile-members" id="profile-members"></div>
@@ -259,7 +265,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=15" defer></script>
+    <script src="app.js?v=16" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
