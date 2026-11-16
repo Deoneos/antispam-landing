@@ -569,6 +569,9 @@ async function init() {
         tab.onclick = () => switchView(tab.dataset.view);
     });
 
+    const initialTab = new URLSearchParams(location.search).get('tab');
+    if (initialTab && document.getElementById('view-' + initialTab)) switchView(initialTab);
+
     // кнопки
     document.getElementById('btn-add-credit').onclick = () => openCreditModal(null);
     document.getElementById('c-cancel').onclick = () => { document.getElementById('credit-modal').hidden = true; };
