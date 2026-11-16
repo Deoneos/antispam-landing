@@ -1123,23 +1123,6 @@
             }
         }
 
-        if (ladToken() || apiToken()) {
-            refreshPushSubscription();
-            loadChildGender();
-            maybeJoinInvite();
-            sendConsentIfNeeded();
-            loadEvents();
-            loadAppointments();
-            renderStatus();
-        } else {
-            showLoginGate();
-        }
-        flushQueue();
-        if (!apiToken()) {
-            setTimeout(openTokenModal, 600);
-        }
-        setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
-        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
 
 
         // ===== ПРОФИЛЬ / ЛК «ЛАД» =====
@@ -1564,3 +1547,21 @@
                 });
             } catch (e) {}
         }
+
+        if (ladToken() || apiToken()) {
+            refreshPushSubscription();
+            loadChildGender();
+            maybeJoinInvite();
+            sendConsentIfNeeded();
+            loadEvents();
+            loadAppointments();
+            renderStatus();
+        } else {
+            showLoginGate();
+        }
+        flushQueue();
+        if (!apiToken()) {
+            setTimeout(openTokenModal, 600);
+        }
+        setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
