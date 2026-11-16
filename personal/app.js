@@ -78,6 +78,11 @@ function getToken() {
     try { return localStorage.getItem(LS_TOKEN) || ''; } catch (e) { return ''; }
 }
 
+// Вход из «Лада»: тот же origin, поэтому берём JWT из общего localStorage.
+function ladToken() {
+    try { return localStorage.getItem('lad_token') || ''; } catch (e) { return ''; }
+}
+
 function setToken(value) {
     try { localStorage.setItem(LS_TOKEN, value); } catch (e) { /* приватный режим */ }
 }
@@ -85,7 +90,12 @@ function setToken(value) {
 function headers(isJson) {
     const result = isJson ? { 'Content-Type': 'application/json' } : {};
     const token = getToken();
-    if (token) result['X-Api-Token'] = token;
+    if (token) {
+        result['X-Api-Token'] = token;
+    } else {
+        const lad = ladToken();
+        if (lad) result['Authorization'] = 'Bearer ' + lad;
+    }
     return result;
 }
 
@@ -115,7 +125,7 @@ function scheduleSave() {
 }
 
 async function pullFromServer() {
-    if (!getToken()) return false;
+    if (!getToken() && !ladToken()) return false;
     try {
         const response = await fetch(`${API_BASE}/api/personal/state`, { headers: headers(false) });
         if (response.status === 401) { showBanner('Токен не подошёл — введите заново'); return false; }
@@ -137,7 +147,7 @@ async function pullFromServer() {
 }
 
 async function pushToServer() {
-    if (!getToken()) return;
+    if (!getToken() && !ladToken()) return;
     try {
         const response = await fetch(`${API_BASE}/api/personal/state`, {
             method: 'PUT',
@@ -553,7 +563,7 @@ async function init() {
     const today = new Date();
     document.getElementById('tx-date').value = todayISO();
 
-    if (getToken()) {
+    if (getToken() || ladToken()) {
         const pulled = await pullFromServer();
         if (pulled) {
             renderCredits();
