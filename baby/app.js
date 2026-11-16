@@ -1269,6 +1269,7 @@
 
         function renderProfile(data) {
             ladProfile = data;
+            loadBilling();
             const childForGender = (data.children || [])[0];
             if (childForGender && childForGender.gender) {
                 childGender = childForGender.gender;
@@ -1562,3 +1563,49 @@
         }
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
+
+        // ===== ПОДПИСКА =====
+        async function loadBilling() {
+            const token = ladToken();
+            if (!token) return;
+            try {
+                const res = await fetch(`${API_URL}/billing/status`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) return;
+                const d = await res.json();
+                const name = document.getElementById('plan-name');
+                const until = document.getElementById('plan-until');
+                const btn = document.getElementById('plan-btn');
+                const st = document.getElementById('plan-status');
+                if (!name || !btn) return;
+                name.textContent = d.active ? 'Премиум' : 'Бесплатная';
+                let untilText = '';
+                if (d.active && d.plan_until) {
+                    try { untilText = 'до ' + new Date(d.plan_until).toLocaleDateString('ru-RU'); } catch (e) {}
+                }
+                until.textContent = untilText;
+                btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
+                btn.style.display = (d.configured && !d.active) ? '' : 'none';
+                st.textContent = d.active ? '' : (d.configured ? '' : 'Оплата скоро появится');
+            } catch (e) {}
+        }
+
+        async function startPayment() {
+            const token = ladToken();
+            const st = document.getElementById('plan-status');
+            try {
+                st.textContent = 'Создаю платёж…';
+                const res = await fetch(`${API_URL}/billing/pay`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok || !d.confirmation_url) {
+                    throw new Error(d.detail || 'Не удалось создать платёж');
+                }
+                window.location.href = d.confirmation_url;
+            } catch (e) {
+                st.textContent = e.message;
+            }
+        }

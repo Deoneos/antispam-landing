@@ -14,7 +14,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=21">
+    <link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -197,6 +197,14 @@
                 <div class="profile-members" id="profile-members"></div>
                 <div class="invite-box" id="invite-box" style="display:none"></div>
                 <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
+                <div class="plan-card" id="plan-card">
+                    <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
+                    <div class="plan-until" id="plan-until"></div>
+                    <button class="pbtn primary" id="plan-btn" onclick="startPayment()" style="display:none">Оформить</button>
+                    <p class="login-status" id="plan-status"></p>
+                </div>
+                <a class="row" href="payment.html" target="_blank" rel="noopener">
+                    <span class="ri">💳</span> Оплата и возврат <span class="chev">›</span></a>
                 <a class="row" href="privacy.html" target="_blank" rel="noopener">
                     <span class="ri">📄</span> Политика данных <span class="chev">›</span></a>
                 <a class="row" href="terms.html" target="_blank" rel="noopener">
@@ -269,7 +277,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=22" defer></script>
+    <script src="app.js?v=23" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
