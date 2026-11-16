@@ -1124,6 +1124,7 @@
         }
 
         if (ladToken() || apiToken()) {
+            maybeJoinInvite();
             sendConsentIfNeeded();
             loadEvents();
             loadAppointments();
@@ -1275,6 +1276,21 @@
             const child = data.children && data.children[0];
             document.getElementById('profile-child').textContent = (child && child.name) || '—';
             document.getElementById('profile-events').textContent = (data.stats && data.stats.events) || 0;
+            const membersBox = document.getElementById('profile-members');
+            if (membersBox) {
+                membersBox.innerHTML = '';
+                (data.members || []).forEach(function (m) {
+                    const chip = document.createElement('span');
+                    chip.className = 'member-chip';
+                    chip.textContent = (m.first_name || 'Родитель') + (m.role === 'owner' ? ' · владелец' : '');
+                    membersBox.appendChild(chip);
+                });
+                const btn = document.getElementById('invite-btn');
+                const isOwner = (data.members || []).some(function (m) {
+                    return m.id === u.id && m.role === 'owner';
+                });
+                if (btn) btn.style.display = isOwner ? '' : 'none';
+            }
 
             const ava = document.getElementById('profile-ava');
             ava.innerHTML = '';
@@ -1386,4 +1402,60 @@
                     try { localStorage.setItem('lad_consent_sent', version); } catch (e) {}
                 }
             }).catch(function () {});
+        }
+
+        // ===== ПРИГЛАШЕНИЯ В СЕМЬЮ =====
+        async function inviteParent() {
+            const token = ladToken();
+            const box = document.getElementById('invite-box');
+            if (!token || !box) return;
+            box.style.display = 'block';
+            box.textContent = 'Готовлю ссылку…';
+            try {
+                const res = await fetch(`${API_URL}/family/invite`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json().catch(function () { return {}; });
+                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                box.innerHTML = '';
+                const link = document.createElement('a');
+                link.href = data.link;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.textContent = data.link;
+                const copy = document.createElement('button');
+                copy.className = 'pbtn';
+                copy.textContent = 'Скопировать ссылку';
+                copy.onclick = function () {
+                    if (navigator.clipboard) navigator.clipboard.writeText(data.link);
+                    toast('Ссылка скопирована');
+                };
+                box.appendChild(link);
+                box.appendChild(copy);
+            } catch (e) {
+                box.textContent = 'Не получилось: ' + e.message;
+            }
+        }
+
+        async function maybeJoinInvite() {
+            const code = new URLSearchParams(location.search).get('invite');
+            const token = ladToken();
+            if (!code || !token) return;
+            try {
+                const res = await fetch(`${API_URL}/family/join`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ code: code })
+                });
+                const data = await res.json().catch(function () { return {}; });
+                if (res.ok && data.ok) {
+                    toast('Вы присоединились к семье');
+                    history.replaceState(null, '', location.pathname);
+                    setTimeout(function () { location.reload(); }, 900);
+                } else if (res.status === 404) {
+                    toast('Приглашение недействительно', true);
+                    history.replaceState(null, '', location.pathname);
+                }
+            } catch (e) {}
         }

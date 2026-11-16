@@ -184,6 +184,9 @@
                     <div class="profile-row"><span>Ребёнок</span><b id="profile-child">—</b></div>
                     <div class="profile-row"><span>Записей</span><b id="profile-events">0</b></div>
                 </div>
+                <div class="profile-members" id="profile-members"></div>
+                <div class="invite-box" id="invite-box" style="display:none"></div>
+                <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
                 <a class="row" href="privacy.html" target="_blank" rel="noopener">
                     <span class="ri">📄</span> Политика данных <span class="chev">›</span></a>
                 <a class="row" href="terms.html" target="_blank" rel="noopener">
@@ -256,7 +259,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=14" defer></script>
+    <script src="app.js?v=15" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
