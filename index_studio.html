@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кустос — инструменты, которые берегут время</title>
+<meta name="description" content="Независимая разработка: Telegram-боты и веб-приложения. ANTI_SPAM Bot для модерации групп и трекер малыша «Лад».">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.png" type="image/png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#08090c;--ink:#f2f0ea;--muted:#8b8f98;--line:#1c1f26;--card:#0e1015;--lime:#c9f45a}
+  body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;min-height:100vh;position:relative;overflow-x:hidden}
+  .glow{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(900px 520px at 78% -8%, rgba(201,244,90,.13), transparent 60%),
+      radial-gradient(700px 500px at 8% 32%, rgba(80,140,255,.10), transparent 65%)}
+  .grid-lines{position:absolute;inset:0;pointer-events:none;opacity:.35;
+    background-image:linear-gradient(to right, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size:120px 100%}
+  .wrap{position:relative;width:100%;max-width:1240px;margin:0 auto;padding:0 24px}
+  header{display:flex;align-items:center;justify-content:space-between;height:88px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:600;letter-spacing:.14em;font-size:14px;color:var(--ink);text-decoration:none}
+  .mark{width:30px;height:30px;border-radius:9px;background:var(--lime);color:#0a0b08;display:grid;place-items:center;font-size:15px;font-weight:800}
+  nav{display:flex;gap:30px;font-size:14px}
+  nav a{color:var(--muted);text-decoration:none}
+  nav a:hover{color:var(--ink)}
+  .head-right{display:flex;align-items:center;gap:18px;font-size:14px}
+  .mail{color:var(--muted);text-decoration:none}
+  .pill{border:1px solid var(--line);border-radius:999px;padding:10px 18px;font-size:13px;color:var(--ink);text-decoration:none}
+  .hero{padding:80px 0 0;display:grid;grid-template-columns:1fr 380px;gap:56px;align-items:start}
+  .eyebrow{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime)}
+  h1{margin-top:24px;font-size:clamp(48px,7vw,100px);line-height:.96;letter-spacing:-.045em;font-weight:600}
+  h1 em{font-style:normal;color:var(--lime)}
+  .lead{margin-top:28px;max-width:560px;font-size:18px;line-height:1.65;color:#b9bcc4}
+  .cta{margin-top:34px;display:flex;gap:14px;flex-wrap:wrap}
+  .btn{height:52px;padding:0 24px;border-radius:12px;display:inline-flex;align-items:center;gap:10px;font-size:15px;font-weight:600;text-decoration:none}
+  .btn-lime{background:var(--lime);color:#0a0b08}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink)}
+  .side-card{border:1px solid var(--line);background:linear-gradient(180deg,#101218,#0b0d12);border-radius:18px;padding:24px}
+  .side-title{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .side-row{display:flex;align-items:baseline;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .side-row:last-of-type{border-bottom:0}
+  .side-row b{font-size:26px;font-weight:600;letter-spacing:-.03em}
+  .side-row span{font-size:13px;color:var(--muted)}
+  .side-note{margin-top:14px;font-size:12px;line-height:1.6;color:#6f747d}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:64px}
+  .stat{background:var(--bg);padding:26px 4px 26px 0}
+  .stat b{display:block;font-size:34px;font-weight:600;letter-spacing:-.04em}
+  .stat span{display:block;margin-top:6px;font-size:13px;color:var(--muted)}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;margin:64px 0 22px;gap:16px}
+  .section-head h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.04em;font-weight:600}
+  .section-head span{font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .projects{border-top:1px solid var(--line)}
+  .project{display:grid;grid-template-columns:56px 1.2fr 1fr 150px 40px;gap:24px;align-items:center;
+    padding:30px 0;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
+  .num{font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;color:#5f646d}
+  .p-name{font-size:26px;letter-spacing:-.03em;font-weight:600;display:flex;align-items:center;gap:12px}
+  .p-desc{font-size:14px;line-height:1.6;color:#9ba0a9}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .tag{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#a9aeb7;border:1px solid var(--line);border-radius:999px;padding:6px 11px;white-space:nowrap}
+  .arr{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+  .approach{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .step{background:var(--bg);padding:26px 26px 28px 0}
+  .step b{font-family:"Cascadia Mono",Consolas,monospace;font-size:12px;color:var(--lime);letter-spacing:.1em}
+  .step h4{margin-top:12px;font-size:20px;font-weight:600;letter-spacing:-.02em}
+  .step p{margin-top:8px;font-size:14px;line-height:1.6;color:#9ba0a9;max-width:320px}
+  .cta-band{margin:52px 0 0;border:1px solid var(--line);border-radius:22px;padding:36px 40px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    background:linear-gradient(120deg,rgba(201,244,90,.09),rgba(201,244,90,.01) 55%,transparent)}
+  .cta-band h3{font-size:clamp(24px,3.4vw,38px);letter-spacing:-.04em;font-weight:600}
+  .cta-band p{margin-top:8px;color:#9ba0a9;font-size:15px}
+  .round{width:60px;height:60px;border-radius:50%;background:var(--lime);color:#0a0b08;display:grid;place-items:center;font-size:20px;text-decoration:none;flex:none}
+  footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:26px 0 40px;color:#6f747d;font-size:13px;flex-wrap:wrap}
+  footer .fl{display:flex;gap:22px;flex-wrap:wrap}
+  footer a{color:inherit;text-decoration:none}
+  @media (max-width:900px){
+    nav{display:none}
+    .hero{grid-template-columns:1fr;gap:32px;padding-top:40px}
+    .mail{display:none}
+    .project{grid-template-columns:40px 1fr 40px;grid-template-areas:"num name arr" "num desc arr" "num tags arr";gap:10px 14px}
+    .num{grid-area:num}.p-name{grid-area:name}.p-desc{grid-area:desc}.tags{grid-area:tags;justify-content:flex-start}.arr{grid-area:arr}
+    .stats{grid-template-columns:1fr 1fr}
+    .approach{grid-template-columns:1fr}
+    .cta-band{flex-direction:column;align-items:flex-start;padding:26px}
+    h1{font-size:46px}
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="grid-lines"></div>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/"><span class="mark">К</span> КУСТОС</a>
+    <nav><a href="#projects">Проекты</a><a href="#approach">Подход</a><a href="about.html">О себе</a><a href="mailto:zakharsakharov03@yandex.ru">Контакты</a></nav>
+    <div class="head-right">
+      <a class="mail" href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a>
+      <a class="pill" href="https://t.me/Lad_passed_bot">Написать</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Независимая разработка</div>
+      <h1>Инструменты,<br>которые <em>берегут</em><br>ваше время</h1>
+      <p class="lead">Проектирую и делаю продукты на стыке Telegram и веба.
+        От идеи и интерфейса до сервера и поддержки.</p>
+      <div class="cta">
+        <a class="btn btn-lime" href="#projects">Смотреть проекты →</a>
+        <a class="btn btn-ghost" href="https://t.me/Lad_passed_bot">Написать в Telegram</a>
+      </div>
+    </div>
+    <aside>
+      <div class="side-card">
+        <div class="side-title">Сейчас в работе</div>
+        <div class="side-row"><b>02</b><span>проекта в работе</span></div>
+        <div class="side-row"><b>Telegram</b><span>основная платформа</span></div>
+        <div class="side-row"><b>Полный цикл</b><span>от идеи до деплоя</span></div>
+        <div class="side-note">Один разработчик: дизайн, код, сервер и поддержка — без посредников.</div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><b>2</b><span>своих проекта</span></div>
+    <div class="stat"><b>Telegram</b><span>боты и модерация</span></div>
+    <div class="stat"><b>PWA</b><span>веб-приложения</span></div>
+    <div class="stat"><b>RU / EN</b><span>два языка</span></div>
+  </section>
+
+  <div class="section-head" id="projects">
+    <h2>Проекты</h2>
+    <span>Два проекта</span>
+  </div>
+
+  <section class="projects">
+    <a class="project" href="https://t.me/ANTI_SPAM_MWKbot">
+      <div class="num">01</div>
+      <div class="p-name"><span>🛡️</span> ANTI_SPAM Bot</div>
+      <div class="p-desc">Модерация Telegram-групп: фильтр спама, OCR по картинкам, прогрессивные наказания и статистика.</div>
+      <div class="tags"><span class="tag">Telegram</span><span class="tag">ML</span></div>
+      <div class="arr">↗</div>
+    </a>
+    <a class="project" href="/baby/">
+      <div class="num">02</div>
+      <div class="p-name"><span>🌗</span> Лад</div>
+      <div class="p-desc">Трекер малыша: сон, кормления, прогулки, статистика и PDF-отчёт для врача. Семейный доступ.</div>
+      <div class="tags"><span class="tag">PWA</span><span class="tag">FastAPI</span></div>
+      <div class="arr">↗</div>
+    </a>
+  </section>
+
+  <div class="section-head" id="approach">
+    <h2>Подход</h2>
+    <span>Как идёт работа</span>
+  </div>
+
+  <section class="approach">
+    <div class="step"><b>01</b><h4>Сначала задача</h4>
+      <p>Разбираемся, какую проблему решаем и по каким метрикам поймём, что получилось. Дизайн — после этого.</p></div>
+    <div class="step"><b>02</b><h4>Один разработчик</h4>
+      <p>Без передачи между командами: макет, вёрстка, бэкенд и деплой в одних руках.</p></div>
+    <div class="step"><b>03</b><h4>Поддержка после</h4>
+      <p>Мониторинг, резервные копии и обновления. Продукт продолжает жить после запуска.</p></div>
+  </section>
+
+  <section class="cta-band">
+    <div>
+      <h3>Есть задача?</h3>
+      <p>Расскажите — предложу план и оценку.</p>
+    </div>
+    <a class="round" href="mailto:zakharsakharov03@yandex.ru">↗</a>
+  </section>
+
+  <footer>
+    <span>© 2026 Кустос · сделано вручную</span>
+    <div class="fl">
+      <a href="/baby/">Приложение «Лад»</a>
+      <a href="/baby/privacy.html">Политика</a>
+      <a href="account.html">Аккаунт</a>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
