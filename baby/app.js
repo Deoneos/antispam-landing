@@ -509,23 +509,23 @@
                     timeStr = startTime.toLocaleTimeString('ru-RU', timeOptions);
 
                     if (e.event_type === 'sleep' && e.end_time) {
-                        icon = "🌙"; name = "Спала";
+                        icon = "🌙"; name = g("Спала", "Спал");
                         const endTime = new Date(e.end_time);
                         sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
                         timeStr = "";
                     }
                     else if (e.event_type === 'awake' && e.end_time) {
-                        icon = "👀"; name = "Бодрствовала";
+                        icon = "👀"; name = g("Бодрствовала", "Бодрствовал");
                         const endTime = new Date(e.end_time);
                         sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
                         timeStr = "";
                     }
-                    else if (e.event_type === 'feed') { icon = "🍼"; name = "Покушала"; sub = e.details || "Бутылочка"; }
+                    else if (e.event_type === 'feed') { icon = "🍼"; name = g("Покушала", "Покушал"); sub = e.details || "Бутылочка"; }
                     else if (e.event_type === 'diaper') { const det = e.details || ''; icon = det.includes('Пописиюлькала') ? "💦" : "💩"; name = det || "Подгузник"; sub = ""; }
                     else if (e.event_type === 'walk' && e.end_time) {
-                        icon = "🚶‍♀️"; name = "Гуляла";
+                        icon = "🚶‍♀️"; name = g("Гуляла", "Гулял");
                         const endTime = new Date(e.end_time);
                         sub = `${timeStr} - ${endTime.toLocaleTimeString('ru-RU', timeOptions)}`;
                         badge = formatDuration(endTime - startTime);
@@ -1124,6 +1124,7 @@
         }
 
         if (ladToken() || apiToken()) {
+            loadChildGender();
             maybeJoinInvite();
             sendConsentIfNeeded();
             loadEvents();
@@ -1269,9 +1270,29 @@
         }
 
         let ladProfile = null;
+        let childGender = 'girl';
+
+        function g(female, male) { return childGender === 'boy' ? male : female; }
+
+        function quickDiaper(kind) {
+            quickEvent('diaper', kind === 'poop' ? g('Покакала', 'Покакал') : g('Пописала', 'Пописал'));
+        }
+
+        function applyGenderLabels() {
+            const poop = document.getElementById('label-poop');
+            const pee = document.getElementById('label-pee');
+            if (poop) poop.textContent = g('Покакала', 'Покакал');
+            if (pee) pee.textContent = g('Пописала', 'Пописал');
+        }
+
 
         function renderProfile(data) {
             ladProfile = data;
+            const childForGender = (data.children || [])[0];
+            if (childForGender && childForGender.gender) {
+                childGender = childForGender.gender;
+                applyGenderLabels();
+            }
             const u = data.user || {};
             document.getElementById('profile-name').textContent = u.name || 'Родитель';
             document.getElementById('profile-sub').textContent = u.username ? '@' + u.username : 'Telegram';
@@ -1473,6 +1494,8 @@
                 const child = (ladProfile.children || [])[0] || {};
                 document.getElementById('child-name').value = child.name || '';
                 document.getElementById('child-birth').value = child.birth_date || '';
+                const gsel = document.getElementById('child-gender');
+                if (gsel) gsel.value = child.gender || 'girl';
                 document.getElementById('child-status').textContent = '';
             }
         }
@@ -1496,7 +1519,8 @@
                 const res = await fetch(`${API_URL}/child/${childId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ name: name, birth_date: birth })
+                    body: JSON.stringify({ name: name, birth_date: birth,
+                        gender: (document.getElementById('child-gender') || {}).value || 'girl' })
                 });
                 const data = await res.json().catch(function () { return {}; });
                 if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
@@ -1507,4 +1531,19 @@
             } catch (e) {
                 status.textContent = e.message;
             }
+        }
+
+        // Пол ребёнка нужен и на трекере, не только в профиле
+        async function loadChildGender() {
+            const token = ladToken();
+            if (!token) return;
+            try {
+                const res = await fetch(`${API_URL}/me`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                const child = (data.children || [])[0];
+                if (child && child.gender) {
+                    childGender = child.gender;
+                    applyGenderLabels();
+                }
+            } catch (e) {}
         }

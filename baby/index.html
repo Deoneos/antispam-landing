@@ -58,11 +58,11 @@
                 <span class="icon" id="walk-icon">🚶‍♀️</span> <span id="walk-text">Погулять</span>
             </button>
 
-            <button class="action-btn btn-diaper" onclick="quickEvent('diaper', 'Посранунькала')"><span class="icon">💩</span> Посранунькала</button>
-            <button class="action-btn btn-diaper" onclick="quickEvent('diaper', 'Пописиюлькала')"><span class="icon">💦</span> Пописиюлькала</button>
+            <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
+            <button class="action-btn btn-diaper" id="btn-pee" onclick="quickDiaper('pee')"><span class="icon">💦</span> <span id="label-pee">Пописала</span></button>
             
             <button class="action-btn btn-noise" onclick="openNoiseModal()"><span class="icon">🎵</span> Белый шум</button>
-            <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Да блять!</button>
+            <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Помоги!</button>
             <button class="action-btn" id="push-btn" onclick="subscribePush()" style="grid-column: span 2; background: var(--bg);">
                 <span class="icon">🔔</span> Включить уведомления
             </button>        
@@ -185,6 +185,10 @@
                     <div id="child-edit" class="child-edit" style="display:none">
                         <input id="child-name" class="login-input" placeholder="Имя ребёнка" maxlength="60">
                         <input id="child-birth" class="login-input" type="date">
+                        <select id="child-gender" class="login-input">
+                            <option value="girl">Девочка</option>
+                            <option value="boy">Мальчик</option>
+                        </select>
                         <button class="pbtn" onclick="saveChild()">Сохранить</button>
                         <p class="login-status" id="child-status"></p>
                     </div>
@@ -265,7 +269,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=16" defer></script>
+    <script src="app.js?v=17" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
