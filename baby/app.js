@@ -217,7 +217,7 @@
                 try {
                     const res = await fetch(item.url, {
                         method: item.method || 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: apiHeaders(true),
                         body: item.body
                     });
                     if (!res.ok) left.push(item);
@@ -235,12 +235,9 @@
             const el = document.getElementById('net-status');
             if (!el) return;
             const pending = readJSON(QUEUE_KEY, []).length;
-            const offline = !navigator.onLine;
-            if (!pending && !offline) { el.style.display = 'none'; el.textContent = ''; return; }
+            if (!pending) { el.style.display = 'none'; el.textContent = ''; return; }
             el.style.display = 'inline-block';
-            el.textContent = offline
-                ? (pending ? `📴 офлайн · ${pending} в очереди` : '📴 офлайн')
-                : `⏳ ждут отправки: ${pending}`;
+            el.textContent = `⏳ ждут отправки: ${pending}`;
         }
 
         window.addEventListener('online', () => { renderStatus(); flushQueue(); });
