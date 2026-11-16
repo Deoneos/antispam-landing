@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мои финансы — кредиты, тренировки, деньги</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="stylesheet" href="styles.css?v=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">💰 Мои финансы</div>
+    <div class="topbar-actions">
+        <button class="icon-btn" id="btn-sync" title="Синхронизировать">⟳</button>
+        <button class="icon-btn" id="btn-settings" title="Настройки">⚙</button>
+    </div>
+</header>
+
+<div class="banner" id="banner" hidden>
+    <span id="banner-text"></span>
+    <button class="banner-btn" id="banner-action">Ввести токен</button>
+</div>
+
+<main id="views">
+    <!-- КРЕДИТЫ -->
+    <section class="view active" id="view-credits">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Общий долг</div>
+                <div class="summary-value" id="sum-debt">—</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Платёж в месяц</div>
+                <div class="summary-value" id="sum-monthly">—</div>
+            </div>
+            <div class="summary-card accent">
+                <div class="summary-label">Ближайший платёж</div>
+                <div class="summary-value" id="sum-next">—</div>
+                <div class="summary-sub" id="sum-next-date"></div>
+            </div>
+        </div>
+
+        <div class="section-head">
+            <h2>Кредиты</h2>
+            <button class="btn-ghost" id="btn-add-credit">+ Добавить</button>
+        </div>
+        <div id="credit-list" class="card-list"></div>
+
+        <div class="section-head"><h2>Календарь платежей</h2></div>
+        <div id="payment-calendar" class="calendar"></div>
+    </section>
+
+    <!-- ТРЕНИРОВКИ -->
+    <section class="view" id="view-workouts">
+        <div class="workout-today" id="workout-today"></div>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Серия</div>
+                <div class="summary-value" id="wo-streak">—</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">За месяц</div>
+                <div class="summary-value" id="wo-month">—</div>
+            </div>
+        </div>
+
+        <div class="section-head"><h2>Календарь тренировок</h2></div>
+        <div id="workout-calendar" class="calendar"></div>
+
+        <div class="section-head"><h2>Расписание</h2></div>
+        <div class="days-picker" id="days-picker"></div>
+    </section>
+
+    <!-- ДЕНЬГИ -->
+    <section class="view" id="view-money">
+        <form class="tx-form" id="tx-form">
+            <div class="tx-tabs">
+                <button type="button" class="tx-tab active" data-type="out">Расход</button>
+                <button type="button" class="tx-tab" data-type="in">Доход</button>
+            </div>
+            <div class="tx-row">
+                <input type="number" id="tx-amount" placeholder="Сумма" step="0.01" min="0" required inputmode="decimal">
+                <select id="tx-category"></select>
+            </div>
+            <div class="tx-row">
+                <input type="date" id="tx-date" required>
+                <input type="text" id="tx-note" placeholder="Заметка (необязательно)">
+            </div>
+            <button type="submit" class="btn-primary">Добавить</button>
+        </form>
+
+        <div class="summary-grid">
+            <div class="summary-card in">
+                <div class="summary-label">Доходы</div>
+                <div class="summary-value" id="money-in">—</div>
+            </div>
+            <div class="summary-card out">
+                <div class="summary-label">Расходы</div>
+                <div class="summary-value" id="money-out">—</div>
+            </div>
+            <div class="summary-card accent">
+                <div class="summary-label">Остаток</div>
+                <div class="summary-value" id="money-left">—</div>
+                <div class="summary-sub" id="money-after-loans"></div>
+            </div>
+        </div>
+
+        <div class="section-head">
+            <h2>Операции</h2>
+            <select id="month-picker" class="month-select"></select>
+        </div>
+        <div id="tx-list" class="card-list"></div>
+
+        <div class="section-head"><h2>По категориям</h2></div>
+        <div id="category-bars" class="bars"></div>
+    </section>
+</main>
+
+<nav class="tabbar">
+    <button class="tab active" data-view="credits"><span>🏦</span>Кредиты</button>
+    <button class="tab" data-view="workouts"><span>🏋️</span>Тренировки</button>
+    <button class="tab" data-view="money"><span>💵</span>Деньги</button>
+</nav>
+
+<!-- Модалка кредита -->
+<div class="modal" id="credit-modal" hidden>
+    <div class="modal-card">
+        <h3 id="credit-modal-title">Кредит</h3>
+        <label>Название<input type="text" id="c-name" placeholder="Яндекс Банк"></label>
+        <label>Текущий долг<input type="number" id="c-balance" step="0.01" min="0" inputmode="decimal"></label>
+        <label>Платёж в месяц<input type="number" id="c-payment" step="0.01" min="0" inputmode="decimal"></label>
+        <label>День платежа<input type="number" id="c-dueday" min="1" max="31"></label>
+        <label>Выплачено всего<input type="number" id="c-paid" step="0.01" min="0" inputmode="decimal"></label>
+        <div class="modal-actions">
+            <button class="btn-ghost" id="c-cancel">Отмена</button>
+            <button class="btn-primary" id="c-save">Сохранить</button>
+        </div>
+        <button class="btn-danger" id="c-delete" hidden>Удалить кредит</button>
+    </div>
+</div>
+
+<!-- Настройки -->
+<div class="modal" id="settings-modal" hidden>
+    <div class="modal-card">
+        <h3>Настройки</h3>
+        <label>Токен доступа<input type="password" id="set-token" placeholder="вставьте токен"></label>
+        <p class="hint">Один токен для всех устройств: введите его на телефоне и на компьютере, данные будут общими.</p>
+        <div class="modal-actions">
+            <button class="btn-ghost" id="set-export">Экспорт</button>
+            <button class="btn-ghost" id="set-import">Импорт</button>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-ghost" id="set-cancel">Закрыть</button>
+            <button class="btn-primary" id="set-save">Сохранить</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json" hidden>
+        <p class="hint" id="sync-status"></p>
+    </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js?v=1"></script>
+</body>
+</html>
