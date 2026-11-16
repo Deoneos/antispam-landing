@@ -1598,7 +1598,7 @@
                 until.textContent = untilText;
                 btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
                 btn.style.display = (d.configured && !d.active) ? '' : 'none';
-                st.textContent = d.active ? '' : (d.configured ? '' : 'Оплата скоро появится');
+                st.textContent = d.active ? '' : ('f' + (d.family_id || '?') + ' · ' + (d.plan || '?') + ' · ' + (d.active ? '1' : '0'));
             } catch (e) {}
         }
 
