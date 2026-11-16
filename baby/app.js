@@ -1593,7 +1593,13 @@
                 const st = document.getElementById('plan-status');
                 if (!name || !btn) return;
                 familyPremium = !!d.active;
-                applyPremiumUI();
+                const reportBtn = document.getElementById('report-btn');
+                if (reportBtn) reportBtn.style.display = familyPremium ? '' : 'none';
+                const lockEl = document.getElementById('analytics-lock');
+                if (lockEl) {
+                    const analyticsOpen = document.getElementById('view-analytics').classList.contains('active');
+                    lockEl.style.display = (!familyPremium && analyticsOpen) ? 'block' : 'none';
+                }
                 name.textContent = d.active ? 'Премиум' : 'Бесплатная';
                 let untilText = '';
                 if (d.active && d.plan_until) {
