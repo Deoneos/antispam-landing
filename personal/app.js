@@ -24,6 +24,7 @@ let activeTxType = 'out';
 let selectedMonth = monthKey(new Date());
 let editingCreditId = null;
 let saveTimer = null;
+let demoMode = false;
 
 // ===== УТИЛИТЫ =====
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -103,6 +104,7 @@ function loadLocal() {
 }
 
 function saveLocal() {
+    if (demoMode) return;
     try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) { /* ignore */ }
 }
 
@@ -508,9 +510,41 @@ function switchView(name) {
     document.querySelectorAll('.tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.view === name));
 }
 
+
+function demoState() {
+    const today = new Date();
+    const done = {};
+    for (let i = 0; i < 9; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i * 2);
+        if ([0, 2, 4].includes((d.getDay() + 6) % 7)) done[isoDate(d)] = true;
+    }
+    const month = monthKey(today);
+    return {
+        credits: [
+            { id: 'yandex', name: 'Яндекс Банк', balance: 55768.14, payment: 5173, dueDay: 15, paid: 0 },
+            { id: 'tbank', name: 'Т-Банк', balance: 20382.43, payment: 1300, dueDay: 4, paid: 0 },
+            { id: 'ozon', name: 'Озон Банк', balance: 12792.91, payment: 1925.4, dueDay: 11, paid: 0 },
+            { id: 'sber-refin', name: 'Сбербанк — рефинансирование', balance: 312404.9, payment: 11231, dueDay: 20, paid: 0 },
+            { id: 'sber-card', name: 'Сбербанк — кредитка', balance: 232723.8, payment: 5772.35, dueDay: 30, paid: 0 },
+        ],
+        payments: [],
+        workouts: { days: [0, 2, 4], duration: 60, done },
+        tx: [
+            { id: 'd1', date: month + '-05', type: 'in', amount: 120000, category: 'Зарплата', note: '' },
+            { id: 'd2', date: month + '-06', type: 'out', amount: 18400, category: 'Продукты', note: 'Пятёрочка' },
+            { id: 'd3', date: month + '-08', type: 'out', amount: 5173, category: 'Кредиты', note: 'Яндекс Банк' },
+            { id: 'd4', date: month + '-10', type: 'out', amount: 6200, category: 'Транспорт', note: 'Бензин' },
+            { id: 'd5', date: month + '-12', type: 'out', amount: 9900, category: 'Дети', note: 'Смесь и памперсы' },
+        ],
+        categories: clone(DEFAULT_STATE.categories),
+    };
+}
+
 // ===== СТАРТ =====
 async function init() {
-    loadLocal();
+    demoMode = new URLSearchParams(location.search).has('demo');
+    if (demoMode) state = demoState(); else loadLocal();
     renderCredits();
     renderWorkouts();
     renderCategories();
