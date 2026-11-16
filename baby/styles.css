@@ -231,3 +231,9 @@
 .login-hint { margin-top: 14px; font-size: 12px; line-height: 1.5; color: var(--muted); text-align: center; }
 .login-hint a { color: var(--text); }
 .pbtn.primary { background: #F29B93; color: #2b1b18; border: none; }
+
+.consent { display: flex; gap: 8px; align-items: flex-start; margin-top: 14px;
+    font-size: 12px; line-height: 1.45; color: var(--muted); }
+.consent input { margin-top: 3px; width: 16px; height: 16px; flex: none; }
+.consent a { color: var(--text); }
+a.row { text-decoration: none; color: inherit; }

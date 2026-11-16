@@ -14,7 +14,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -184,6 +184,10 @@
                     <div class="profile-row"><span>Ребёнок</span><b id="profile-child">—</b></div>
                     <div class="profile-row"><span>Записей</span><b id="profile-events">0</b></div>
                 </div>
+                <a class="row" href="privacy.html" target="_blank" rel="noopener">
+                    <span class="ri">📄</span> Политика данных <span class="chev">›</span></a>
+                <a class="row" href="terms.html" target="_blank" rel="noopener">
+                    <span class="ri">📃</span> Соглашение <span class="chev">›</span></a>
                 <button class="pbtn danger" onclick="logoutProfile()">Выйти</button>
             </div>
         </div>
@@ -252,7 +256,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=12" defer></script>
+    <script src="app.js?v=13" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -283,6 +287,11 @@
             <input class="login-input" id="login-name" autocomplete="username" autocapitalize="off">
             <label class="login-label" for="login-pass">Пароль</label>
             <input class="login-input" id="login-pass" type="password" autocomplete="current-password">
+            <label class="consent">
+                <input type="checkbox" id="consent-box">
+                <span>Я принимаю <a href="terms.html" target="_blank" rel="noopener">соглашение</a>
+                    и <a href="privacy.html" target="_blank" rel="noopener">политику обработки данных</a></span>
+            </label>
             <button class="pbtn primary" onclick="submitPasswordLogin()">Войти</button>
             <p class="login-status" id="login-status"></p>
             <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>

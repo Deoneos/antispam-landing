@@ -1313,9 +1313,24 @@
         function showLoginGate() {
             const gate = document.getElementById('login-gate');
             if (gate) gate.style.display = 'flex';
+            try {
+                const box = document.getElementById('consent-box');
+                if (box && localStorage.getItem('lad_consent') === '1') box.checked = true;
+            } catch (e) {}
+        }
+
+        function consentGiven() {
+            const box = document.getElementById('consent-box');
+            if (box && !box.checked) {
+                document.getElementById('login-status').textContent = 'Подтвердите согласие с документами';
+                return false;
+            }
+            try { localStorage.setItem('lad_consent', '1'); } catch (e) {}
+            return true;
         }
 
         async function submitPasswordLogin() {
+            if (!consentGiven()) return;
             const login = (document.getElementById('login-name').value || '').trim();
             const password = document.getElementById('login-pass').value || '';
             const status = document.getElementById('login-status');
@@ -1340,6 +1355,7 @@
         }
 
         async function gateTelegramLogin() {
+            if (!consentGiven()) return;
             const status = document.getElementById('login-status');
             status.textContent = 'Открываю Telegram…';
             await prepareTelegramLogin(true);
