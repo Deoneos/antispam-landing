@@ -1633,3 +1633,47 @@
                 st.textContent = e.message;
             }
         }
+
+        function toggleRegister() {
+            const box = document.getElementById('register-box');
+            if (!box) return;
+            const show = box.style.display === 'none';
+            box.style.display = show ? 'block' : 'none';
+            const st = document.getElementById('reg-status');
+            if (st) st.textContent = '';
+        }
+
+        async function submitRegister() {
+            if (!consentGiven()) return;
+            const login = (document.getElementById('reg-login').value || '').trim();
+            const password = document.getElementById('reg-pass').value || '';
+            const name = (document.getElementById('reg-name').value || '').trim();
+            const st = document.getElementById('reg-status');
+            if (!login || !password) {
+                st.textContent = 'Заполните логин и пароль';
+                return;
+            }
+            if (password.length < 8) {
+                st.textContent = 'Пароль короче 8 символов';
+                return;
+            }
+            st.textContent = 'Создаю аккаунт…';
+            try {
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        login: login,
+                        password: password,
+                        name: name,
+                        consent_version: '2026-11-16'
+                    })
+                });
+                const data = await res.json().catch(function () { return {}; });
+                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
+                location.reload();
+            } catch (e) {
+                st.textContent = e.message;
+            }
+        }

@@ -283,7 +283,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=28" defer></script>
+    <script src="app.js?v=29" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -322,6 +322,17 @@
             <button class="pbtn primary" onclick="submitPasswordLogin()">Войти</button>
             <p class="login-status" id="login-status"></p>
             <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>
+            <button class="link-btn" style="display:block;margin:12px auto 0" onclick="toggleRegister()">Нет аккаунта? Создать</button>
+            <div id="register-box" style="display:none;margin-top:10px">
+                <label class="login-label" for="reg-login">Логин</label>
+                <input class="login-input" id="reg-login" autocomplete="username" autocapitalize="off">
+                <label class="login-label" for="reg-pass">Пароль (от 8 символов)</label>
+                <input class="login-input" id="reg-pass" type="password" autocomplete="new-password">
+                <label class="login-label" for="reg-name">Как вас зовут</label>
+                <input class="login-input" id="reg-name" autocomplete="name">
+                <button class="pbtn primary" onclick="submitRegister()">Создать аккаунт</button>
+                <p class="login-status" id="reg-status"></p>
+            </div>
             <p class="login-hint">Логин и пароль выдаёт бот
                 <a href="https://t.me/Lad_passed_bot?start=menu" target="_blank" rel="noopener">@Lad_passed_bot</a>:
                 /start → «Логин и пароль».</p>
