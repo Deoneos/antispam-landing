@@ -1124,6 +1124,7 @@
         }
 
         if (ladToken() || apiToken()) {
+            refreshPushSubscription();
             loadChildGender();
             maybeJoinInvite();
             sendConsentIfNeeded();
@@ -1545,5 +1546,21 @@
                     childGender = child.gender;
                     applyGenderLabels();
                 }
+            } catch (e) {}
+        }
+
+        // Перепривязываем существующую подписку к аккаунту (user_id, семья)
+        async function refreshPushSubscription() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+            try {
+                if (Notification.permission !== 'granted') return;
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                if (!subscription) return;
+                await fetch(`${API_URL}/subscribe`, {
+                    method: 'POST',
+                    headers: apiHeaders(true),
+                    body: JSON.stringify(subscription)
+                });
             } catch (e) {}
         }
