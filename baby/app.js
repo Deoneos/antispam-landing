@@ -1560,7 +1560,7 @@
             showLoginGate();
         }
         flushQueue();
-        if (!apiToken()) {
+        if (!apiToken() && !ladToken()) {
             setTimeout(openTokenModal, 600);
         }
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
