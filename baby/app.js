@@ -1581,7 +1581,11 @@
                 const res = await fetch(`${API_URL}/billing/status`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
-                if (!res.ok) return;
+                if (!res.ok) {
+                    const el = document.getElementById('plan-status');
+                    if (el) el.textContent = 'http ' + res.status;
+                    return;
+                }
                 const d = await res.json();
                 const name = document.getElementById('plan-name');
                 const until = document.getElementById('plan-until');
@@ -1599,7 +1603,10 @@
                 btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
                 btn.style.display = (d.configured && !d.active) ? '' : 'none';
                 st.textContent = d.active ? '' : ('f' + (d.family_id || '?') + ' · ' + (d.plan || '?') + ' · ' + (d.active ? '1' : '0'));
-            } catch (e) {}
+            } catch (e) {
+                const el = document.getElementById('plan-status');
+                if (el) el.textContent = 'err ' + (e && e.message ? e.message : 'fetch');
+            }
         }
 
         async function startPayment() {
