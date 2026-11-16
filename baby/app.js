@@ -31,7 +31,14 @@
             btn.classList.add('active');
             if (viewName === 'stats') loadStats();
             if (viewName === 'calendar') loadAppointments();
-            if (viewName === 'analytics') loadAnalytics();
+            if (viewName === 'analytics') {
+                if (!familyPremium) {
+                    document.getElementById('analytics-lock').style.display = 'block';
+                    return;
+                }
+                document.getElementById('analytics-lock').style.display = 'none';
+                loadAnalytics();
+            }
         }
 
         // --- УВЕДОМЛЕНИЯ ---
@@ -1252,6 +1259,7 @@
 
         let ladProfile = null;
         let childGender = 'girl';
+        let familyPremium = false;
 
         function g(female, male) { return childGender === 'boy' ? male : female; }
 
@@ -1579,6 +1587,8 @@
                 const btn = document.getElementById('plan-btn');
                 const st = document.getElementById('plan-status');
                 if (!name || !btn) return;
+                familyPremium = !!d.active;
+                applyPremiumUI();
                 name.textContent = d.active ? 'Премиум' : 'Бесплатная';
                 let untilText = '';
                 if (d.active && d.plan_until) {

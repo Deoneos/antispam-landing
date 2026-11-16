@@ -14,7 +14,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=22">
+    <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -94,7 +94,7 @@
                 </div>
             </div>
 
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="downloadDoctorReport()">📄 Скачать отчет для врача</button>
+            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" id="report-btn" onclick="downloadDoctorReport()">📄 Скачать отчет для врача</button>
 
             <div class="chart-container">
                 <div class="chart-title">Кормления и подгузники</div>
@@ -125,6 +125,12 @@
         </div>
     </div>
     <div id="view-analytics" class="view">
+        <div id="analytics-lock" class="premium-lock" style="display:none">
+            <div class="premium-lock-icon">🔒</div>
+            <h2>Аналитика — в Премиуме</h2>
+            <p>Графики сна, кормлений и объёма, сравнение дней и отчёт для врача.</p>
+            <a class="pbtn primary" href="payment.html" target="_blank" rel="noopener">Подробнее о подписке</a>
+        </div>
         <div class="header">
             <h1>📈 Аналитика</h1>
         </div>
@@ -277,7 +283,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=23" defer></script>
+    <script src="app.js?v=24" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

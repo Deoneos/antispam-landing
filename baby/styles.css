@@ -264,3 +264,10 @@ a.row .chev { margin-left: auto; color: var(--muted); }
 .plan-row b { color: var(--text); font-weight: 800; }
 .plan-until { margin-top: 4px; font-size: 12px; color: var(--muted); }
 .plan-card .pbtn { margin-top: 10px; }
+
+.premium-lock { margin: 20px; padding: 28px 20px; text-align: center; background: var(--card);
+    border: 1px solid var(--border); border-radius: 24px; }
+.premium-lock-icon { font-size: 40px; }
+.premium-lock h2 { font-size: 20px; font-weight: 800; margin: 10px 0 6px; }
+.premium-lock p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+.premium-lock .pbtn { display: inline-flex; width: auto; padding: 0 18px; }
