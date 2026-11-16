@@ -1124,6 +1124,7 @@
         }
 
         if (ladToken() || apiToken()) {
+            sendConsentIfNeeded();
             loadEvents();
             loadAppointments();
             renderStatus();
@@ -1365,4 +1366,24 @@
             } else {
                 status.textContent = 'Не получилось получить ссылку';
             }
+        }
+
+        // Фиксируем согласие с политикой на сервере (один раз на версию)
+        function sendConsentIfNeeded() {
+            const token = ladToken();
+            if (!token) return;
+            let given = false;
+            try { given = localStorage.getItem('lad_consent') === '1'; } catch (e) {}
+            if (!given) return;
+            const version = '2026-11-16';
+            try { if (localStorage.getItem('lad_consent_sent') === version) return; } catch (e) {}
+            fetch(`${API_URL}/account/consent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ version: version })
+            }).then(function (res) {
+                if (res.ok) {
+                    try { localStorage.setItem('lad_consent_sent', version); } catch (e) {}
+                }
+            }).catch(function () {});
         }
