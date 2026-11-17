@@ -19,6 +19,7 @@
             } catch (e) { /* приватный режим — работаем без токена */ }
         })();
         let activeSleepId = null;
+        let activeSleepStart = null;
         let activeAwakeId = null;
         const timerIntervals = {};
         let chartFeeds = null;
@@ -369,11 +370,88 @@
                 // Если спит — будим (гуляние не трогаем)
                 await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST', headers: apiHeaders() });
                 await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'awake'}) });
+                loadEvents();
             } else {
-                // Укладываем спать (гуляние не трогаем)
-                if (activeAwakeId) await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST', headers: apiHeaders() });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'sleep'}) });
+                // Укладываем спать: сначала спрашиваем время начала
+                openSleepModal('start');
             }
+        }
+
+        // --- ВРЕМЯ НАЧАЛА СНА ---
+        let sleepModalMode = 'start';
+
+        function toLocalInputValue(d) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function openSleepModal(mode) {
+            sleepModalMode = mode || 'start';
+            const inp = document.getElementById('sleep-time');
+            const title = document.getElementById('sleep-modal-title');
+            const btn = document.getElementById('sleep-confirm');
+            if (!inp || !title || !btn) return;
+            if (sleepModalMode === 'edit') {
+                title.textContent = 'Когда заснула?';
+                btn.textContent = 'Сохранить';
+                const started = activeSleepStart ? new Date(activeSleepStart) : new Date();
+                inp.value = toLocalInputValue(started);
+            } else {
+                title.textContent = 'Когда заснула?';
+                btn.textContent = 'Уложить спать';
+                inp.value = toLocalInputValue(new Date());
+            }
+            document.getElementById('sleep-modal').style.display = 'flex';
+        }
+
+        function closeSleepModal(e) {
+            if (!e || e.target.id === 'sleep-modal') {
+                document.getElementById('sleep-modal').style.display = 'none';
+            }
+        }
+
+        function sleepShift(minutes) {
+            const inp = document.getElementById('sleep-time');
+            const base = inp.value ? new Date(inp.value) : new Date();
+            if (isNaN(base.getTime())) return;
+            base.setMinutes(base.getMinutes() + minutes);
+            inp.value = toLocalInputValue(base);
+        }
+
+        function sleepNow() {
+            const inp = document.getElementById('sleep-time');
+            inp.value = toLocalInputValue(new Date());
+            confirmSleepTime();
+        }
+
+        async function confirmSleepTime() {
+            const inp = document.getElementById('sleep-time');
+            const val = inp.value;
+            if (!val) { toast('Укажи время', true); return; }
+            const dt = new Date(val);
+            if (isNaN(dt.getTime())) { toast('Неверное время', true); return; }
+            if (dt.getTime() > Date.now() + 60000) { toast('Время ещё не наступило', true); return; }
+            closeSleepModal();
+
+            if (sleepModalMode === 'edit' && activeSleepId) {
+                const res = await fetch(`${API_URL}/events/${activeSleepId}/start`, {
+                    method: 'PATCH', headers: apiHeaders(true),
+                    body: JSON.stringify({ start_time: dt.toISOString() })
+                });
+                if (res.ok) toast('Начало сна обновлено');
+                else toast('Не удалось изменить время', true);
+                loadEvents();
+                return;
+            }
+
+            if (activeAwakeId) {
+                await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST', headers: apiHeaders() });
+            }
+            const res = await fetch(`${API_URL}/events/start`, {
+                method: 'POST', headers: apiHeaders(true),
+                body: JSON.stringify({ event_type: 'sleep', start_time: dt.toISOString() })
+            });
+            if (!res.ok) toast('Не удалось начать сон', true);
             loadEvents();
         }
 
@@ -417,14 +495,18 @@
                 // Настройка таймеров
                 if (activeSleep) {
                     activeSleepId = activeSleep.id;
-                    document.getElementById('row-sleep').classList.add('timer-active');
+                    activeSleepStart = activeSleep.start_time;
+                    document.getElementById('row-sleep').classList.add('timer-active', 'timer-editable');
+                    document.getElementById('row-sleep').onclick = () => openSleepModal('edit');
                     startTimer('timer-sleep', new Date(activeSleep.start_time), 'sleep');
                     document.getElementById('awake-btn').style.background = 'var(--sleep)';
                     document.getElementById('state-text').innerText = 'Разбудить (Спит)';
                     document.getElementById('state-icon').innerText = '🌙';
                 } else {
                     activeSleepId = null;
-                    document.getElementById('row-sleep').classList.remove('timer-active');
+                    activeSleepStart = null;
+                    document.getElementById('row-sleep').classList.remove('timer-active', 'timer-editable');
+                    document.getElementById('row-sleep').onclick = null;
                     if (timerIntervals.sleep) clearInterval(timerIntervals.sleep);
                     document.getElementById('timer-sleep').textContent = '00:00:00';
                     document.getElementById('awake-btn').style.background = 'var(--awake)';

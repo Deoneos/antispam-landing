@@ -271,3 +271,13 @@ a.row .chev { margin-left: auto; color: var(--muted); }
 .premium-lock h2 { font-size: 20px; font-weight: 800; margin: 10px 0 6px; }
 .premium-lock p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
 .premium-lock .pbtn { display: inline-flex; width: auto; padding: 0 18px; }
+
+/* --- Время начала сна --- */
+.sleep-hint { color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.4; margin: 0 0 14px; }
+.sleep-quick { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.sleep-chip { flex: 1 1 auto; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; }
+.sleep-chip:active { transform: scale(0.97); }
+.sleep-time-input { width: 100%; padding: 14px; margin-bottom: 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif; }
+.sleep-now-btn { display: block; margin: 10px auto 0; }
+.timer-editable { cursor: pointer; }
+.timer-editable .timer-label::after { content: ' \270E'; opacity: .5; font-size: 14px; }
