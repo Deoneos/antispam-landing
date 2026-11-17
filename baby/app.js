@@ -21,6 +21,7 @@
         let activeSleepId = null;
         let activeSleepStart = null;
         let activeAwakeId = null;
+        let activeAwakeStart = null;
         const timerIntervals = {};
         let chartFeeds = null;
         let chartSleep = null;
@@ -364,94 +365,134 @@
 
         const expandedDays = new Set();
         let activeWalkId = null;
+        let activeWalkStart = null;
 
         async function toggleSleepAwake() {
             if (activeSleepId) {
-                // Если спит — будим (гуляние не трогаем)
-                await fetch(`${API_URL}/events/${activeSleepId}/stop`, { method: 'POST', headers: apiHeaders() });
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'awake'}) });
-                loadEvents();
+                // Если спит — будим: спрашиваем, когда проснулась
+                openTimerModal('awake', 'wake');
             } else {
                 // Укладываем спать: сначала спрашиваем время начала
-                openSleepModal('start');
+                openTimerModal('sleep', 'start');
             }
         }
 
-        // --- ВРЕМЯ НАЧАЛА СНА ---
-        let sleepModalMode = 'start';
+        // --- ВРЕМЯ НАЧАЛА СОБЫТИЙ (сон / бодрствование / прогулка) ---
+        let timerModalType = 'sleep';
+        let timerModalMode = 'start';
+
+        const TIMER_TEXT = {
+            sleep: { title: 'Когда заснула?', hint: 'Если заснула раньше — поправь время, таймер пойдёт с него.', start: 'Уложить спать' },
+            awake: { title: 'Когда проснулась?', hint: 'Поставь время, когда малышка проснулась — с него пойдёт бодрствование.', start: 'Разбудить' },
+            walk:  { title: 'Когда пошла гулять?', hint: 'Если вышли раньше — поправь время, таймер пойдёт с него.', start: 'Погулять' }
+        };
 
         function toLocalInputValue(d) {
             const pad = (n) => String(n).padStart(2, '0');
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
         }
 
-        function openSleepModal(mode) {
-            sleepModalMode = mode || 'start';
-            const inp = document.getElementById('sleep-time');
-            const title = document.getElementById('sleep-modal-title');
-            const btn = document.getElementById('sleep-confirm');
+        function activeStartOf(type) {
+            if (type === 'sleep') return activeSleepStart;
+            if (type === 'awake') return activeAwakeStart;
+            return activeWalkStart;
+        }
+
+        function openTimerModal(type, mode) {
+            timerModalType = type;
+            timerModalMode = mode || 'start';
+            const inp = document.getElementById('timer-time');
+            const title = document.getElementById('timer-modal-title');
+            const hint = document.getElementById('timer-modal-hint');
+            const btn = document.getElementById('timer-confirm');
             if (!inp || !title || !btn) return;
-            if (sleepModalMode === 'edit') {
-                title.textContent = 'Когда заснула?';
+
+            const txt = TIMER_TEXT[type] || TIMER_TEXT.sleep;
+            title.textContent = txt.title;
+            hint.textContent = (timerModalMode === 'edit')
+                ? 'Поправь время начала — таймер пересчитается.'
+                : txt.hint;
+
+            if (timerModalMode === 'edit') {
+                const started = activeStartOf(type);
+                inp.value = toLocalInputValue(started ? new Date(started) : new Date());
                 btn.textContent = 'Сохранить';
-                const started = activeSleepStart ? new Date(activeSleepStart) : new Date();
-                inp.value = toLocalInputValue(started);
             } else {
-                title.textContent = 'Когда заснула?';
-                btn.textContent = 'Уложить спать';
                 inp.value = toLocalInputValue(new Date());
+                btn.textContent = txt.start;
             }
-            document.getElementById('sleep-modal').style.display = 'flex';
+            document.getElementById('timer-modal').style.display = 'flex';
         }
 
-        function closeSleepModal(e) {
-            if (!e || e.target.id === 'sleep-modal') {
-                document.getElementById('sleep-modal').style.display = 'none';
+        function closeTimerModal(e) {
+            if (!e || e.target.id === 'timer-modal') {
+                document.getElementById('timer-modal').style.display = 'none';
             }
         }
 
-        function sleepShift(minutes) {
-            const inp = document.getElementById('sleep-time');
+        function timerShift(minutes) {
+            const inp = document.getElementById('timer-time');
             const base = inp.value ? new Date(inp.value) : new Date();
             if (isNaN(base.getTime())) return;
             base.setMinutes(base.getMinutes() + minutes);
             inp.value = toLocalInputValue(base);
         }
 
-        function sleepNow() {
-            const inp = document.getElementById('sleep-time');
+        function timerNow() {
+            const inp = document.getElementById('timer-time');
             inp.value = toLocalInputValue(new Date());
-            confirmSleepTime();
+            confirmTimerTime();
         }
 
-        async function confirmSleepTime() {
-            const inp = document.getElementById('sleep-time');
+        async function confirmTimerTime() {
+            const inp = document.getElementById('timer-time');
             const val = inp.value;
             if (!val) { toast('Укажи время', true); return; }
-            const dt = new Date(val);
-            if (isNaN(dt.getTime())) { toast('Неверное время', true); return; }
-            if (dt.getTime() > Date.now() + 60000) { toast('Время ещё не наступило', true); return; }
-            closeSleepModal();
+            const when = new Date(val);
+            if (isNaN(when.getTime())) { toast('Неверное время', true); return; }
+            if (when.getTime() > Date.now() + 60000) { toast('Время ещё не наступило', true); return; }
+            closeTimerModal();
 
-            if (sleepModalMode === 'edit' && activeSleepId) {
-                const res = await fetch(`${API_URL}/events/${activeSleepId}/start`, {
+            const iso = when.toISOString();
+            const type = timerModalType;
+
+            // Правка начала уже идущего события
+            if (timerModalMode === 'edit') {
+                const id = type === 'sleep' ? activeSleepId : (type === 'awake' ? activeAwakeId : activeWalkId);
+                if (!id) { toast('Нет активного таймера', true); return; }
+                const res = await fetch(`${API_URL}/events/${id}/start`, {
                     method: 'PATCH', headers: apiHeaders(true),
-                    body: JSON.stringify({ start_time: dt.toISOString() })
+                    body: JSON.stringify({ start_time: iso })
                 });
-                if (res.ok) toast('Начало сна обновлено');
+                if (res.ok) toast('Время начала обновлено');
                 else toast('Не удалось изменить время', true);
                 loadEvents();
                 return;
             }
 
-            if (activeAwakeId) {
-                await fetch(`${API_URL}/events/${activeAwakeId}/stop`, { method: 'POST', headers: apiHeaders() });
+            // Проснулась: закрываем сон временем пробуждения и стартуем бодрствование
+            if (type === 'awake') {
+                if (activeSleepId) {
+                    await fetch(`${API_URL}/events/${activeSleepId}/stop`, {
+                        method: 'POST', headers: apiHeaders(true),
+                        body: JSON.stringify({ end_time: iso })
+                    });
+                }
+                const res = await fetch(`${API_URL}/events/start`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ event_type: 'awake', start_time: iso })
+                });
+                if (!res.ok) toast('Не удалось разбудить', true);
+                loadEvents();
+                return;
             }
+
+            // Старт сна или прогулки
             const res = await fetch(`${API_URL}/events/start`, {
                 method: 'POST', headers: apiHeaders(true),
-                body: JSON.stringify({ event_type: 'sleep', start_time: dt.toISOString() })
+                body: JSON.stringify({ event_type: type, start_time: iso })
             });
-            if (!res.ok) toast('Не удалось начать сон', true);
+            if (!res.ok) toast('Не удалось начать', true);
             loadEvents();
         }
 
@@ -459,11 +500,11 @@
             if (activeWalkId) {
                 // Если гуляет — просто заканчиваем прогулку (остальное не трогаем)
                 await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST', headers: apiHeaders() });
+                loadEvents();
             } else {
-                // Начинаем прогулку (сон или бодрствование не трогаем)
-                await fetch(`${API_URL}/events/start`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({event_type: 'walk'}) });
+                // Начинаем прогулку: спрашиваем, когда вышли
+                openTimerModal('walk', 'start');
             }
-            loadEvents();
         }
 
         async function loadEvents() {
@@ -497,7 +538,7 @@
                     activeSleepId = activeSleep.id;
                     activeSleepStart = activeSleep.start_time;
                     document.getElementById('row-sleep').classList.add('timer-active', 'timer-editable');
-                    document.getElementById('row-sleep').onclick = () => openSleepModal('edit');
+                    document.getElementById('row-sleep').onclick = () => openTimerModal('sleep', 'edit');
                     startTimer('timer-sleep', new Date(activeSleep.start_time), 'sleep');
                     document.getElementById('awake-btn').style.background = 'var(--sleep)';
                     document.getElementById('state-text').innerText = 'Разбудить (Спит)';
@@ -516,26 +557,35 @@
 
                 if (activeAwake) {
                     activeAwakeId = activeAwake.id;
-                    document.getElementById('row-awake').classList.add('timer-active');
+                    activeAwakeStart = activeAwake.start_time;
+                    document.getElementById('row-awake').classList.add('timer-active', 'timer-editable');
+                    document.getElementById('row-awake').onclick = () => openTimerModal('awake', 'edit');
                     startTimer('timer-awake', new Date(activeAwake.start_time), 'awake');
                 } else {
                     activeAwakeId = null;
-                    document.getElementById('row-awake').classList.remove('timer-active');
+                    activeAwakeStart = null;
+                    document.getElementById('row-awake').classList.remove('timer-active', 'timer-editable');
+                    document.getElementById('row-awake').onclick = null;
                     if (timerIntervals.awake) clearInterval(timerIntervals.awake);
                     document.getElementById('timer-awake').textContent = '00:00:00';
                 }
 
                 const walkBtn = document.getElementById('walk-btn');
                 if (activeWalkId) {
-                    document.getElementById('row-walk').classList.add('timer-active');
-                    startTimer('timer-walk', new Date(events.find(e=>e.id===activeWalkId).start_time), 'walk');
+                    const walkStart = events.find(e => e.id === activeWalkId)?.start_time || null;
+                    activeWalkStart = walkStart;
+                    document.getElementById('row-walk').classList.add('timer-active', 'timer-editable');
+                    document.getElementById('row-walk').onclick = () => openTimerModal('walk', 'edit');
+                    startTimer('timer-walk', new Date(walkStart), 'walk');
                     if (walkBtn) {
                         walkBtn.style.background = 'var(--noise)';
                         walkBtn.style.color = '#111827';
                         document.getElementById('walk-text').innerText = 'Закончить прогулку';
                     }
                 } else {
-                    document.getElementById('row-walk').classList.remove('timer-active');
+                    activeWalkStart = null;
+                    document.getElementById('row-walk').classList.remove('timer-active', 'timer-editable');
+                    document.getElementById('row-walk').onclick = null;
                     if (timerIntervals.walk) clearInterval(timerIntervals.walk);
                     document.getElementById('timer-walk').textContent = '00:00:00';
                     if (walkBtn) {

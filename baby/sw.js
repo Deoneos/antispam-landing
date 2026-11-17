@@ -1,4 +1,4 @@
-const VERSION = 'v9';
+const VERSION = 'v10';
 const CACHE = 'baby-' + VERSION;
 
 // Предзагружаем только оболочку приложения. Аудио (16 МБ!) грузится по требованию.

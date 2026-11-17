@@ -248,23 +248,23 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА ВРЕМЕНИ СНА -->
-    <div class="modal-overlay" id="sleep-modal" onclick="closeSleepModal(event)">
+    <!-- МОДАЛКА ВРЕМЕНИ СОБЫТИЯ -->
+    <div class="modal-overlay" id="timer-modal" onclick="closeTimerModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h2 id="sleep-modal-title">Когда заснула?</h2>
-                <button class="btn-close" onclick="closeSleepModal()">✕</button>
+                <h2 id="timer-modal-title">Когда заснула?</h2>
+                <button class="btn-close" onclick="closeTimerModal()">✕</button>
             </div>
-            <p class="sleep-hint">Если заснула раньше — поправь время, таймер пойдёт с него.</p>
+            <p class="sleep-hint" id="timer-modal-hint">Если заснула раньше — поправь время, таймер пойдёт с него.</p>
             <div class="sleep-quick">
-                <button class="sleep-chip" onclick="sleepShift(-15)">−15 мин</button>
-                <button class="sleep-chip" onclick="sleepShift(-30)">−30 мин</button>
-                <button class="sleep-chip" onclick="sleepShift(-60)">−1 час</button>
-                <button class="sleep-chip" onclick="sleepShift(-120)">−2 часа</button>
+                <button class="sleep-chip" onclick="timerShift(-15)">−15 мин</button>
+                <button class="sleep-chip" onclick="timerShift(-30)">−30 мин</button>
+                <button class="sleep-chip" onclick="timerShift(-60)">−1 час</button>
+                <button class="sleep-chip" onclick="timerShift(-120)">−2 часа</button>
             </div>
-            <input type="datetime-local" id="sleep-time" class="sleep-time-input">
-            <button class="btn-save-ml" id="sleep-confirm" onclick="confirmSleepTime()">Уложить спать</button>
-            <button class="link-btn sleep-now-btn" onclick="sleepNow()">Прямо сейчас</button>
+            <input type="datetime-local" id="timer-time" class="sleep-time-input">
+            <button class="btn-save-ml" id="timer-confirm" onclick="confirmTimerTime()">Уложить спать</button>
+            <button class="link-btn sleep-now-btn" onclick="timerNow()">Прямо сейчас</button>
         </div>
     </div>
 
@@ -303,7 +303,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=30" defer></script>
+    <script src="app.js?v=31" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
