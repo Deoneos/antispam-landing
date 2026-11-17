@@ -699,7 +699,13 @@
                         timeStr = "";
                     }
                     else if (e.event_type === 'feed') { icon = "🍼"; name = g("Покушала", "Покушал"); sub = e.details || "Бутылочка"; }
-                    else if (e.event_type === 'diaper') { const det = e.details || ''; icon = det.includes('Пописиюлькала') ? "💦" : "💩"; name = det || "Подгузник"; sub = ""; }
+                    else if (e.event_type === 'diaper') {
+                        const det = e.details || '';
+                        // «Пописала» / «Пописал» — капля, всё остальное — какашка
+                        icon = /^попис/i.test(det) ? "💦" : "💩";
+                        name = det || "Подгузник";
+                        sub = "";
+                    }
                     else if (e.event_type === 'walk' && e.end_time) {
                         icon = "🚶‍♀️"; name = g("Гуляла", "Гулял");
                         const endTime = new Date(e.end_time);
@@ -780,25 +786,20 @@
                     hideApiBanner();
                 }
                 
-                const todayStr = new Date().toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
-                let todayFeeds = 0;
-                let todayVolume = 0;
-                let todaySleepMs = 0;
-
-                // Считаем карточки за сегодня
-                events.forEach(e => {
-                    const d = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
-                    if (d === todayStr) {
-                        if (e.event_type === 'feed') { todayFeeds++; const ml = parseInt(e.details); if (!isNaN(ml)) todayVolume += ml; }
-                        if (e.event_type === 'sleep' && e.end_time) { todaySleepMs += (new Date(e.end_time) - new Date(e.start_time)); }
-                    }
-                });
-
-                document.getElementById('stat-feeds').textContent = todayFeeds;
-                document.getElementById('stat-sleep').textContent = formatDuration(todaySleepMs);
-                document.getElementById('stat-volume').textContent = todayVolume;
+                // Московское время фиксированное (UTC+3), поэтому считаем дни вручную:
+                // событие, перешедшее через полночь, режем на части по суткам.
+                const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
+                const dayKeyOf = (ms) => {
+                    const d = new Date(ms + MSK_OFFSET_MS);
+                    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+                };
+                const dayStartOf = (key) => {
+                    const [y, m, d] = key.split('-').map(Number);
+                    return Date.UTC(y, m - 1, d) - MSK_OFFSET_MS;
+                };
 
                 const days = [];
+                const dayKeys = [];
                 const feedsByDay = {};
                 const diapersByDay = {};
                 const sleepByDay = {};
@@ -807,36 +808,61 @@
                 const volumeByDay = {};
 
                 for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    const dateStr = d.toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' });
-                    days.push(dateStr);
-                    feedsByDay[dateStr] = 0;
-                    diapersByDay[dateStr] = 0;
-                    sleepByDay[dateStr] = 0;
-                    awakeByDay[dateStr] = 0;
-                    walkByDay[dateStr] = 0;
-                    volumeByDay[dateStr] = 0;
+                    const ts = Date.now() - i * 86400000;
+                    const key = dayKeyOf(ts);
+                    dayKeys.push(key);
+                    days.push(new Date(ts).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' }));
+                    feedsByDay[key] = 0;
+                    diapersByDay[key] = 0;
+                    sleepByDay[key] = 0;
+                    awakeByDay[key] = 0;
+                    walkByDay[key] = 0;
+                    volumeByDay[key] = 0;
                 }
+
+                // Раскладываем интервал по суткам, обрезая по полуночи.
+                // Незакрытый таймер считаем до «сейчас».
+                const addInterval = (startIso, endIso, bucket) => {
+                    const start = new Date(startIso).getTime();
+                    const end = endIso ? new Date(endIso).getTime() : Date.now();
+                    if (!isFinite(start) || !isFinite(end) || end <= start) return;
+                    let cursor = start;
+                    let guard = 0;
+                    while (cursor < end && guard++ < 400) {
+                        const key = dayKeyOf(cursor);
+                        const segEnd = Math.min(end, dayStartOf(key) + 86400000);
+                        if (bucket[key] !== undefined) bucket[key] += (segEnd - cursor) / 3600000;
+                        cursor = segEnd;
+                    }
+                };
 
                 // Считаем графики по дням
                 events.forEach(e => {
-                    const dateStr = new Date(e.start_time).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' });
-                    if (feedsByDay[dateStr] !== undefined) {
-                        if (e.event_type === 'feed') { 
-                            feedsByDay[dateStr]++; 
-                            const ml = parseInt(e.details); if (!isNaN(ml)) volumeByDay[dateStr] += ml; 
+                    if (!e || !e.start_time) return;
+                    if (e.event_type === 'feed') {
+                        const key = dayKeyOf(new Date(e.start_time).getTime());
+                        if (feedsByDay[key] !== undefined) {
+                            feedsByDay[key]++;
+                            const ml = parseInt(e.details);
+                            if (!isNaN(ml)) volumeByDay[key] += ml;
                         }
-                        if (e.event_type === 'diaper') diapersByDay[dateStr]++;
-                        
-                        if (e.end_time) {
-                            const hours = (new Date(e.end_time) - new Date(e.start_time)) / (1000 * 60 * 60);
-                            if (e.event_type === 'sleep') sleepByDay[dateStr] += hours;
-                            if (e.event_type === 'awake') awakeByDay[dateStr] += hours;
-                            if (e.event_type === 'walk') walkByDay[dateStr] += hours;
-                        }
+                    } else if (e.event_type === 'diaper') {
+                        const key = dayKeyOf(new Date(e.start_time).getTime());
+                        if (diapersByDay[key] !== undefined) diapersByDay[key]++;
+                    } else if (e.event_type === 'sleep') {
+                        addInterval(e.start_time, e.end_time, sleepByDay);
+                    } else if (e.event_type === 'awake') {
+                        addInterval(e.start_time, e.end_time, awakeByDay);
+                    } else if (e.event_type === 'walk') {
+                        addInterval(e.start_time, e.end_time, walkByDay);
                     }
                 });
+
+                // Карточки за сегодня берём из тех же корзин — цифры совпадают с графиком
+                const todayKey = dayKeyOf(Date.now());
+                document.getElementById('stat-feeds').textContent = feedsByDay[todayKey] || 0;
+                document.getElementById('stat-sleep').textContent = formatDuration((sleepByDay[todayKey] || 0) * 3600000);
+                document.getElementById('stat-volume').textContent = volumeByDay[todayKey] || 0;
 
                 await loadChartLib();
                 renderCharts(days, feedsByDay, diapersByDay, sleepByDay, awakeByDay, walkByDay, volumeByDay);
