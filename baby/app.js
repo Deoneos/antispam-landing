@@ -22,6 +22,8 @@
         let activeSleepStart = null;
         let activeAwakeId = null;
         let activeAwakeStart = null;
+        let activeFeedStart = null;
+        let editingFeedId = null;
         const timerIntervals = {};
         let chartFeeds = null;
         let chartSleep = null;
@@ -282,13 +284,32 @@
         }
 
         // --- КОРМЛЕНИЕ ---
-        function openFeedModal() { document.getElementById('feed-modal').style.display = 'flex'; }
+        function openFeedModal() {
+            const inp = document.getElementById('feed-time');
+            if (inp) inp.value = toLocalInputValue(new Date());
+            document.getElementById('feed-modal').style.display = 'flex';
+        }
         function closeFeedModal(e) { if (!e || e.target.id === 'feed-modal') document.getElementById('feed-modal').style.display = 'none'; }
+        function feedShift(minutes) {
+            const inp = document.getElementById('feed-time');
+            if (!inp) return;
+            const base = inp.value ? new Date(inp.value) : new Date();
+            if (isNaN(base.getTime())) return;
+            base.setMinutes(base.getMinutes() + minutes);
+            inp.value = toLocalInputValue(base);
+        }
         async function saveFeedVolume() {
             const ml = document.getElementById('ml-slider').value;
+            const inp = document.getElementById('feed-time');
+            let when = new Date();
+            if (inp && inp.value) {
+                const parsed = new Date(inp.value);
+                if (!isNaN(parsed.getTime())) when = parsed;
+            }
+            if (when.getTime() > Date.now() + 60000) { toast('Время ещё не наступило', true); return; }
             closeFeedModal();
             if (navigator.vibrate) navigator.vibrate(50);
-            const body = JSON.stringify({ event_type: 'feed', details: ml + ' мл', client_uuid: newId() });
+            const body = JSON.stringify({ event_type: 'feed', details: ml + ' мл', start_time: when.toISOString(), client_uuid: newId() });
             try {
                 const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
                 if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
@@ -299,6 +320,12 @@
             } finally {
                 loadEvents();
             }
+        }
+
+        function editFeedTime(id, startIso) {
+            editingFeedId = id;
+            activeFeedStart = startIso;
+            openTimerModal('feed', 'edit');
         }
 
         // --- АУДИО ---
@@ -384,7 +411,8 @@
         const TIMER_TEXT = {
             sleep: { title: 'Когда заснула?', hint: 'Если заснула раньше — поправь время, таймер пойдёт с него.', start: 'Уложить спать' },
             awake: { title: 'Когда проснулась?', hint: 'Поставь время, когда малышка проснулась — с него пойдёт бодрствование.', start: 'Разбудить' },
-            walk:  { title: 'Когда пошла гулять?', hint: 'Если вышли раньше — поправь время, таймер пойдёт с него.', start: 'Погулять' }
+            walk:  { title: 'Когда пошла гулять?', hint: 'Если вышли раньше — поправь время, таймер пойдёт с него.', start: 'Погулять' },
+            feed:  { title: 'Когда покормили?', hint: 'Поправь время кормления — запись пересчитается.', start: 'Записать' }
         };
 
         function toLocalInputValue(d) {
@@ -395,6 +423,7 @@
         function activeStartOf(type) {
             if (type === 'sleep') return activeSleepStart;
             if (type === 'awake') return activeAwakeStart;
+            if (type === 'feed') return activeFeedStart;
             return activeWalkStart;
         }
 
@@ -458,6 +487,17 @@
 
             // Правка начала уже идущего события
             if (timerModalMode === 'edit') {
+                if (type === 'feed') {
+                    if (!editingFeedId) { toast('Нет записи', true); return; }
+                    const res = await fetch(`${API_URL}/events/${editingFeedId}`, {
+                        method: 'PATCH', headers: apiHeaders(true),
+                        body: JSON.stringify({ start_time: iso, end_time: iso })
+                    });
+                    if (res.ok) toast('Время кормления обновлено');
+                    else toast('Не удалось изменить время', true);
+                    loadEvents();
+                    return;
+                }
                 const id = type === 'sleep' ? activeSleepId : (type === 'awake' ? activeAwakeId : activeWalkId);
                 if (!id) { toast('Нет активного таймера', true); return; }
                 const res = await fetch(`${API_URL}/events/${id}/start`, {
@@ -678,6 +718,7 @@
                             </div>
                             <div class="log-right">
                                 ${rightSide}
+                                ${e.event_type === 'feed' ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}')">✎</button>` : ''}
                                 <button class="btn-delete" onclick="deleteEvent(${e.id})">✕</button>
                             </div>
                         </div>

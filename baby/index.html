@@ -244,6 +244,14 @@
             </div>
             <div class="slider-value"><span id="ml-value">120</span> <span>мл</span></div>
             <input type="range" id="ml-slider" min="10" max="240" step="10" value="120" oninput="document.getElementById('ml-value').innerText = this.value">
+            <p class="sleep-hint" style="margin-top:16px">Когда покормили?</p>
+            <div class="sleep-quick">
+                <button class="sleep-chip" onclick="feedShift(-15)">−15 мин</button>
+                <button class="sleep-chip" onclick="feedShift(-30)">−30 мин</button>
+                <button class="sleep-chip" onclick="feedShift(-60)">−1 час</button>
+                <button class="sleep-chip" onclick="feedShift(-120)">−2 часа</button>
+            </div>
+            <input type="datetime-local" id="feed-time" class="sleep-time-input">
             <button class="btn-save-ml" onclick="saveFeedVolume()">Записать кормление</button>
         </div>
     </div>
@@ -303,7 +311,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=31" defer></script>
+    <script src="app.js?v=32" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
