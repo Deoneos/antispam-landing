@@ -427,14 +427,42 @@
             return activeWalkStart;
         }
 
+        async function quickStart(type) {
+            // Резервный путь: если модалка почему-то недоступна (старая оболочка,
+            // кэш PWA на iOS) — стартуем таймер сразу, чтобы кнопка не «молчала».
+            const iso = new Date().toISOString();
+            if (type === 'awake') {
+                if (activeSleepId) {
+                    await fetch(`${API_URL}/events/${activeSleepId}/stop`, {
+                        method: 'POST', headers: apiHeaders(true),
+                        body: JSON.stringify({ end_time: iso })
+                    });
+                }
+                await fetch(`${API_URL}/events/start`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ event_type: 'awake', start_time: iso })
+                });
+            } else {
+                await fetch(`${API_URL}/events/start`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ event_type: type, start_time: iso })
+                });
+            }
+            loadEvents();
+        }
+
         function openTimerModal(type, mode) {
             timerModalType = type;
             timerModalMode = mode || 'start';
+            const modal = document.getElementById('timer-modal');
             const inp = document.getElementById('timer-time');
             const title = document.getElementById('timer-modal-title');
             const hint = document.getElementById('timer-modal-hint');
             const btn = document.getElementById('timer-confirm');
-            if (!inp || !title || !btn) return;
+            if (!modal || !inp || !title || !btn) {
+                quickStart(type);
+                return;
+            }
 
             const txt = TIMER_TEXT[type] || TIMER_TEXT.sleep;
             title.textContent = txt.title;
@@ -475,11 +503,11 @@
 
         async function confirmTimerTime() {
             const inp = document.getElementById('timer-time');
-            const val = inp.value;
-            if (!val) { toast('Укажи время', true); return; }
-            const when = new Date(val);
-            if (isNaN(when.getTime())) { toast('Неверное время', true); return; }
-            if (when.getTime() > Date.now() + 60000) { toast('Время ещё не наступило', true); return; }
+            const val = inp ? inp.value : '';
+            // На iOS поле даты иногда остаётся пустым — не ругаемся, а берём «сейчас»
+            let when = val ? new Date(val) : new Date();
+            if (isNaN(when.getTime())) when = new Date();
+            if (when.getTime() > Date.now() + 60000) when = new Date();
             closeTimerModal();
 
             const iso = when.toISOString();
