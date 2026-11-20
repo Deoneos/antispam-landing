@@ -420,6 +420,61 @@
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
         }
 
+        let editingEventId = null;
+
+        function ensureEventEditModal() {
+            if (document.getElementById('event-edit-modal')) return;
+            const div = document.createElement('div');
+            div.className = 'modal-overlay';
+            div.id = 'event-edit-modal';
+            div.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header"><h2>Изменить запись</h2>
+                        <button class="btn-close" onclick="closeEventEdit()">✕</button></div>
+                    <p class="sleep-hint">Поправь начало и конец записи.</p>
+                    <label class="sleep-hint">Начало</label>
+                    <input type="datetime-local" id="event-edit-start" class="sleep-time-input">
+                    <label class="sleep-hint">Конец</label>
+                    <input type="datetime-local" id="event-edit-end" class="sleep-time-input">
+                    <button class="btn-save-ml" id="event-edit-save">Сохранить</button>
+                </div>`;
+            div.addEventListener('click', (ev) => { if (ev.target === div) closeEventEdit(); });
+            document.body.appendChild(div);
+            document.getElementById('event-edit-save').onclick = saveEventEdit;
+        }
+
+        function editEventTime(id, startIso, endIso) {
+            ensureEventEditModal();
+            editingEventId = id;
+            document.getElementById('event-edit-start').value = toLocalInputValue(new Date(startIso));
+            document.getElementById('event-edit-end').value = endIso ? toLocalInputValue(new Date(endIso)) : '';
+            document.getElementById('event-edit-modal').style.display = 'flex';
+        }
+
+        function closeEventEdit() {
+            const m = document.getElementById('event-edit-modal');
+            if (m) m.style.display = 'none';
+        }
+
+        async function saveEventEdit() {
+            const sEl = document.getElementById('event-edit-start');
+            const eEl = document.getElementById('event-edit-end');
+            if (!sEl || !sEl.value) { toast('Укажи начало', true); return; }
+            if (!editingEventId) return;
+            let start = new Date(sEl.value);
+            if (isNaN(start.getTime())) start = new Date();
+            const body = { start_time: start.toISOString() };
+            if (eEl && eEl.value) {
+                const end = new Date(eEl.value);
+                if (!isNaN(end.getTime()) && end >= start) body.end_time = end.toISOString();
+            }
+            const res = await fetch(`${API_URL}/events/${editingEventId}`, {
+                method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify(body)
+            });
+            if (res.ok) { toast('Сохранено'); closeEventEdit(); loadEvents(); }
+            else { toast('Не удалось сохранить', true); }
+        }
+
         function activeStartOf(type) {
             if (type === 'sleep') return activeSleepStart;
             if (type === 'awake') return activeAwakeStart;
@@ -752,7 +807,7 @@
                             </div>
                             <div class="log-right">
                                 ${rightSide}
-                                ${e.event_type === 'feed' ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}')">✎</button>` : ''}
+                                ${e.event_type === 'feed' ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}')">✎</button>` : (e.end_time ? `<button class="btn-delete" title="Изменить время" onclick="editEventTime(${e.id}, '${e.start_time}', '${e.end_time}')">✎</button>` : '')}
                                 <button class="btn-delete" onclick="deleteEvent(${e.id})">✕</button>
                             </div>
                         </div>
