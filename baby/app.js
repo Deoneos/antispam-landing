@@ -1864,7 +1864,56 @@
             } catch (e) {}
         }
 
-        // ===== РЕБЁНОК =====
+        
+// ===== ОБРАТНАЯ СВЯЗЬ =====
+function openFeedback() {
+    const modal = document.getElementById('feedback-modal');
+    if (!modal) return;
+    modal.classList.add('show');
+    const st = document.getElementById('feedback-status');
+    if (st) st.textContent = '';
+}
+
+function closeFeedback(event) {
+    if (event && event.target && !event.target.classList.contains('modal-overlay')) return;
+    const modal = document.getElementById('feedback-modal');
+    if (modal) modal.classList.remove('show');
+}
+
+async function sendFeedback() {
+    const st = document.getElementById('feedback-status');
+    const text = (document.getElementById('feedback-text').value || '').trim();
+    const contact = (document.getElementById('feedback-contact').value || '').trim();
+    if (text.length < 3) {
+        if (st) st.textContent = 'Напишите хотя бы пару слов';
+        return;
+    }
+    const token = ladToken();
+    if (!token) {
+        if (st) st.textContent = 'Нужно войти через Telegram';
+        return;
+    }
+    if (st) st.textContent = 'Отправляю…';
+    try {
+        const res = await fetch(`${API_URL}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ text: text, contact: contact })
+        });
+        const d = await res.json().catch(function () { return {}; });
+        if (!res.ok) {
+            throw new Error(d.detail || 'Не удалось отправить');
+        }
+        document.getElementById('feedback-text').value = '';
+        document.getElementById('feedback-contact').value = '';
+        if (st) st.textContent = 'Спасибо! Сообщение отправлено ✅';
+        setTimeout(closeFeedback, 1400);
+    } catch (e) {
+        if (st) st.textContent = e.message || 'Ошибка отправки';
+    }
+}
+
+// ===== РЕБЁНОК =====
         function toggleChildEdit() {
             const box = document.getElementById('child-edit');
             if (!box) return;

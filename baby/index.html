@@ -243,6 +243,7 @@
                 <div class="profile-members" id="profile-members"></div>
                 <div class="invite-box" id="invite-box" style="display:none"></div>
                 <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
+                <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
                 <div class="plan-card" id="plan-card">
                     <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
                     <div class="plan-until" id="plan-until"></div>
@@ -273,6 +274,21 @@
         <button class="nav-item" onclick="switchView('analytics', this)">
             <span class="icon">📈</span> Аналитика
         </button>
+    </div>
+
+    <!-- ОБРАТНАЯ СВЯЗЬ -->
+    <div class="modal-overlay" id="feedback-modal" onclick="closeFeedback(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Обратная связь</h2>
+                <button class="btn-close" onclick="closeFeedback()">✕</button>
+            </div>
+            <p class="profile-hint">Что не работает, чего не хватает или что улучшить? Напиши — ответим в Telegram.</p>
+            <textarea id="feedback-text" class="login-input" rows="5" maxlength="2000" placeholder="Например: не сохраняется сон, если закрыть приложение…"></textarea>
+            <input id="feedback-contact" class="login-input" maxlength="100" placeholder="Контакт для ответа (необязательно)">
+            <button class="pbtn primary" onclick="sendFeedback()">Отправить</button>
+            <p class="login-status" id="feedback-status"></p>
+        </div>
     </div>
 
     <!-- МОДАЛКА КОРМЛЕНИЯ -->
@@ -351,7 +367,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=38" defer></script>
+    <script src="app.js?v=39" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
