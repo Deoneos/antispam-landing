@@ -254,36 +254,35 @@
         window.addEventListener('online', () => { renderStatus(); flushQueue(); });
         window.addEventListener('offline', renderStatus);
 
-        function exportData() {
-            const payload = {
-                app: 'baby-tracker',
-                exported_at: new Date().toISOString(),
-                events: cachedEvents(),
-                appointments: window.__lastAppointments || [],
-                pending: readJSON(QUEUE_KEY, [])
-            };
+        async function exportData() {
+            let payload = null;
+            try {
+                const res = await fetch(`${API_URL}/export`, { headers: apiHeaders() });
+                if (res.ok) {
+                    payload = await res.json();
+                    payload.app = 'baby-tracker';
+                }
+            } catch (e) { /* офлайн — выгрузим кэш */ }
+            if (!payload) {
+                payload = {
+                    app: 'baby-tracker',
+                    exported_at: new Date().toISOString(),
+                    events: cachedEvents(),
+                    appointments: window.__lastAppointments || [],
+                    pending: readJSON(QUEUE_KEY, [])
+                };
+            }
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'baby-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+            a.download = 'lad-export-' + new Date().toISOString().slice(0, 10) + '.json';
             document.body.appendChild(a);
             a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 2000);
-            toast(`Экспортировано записей: ${payload.events.length}`);
+            setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);
+            toast('Файл выгружен');
         }
 
-        // --- SOS ---
-        async function sendSOS() {
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
-            try {
-                await fetch(`${API_URL}/sos`, { method: 'POST', headers: apiHeaders() });
-                toast("🆘 SOS отправлен!");
-            } catch(e) { toast("Ошибка отправки SOS", true); }
-        }
-
-        // --- КОРМЛЕНИЕ ---
         function openFeedModal() {
             const inp = document.getElementById('feed-time');
             if (inp) inp.value = toLocalInputValue(new Date());
