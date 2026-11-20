@@ -182,7 +182,8 @@
             </div>
 
             <div id="profile-me" style="display:none">
-                <div class="profile-ava" id="profile-ava">👤</div>
+                <div class="profile-ava" id="profile-ava" onclick="pickAvatar()" title="Сменить фото">👤</div>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="onAvatarPicked(this)">
                 <div class="profile-name" id="profile-name">—</div>
                 <div class="profile-sub" id="profile-sub">—</div>
                 <div class="profile-rows">
@@ -203,12 +204,12 @@
                 <div class="profile-settings" id="profile-settings">
                     <div class="settings-title">Оформление</div>
                     <div class="seg" id="theme-seg">
-                        <button type="button" data-theme-pref="auto">Авто</button>
-                        <button type="button" data-theme-pref="light">Светлая</button>
-                        <button type="button" data-theme-pref="dark">Тёмная</button>
+                        <button type="button" data-theme-pref="auto" onclick="setThemePref('auto')">Авто</button>
+                        <button type="button" data-theme-pref="light" onclick="setThemePref('light')">Светлая</button>
+                        <button type="button" data-theme-pref="dark" onclick="setThemePref('dark')">Тёмная</button>
                     </div>
                     <div class="settings-title">Часовой пояс</div>
-                    <select id="tz-select" class="login-input">
+                    <select id="tz-select" class="login-input" onchange="setTzPref(this.value)">
                         <option value="auto">Как на устройстве</option>
                         <option value="Europe/Moscow">Москва (UTC+3)</option>
                         <option value="Europe/Kaliningrad">Калининград (UTC+2)</option>
@@ -350,7 +351,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=37" defer></script>
+    <script src="app.js?v=38" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

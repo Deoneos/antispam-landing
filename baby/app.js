@@ -1585,6 +1585,16 @@
         }
 
 
+        function setTzPref(value) {
+            try { localStorage.setItem(TZ_KEY, value); } catch (e) {}
+            const st = document.getElementById('settings-status');
+            if (st) {
+                st.textContent = 'Часовой пояс: ' + (value === 'auto' ? 'как на устройстве' : value);
+                setTimeout(function () { st.textContent = ''; }, 2500);
+            }
+            if (typeof loadEvents === 'function') loadEvents();
+        }
+
         function initSettingsUi() {
             document.querySelectorAll('#theme-seg button').forEach(function (b) {
                 b.onclick = function () { setThemePref(b.getAttribute('data-theme-pref')); };
@@ -1651,6 +1661,50 @@
                 ava.appendChild(img);
             } else {
                 ava.textContent = (u.name || '👤').trim().charAt(0).toUpperCase();
+            }
+        }
+
+        function pickAvatar() {
+            const inp = document.getElementById('avatar-input');
+            if (inp) inp.click();
+        }
+
+        function onAvatarPicked(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function () {
+                const img = new Image();
+                img.onload = function () {
+                    const size = 256;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    const min = Math.min(img.width, img.height);
+                    const sx = (img.width - min) / 2;
+                    const sy = (img.height - min) / 2;
+                    ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+                    saveAvatar(canvas.toDataURL('image/jpeg', 0.85));
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        async function saveAvatar(dataUrl) {
+            try {
+                const res = await fetch(`${API_URL}/profile`, {
+                    method: 'PATCH',
+                    headers: apiHeaders(true),
+                    body: JSON.stringify({ photo: dataUrl })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                toast('Фото обновлено');
+                loadProfile();
+            } catch (e) {
+                toast('Не удалось сохранить фото', true);
             }
         }
 
