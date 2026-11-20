@@ -1869,15 +1869,15 @@
 function openFeedback() {
     const modal = document.getElementById('feedback-modal');
     if (!modal) return;
-    modal.classList.add('show');
+    modal.style.display = 'flex';
     const st = document.getElementById('feedback-status');
     if (st) st.textContent = '';
 }
 
 function closeFeedback(event) {
-    if (event && event.target && !event.target.classList.contains('modal-overlay')) return;
+    if (event && event.target && event.target.id !== 'feedback-modal') return;
     const modal = document.getElementById('feedback-modal');
-    if (modal) modal.classList.remove('show');
+    if (modal) modal.style.display = 'none';
 }
 
 async function sendFeedback() {
