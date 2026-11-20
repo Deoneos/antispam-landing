@@ -32,7 +32,7 @@
         applyTheme();
         setInterval(applyTheme, 60 * 60 * 1000);
 
-        const API_URL = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/baby';
+        const API_URL = 'https://baby.kustos.ru/api/baby';
 
         // Токен доступа: один раз приходит в ссылке ?token=..., дальше живёт в localStorage
         (function bootToken() {
