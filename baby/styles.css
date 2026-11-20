@@ -281,3 +281,13 @@ a.row .chev { margin-left: auto; color: var(--muted); }
 .sleep-now-btn { display: block; margin: 10px auto 0; }
 .timer-editable { cursor: pointer; }
 .timer-editable .timer-label::after { content: ' \270E'; opacity: .5; font-size: 14px; }
+
+        .profile-settings { margin: 14px 0 6px; }
+        .settings-title { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase;
+                          letter-spacing: .04em; margin: 14px 0 6px; }
+        .seg { display: flex; gap: 6px; background: var(--bg); padding: 4px; border-radius: 12px; }
+        .seg button { flex: 1; border: none; background: transparent; color: var(--muted); font: inherit;
+                      font-size: 13px; font-weight: 700; padding: 9px 6px; border-radius: 9px; cursor: pointer; }
+        .seg button.active { background: var(--card); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        .tips { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+        .tips li { margin: 5px 0; }

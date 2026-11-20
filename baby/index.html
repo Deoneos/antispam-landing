@@ -200,6 +200,45 @@
                     </div>
                     <div class="profile-row"><span>Записей</span><b id="profile-events">0</b></div>
                 </div>
+                <div class="profile-settings" id="profile-settings">
+                    <div class="settings-title">Оформление</div>
+                    <div class="seg" id="theme-seg">
+                        <button type="button" data-theme-pref="auto">Авто</button>
+                        <button type="button" data-theme-pref="light">Светлая</button>
+                        <button type="button" data-theme-pref="dark">Тёмная</button>
+                    </div>
+                    <div class="settings-title">Часовой пояс</div>
+                    <select id="tz-select" class="login-input">
+                        <option value="auto">Как на устройстве</option>
+                        <option value="Europe/Moscow">Москва (UTC+3)</option>
+                        <option value="Europe/Kaliningrad">Калининград (UTC+2)</option>
+                        <option value="Europe/Samara">Самара (UTC+4)</option>
+                        <option value="Asia/Yekaterinburg">Екатеринбург (UTC+5)</option>
+                        <option value="Asia/Novosibirsk">Новосибирск (UTC+7)</option>
+                        <option value="Asia/Krasnoyarsk">Красноярск (UTC+7)</option>
+                        <option value="Asia/Irkutsk">Иркутск (UTC+8)</option>
+                        <option value="Asia/Vladivostok">Владивосток (UTC+10)</option>
+                        <option value="Asia/Almaty">Алматы (UTC+5)</option>
+                        <option value="Asia/Tbilisi">Тбилиси (UTC+4)</option>
+                        <option value="Asia/Yerevan">Ереван (UTC+4)</option>
+                        <option value="Asia/Dubai">Дубай (UTC+4)</option>
+                        <option value="Europe/Istanbul">Стамбул (UTC+3)</option>
+                        <option value="Europe/Berlin">Берлин (UTC+1)</option>
+                        <option value="Europe/London">Лондон (UTC+0)</option>
+                        <option value="Asia/Bangkok">Бангкок (UTC+7)</option>
+                        <option value="Asia/Shanghai">Шанхай (UTC+8)</option>
+                        <option value="America/New_York">Нью-Йорк (UTC−5)</option>
+                        <option value="America/Los_Angeles">Лос-Анджелес (UTC−8)</option>
+                    </select>
+                    <p class="login-status" id="settings-status"></p>
+                    <div class="settings-title">Подсказки</div>
+                    <ul class="tips">
+                        <li>Нажми на строку таймера, чтобы начать или остановить.</li>
+                        <li>Время можно поправить задним числом — при старте или через ✎ в записи.</li>
+                        <li>Кормление, сон и прогулка сохраняются автоматически.</li>
+                        <li>Если ты не в Москве — выбери свой часовой пояс выше.</li>
+                    </ul>
+                </div>
                 <div class="profile-members" id="profile-members"></div>
                 <div class="invite-box" id="invite-box" style="display:none"></div>
                 <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
@@ -311,7 +350,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=36" defer></script>
+    <script src="app.js?v=37" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

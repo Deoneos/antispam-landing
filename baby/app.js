@@ -1,7 +1,36 @@
-        // УМНАЯ ТЕМА (темная по умолчанию)
-        const currentHour = new Date().getHours();
-        const theme = (currentHour >= 9 && currentHour < 19) ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
+        // ТЕМА: авто (по времени суток) или ручной выбор
+        const THEME_KEY = 'lad_theme';
+        const TZ_KEY = 'lad_tz';
+
+        function themePref() {
+            try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch (e) { return 'auto'; }
+        }
+        function applyTheme() {
+            const pref = themePref();
+            const hour = new Date().getHours();
+            const auto = (hour >= 9 && hour < 19) ? 'light' : 'dark';
+            const theme = pref === 'auto' ? auto : pref;
+            document.documentElement.setAttribute('data-theme', theme);
+            document.querySelectorAll('#theme-seg button').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-theme-pref') === pref);
+            });
+        }
+        function setThemePref(pref) {
+            try { localStorage.setItem(THEME_KEY, pref); } catch (e) {}
+            applyTheme();
+        document.addEventListener('DOMContentLoaded', initSettingsUi);
+        }
+        function tzPref() {
+            try { return localStorage.getItem(TZ_KEY) || 'auto'; } catch (e) { return 'auto'; }
+        }
+        function tz() {
+            const pref = tzPref();
+            if (pref && pref !== 'auto') return pref;
+            try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow'; }
+            catch (e) { return 'Europe/Moscow'; }
+        }
+        applyTheme();
+        setInterval(applyTheme, 60 * 60 * 1000);
 
         const API_URL = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/baby';
 
@@ -729,10 +758,10 @@
 
                 // --- АККОРДЕОН ПО ДНЯМ ---
                 const grouped = {};
-                const dayKey = (d) => new Date(d).toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' });
+                const dayKey = (d) => new Date(d).toLocaleDateString('sv-SE', { timeZone: tz() });
                 const todayKey = dayKey(new Date());
                 const labelOf = (key) => new Date(key + 'T12:00:00+03:00')
-                    .toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: 'long' });
+                    .toLocaleDateString('ru-RU', { timeZone: tz(), day: '2-digit', month: 'long' });
 
                 events.forEach(e => {
                     if ((e.event_type === 'sleep' || e.event_type === 'awake' || e.event_type === 'walk') && !e.end_time) return;
@@ -763,7 +792,7 @@
 
                     let icon = "", name = "", sub = "", timeStr = "", badge = "";
                     const startTime = new Date(e.start_time);
-                    const timeOptions = { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' };
+                    const timeOptions = { timeZone: tz(), hour: '2-digit', minute: '2-digit' };
                     timeStr = startTime.toLocaleTimeString('ru-RU', timeOptions);
 
                     if (e.event_type === 'sleep' && e.end_time) {
@@ -893,7 +922,7 @@
                     const ts = Date.now() - i * 86400000;
                     const key = dayKeyOf(ts);
                     dayKeys.push(key);
-                    days.push(new Date(ts).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' }));
+                    days.push(new Date(ts).toLocaleDateString('ru-RU', { timeZone: tz(), day: '2-digit', month: '2-digit' }));
                     feedsByDay[key] = 0;
                     diapersByDay[key] = 0;
                     sleepByDay[key] = 0;
@@ -1168,7 +1197,7 @@
         let analyticsEvents = [];
         const anCharts = { cycle: null, hours: null };
 
-        const isoDay = (value) => new Date(value).toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' });
+        const isoDay = (value) => new Date(value).toLocaleDateString('sv-SE', { timeZone: tz() });
 
         function setPeriod(days, btn) {
             analyticsDays = days;
@@ -1217,7 +1246,7 @@
                     const ml = parseInt(e.details, 10);
                     if (!isNaN(ml)) row.volume += ml;
                     const hour = parseInt(new Date(e.start_time).toLocaleString('ru-RU', {
-                        timeZone: 'Europe/Moscow', hour: '2-digit', hour12: false
+                        timeZone: tz(), hour: '2-digit', hour12: false
                     }), 10);
                     if (hour >= 0 && hour < 24) hours[hour] += 1;
                 } else if (e.event_type === 'diaper') {
@@ -1555,6 +1584,32 @@
             if (pee) pee.textContent = g('Пописала', 'Пописал');
         }
 
+
+        function initSettingsUi() {
+            document.querySelectorAll('#theme-seg button').forEach(function (b) {
+                b.onclick = function () { setThemePref(b.getAttribute('data-theme-pref')); };
+            });
+            const sel = document.getElementById('tz-select');
+            if (sel) {
+                const pref = tzPref();
+                if (!sel.querySelector('option[value="' + pref + '"]')) {
+                    const opt = document.createElement('option');
+                    opt.value = pref; opt.textContent = pref;
+                    sel.appendChild(opt);
+                }
+                sel.value = pref;
+                sel.onchange = function () {
+                    try { localStorage.setItem(TZ_KEY, sel.value); } catch (e) {}
+                    const st = document.getElementById('settings-status');
+                    if (st) {
+                        st.textContent = 'Часовой пояс: ' + (sel.value === 'auto' ? 'как на устройстве' : sel.value);
+                        setTimeout(function () { st.textContent = ''; }, 2500);
+                    }
+                    if (typeof loadEvents === 'function') loadEvents();
+                };
+            }
+            applyTheme();
+        }
 
         function renderProfile(data) {
             ladProfile = data;
