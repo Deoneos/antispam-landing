@@ -1593,6 +1593,23 @@
 
 
         // ===== ВХОД И РЕГИСТРАЦИЯ ПО ЛОГИНУ (основной способ) =====
+
+        function gateTab(tab) {
+            const loginBox = document.getElementById('gate-login');
+            const regBox = document.getElementById('gate-register');
+            if (loginBox) loginBox.style.display = tab === 'register' ? 'none' : 'block';
+            if (regBox) regBox.style.display = tab === 'register' ? 'block' : 'none';
+            document.querySelectorAll('#gate-tabs button').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-auth') === tab);
+            });
+        }
+
+        function openLoginGate() {
+            const gate = document.getElementById('login-gate');
+            if (gate) gate.style.display = 'flex';
+            if (typeof closeProfileModal === 'function') closeProfileModal();
+        }
+
         function setAuthTab(tab) {
             const loginBox = document.getElementById('auth-login');
             const regBox = document.getElementById('auth-register');

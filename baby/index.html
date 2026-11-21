@@ -175,41 +175,10 @@
             </div>
 
             <div id="profile-login">
-                <p class="profile-lead">Один аккаунт на семью: записи привязаны к вам, а не к ссылке.</p>
-
-                <div class="seg" id="auth-tabs">
-                    <button type="button" class="active" data-auth="login" onclick="setAuthTab('login')">Вход</button>
-                    <button type="button" data-auth="register" onclick="setAuthTab('register')">Регистрация</button>
-                </div>
-
-                <div id="auth-login">
-                    <label class="login-label" for="auth-login-name">Логин</label>
-                    <input class="login-input" id="auth-login-name" autocomplete="username" autocapitalize="off">
-                    <label class="login-label" for="auth-login-pass">Пароль</label>
-                    <input class="login-input" id="auth-login-pass" type="password" autocomplete="current-password">
-                    <button class="pbtn primary" onclick="authLogin()">Войти</button>
-                    <p class="login-status" id="auth-status"></p>
-                </div>
-
-                <div id="auth-register" style="display:none">
-                    <label class="login-label" for="auth-reg-name">Как вас зовут</label>
-                    <input class="login-input" id="auth-reg-name" autocomplete="name">
-                    <label class="login-label" for="auth-reg-login">Логин (латиница, 3–24 символа)</label>
-                    <input class="login-input" id="auth-reg-login" autocomplete="username" autocapitalize="off">
-                    <label class="login-label" for="auth-reg-pass">Пароль (от 8 символов)</label>
-                    <input class="login-input" id="auth-reg-pass" type="password" autocomplete="new-password">
-                    <label class="login-hint" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0">
-                        <input type="checkbox" id="auth-consent" style="margin-top:3px">
-                        <span>Согласен(на) на обработку персональных данных</span>
-                    </label>
-                    <button class="pbtn primary" onclick="authRegister()">Создать аккаунт</button>
-                    <p class="login-status" id="auth-reg-status"></p>
-                </div>
-
-                <p class="profile-hint" style="margin:14px 0 8px">или</p>
-                <a class="pbtn" id="tg-login-btn" href="#" target="_blank" rel="noopener" onclick="return onLoginClick(event)">Войти через Telegram</a>
+                <p class="profile-lead">Один аккаунт на семью: записи привязаны к вам.</p>
+                <button class="pbtn primary" onclick="openLoginGate()">Войти или создать аккаунт</button>
                 <p class="profile-status" id="profile-status"></p>
-                <p class="profile-hint">Вход по логину работает всегда. Telegram — быстрый, но требует VPN.</p>
+                <p class="profile-hint">Логин и пароль работают всегда, Telegram — быстрее, но требует VPN.</p>
             </div>
 
             <div id="profile-me" style="display:none">
@@ -423,7 +392,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=58" defer></script>
+    <script src="app.js?v=59" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -450,33 +419,41 @@
             <div class="login-logo"><svg width="64" height="64" viewBox="0 0 200 200"><defs><clipPath id="lg"><circle cx="100" cy="100" r="86"/></clipPath></defs><g clip-path="url(#lg)"><rect x="10" y="10" width="90" height="180" fill="#F29B93"/><rect x="100" y="10" width="90" height="180" fill="#A9C8F5"/><path d="M100 10 C 74 62, 126 138, 100 190" fill="none" stroke="#1C1D22" stroke-width="8"/></g><circle cx="48" cy="66" r="7" fill="#1C1D22"/><path d="M139 104 a19 19 0 1 0 13 31 a14 14 0 1 1 -13 -31" fill="#1C1D22"/></svg></div>
             <h2>Лад</h2>
             <p class="login-sub">Войдите, чтобы видеть записи семьи</p>
-            <label class="login-label" for="login-name">Логин</label>
-            <input class="login-input" id="login-name" autocomplete="username" autocapitalize="off">
-            <label class="login-label" for="login-pass">Пароль</label>
-            <input class="login-input" id="login-pass" type="password" autocomplete="current-password">
-            <label class="consent">
-                <input type="checkbox" id="consent-box">
-                <span>Я принимаю <a href="terms.html" target="_blank" rel="noopener">соглашение</a>
-                    и <a href="privacy.html" target="_blank" rel="noopener">политику обработки данных</a></span>
-            </label>
-            <button class="pbtn primary" onclick="authLogin()">Войти</button>
-            <p class="login-status" id="login-status"></p>
-            <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>
-            <button class="link-btn" style="display:block;margin:12px auto 0" onclick="toggleRegister()">Нет аккаунта? Создать</button>
-            <div id="register-box" style="display:none;margin-top:10px">
-                <label class="login-label" for="reg-login">Логин</label>
-                <input class="login-input" id="reg-login" autocomplete="username" autocapitalize="off">
-                <label class="login-label" for="reg-pass">Пароль (от 8 символов)</label>
-                <input class="login-input" id="reg-pass" type="password" autocomplete="new-password">
-                <label class="login-label" for="reg-name">Как вас зовут</label>
-                <input class="login-input" id="reg-name" autocomplete="name">
-                <button class="pbtn primary" onclick="submitRegister()">Создать аккаунт</button>
-                <p class="login-status" id="reg-status"></p>
+
+            <div class="seg" id="gate-tabs">
+                <button type="button" class="active" data-auth="login" onclick="gateTab('login')">Вход</button>
+                <button type="button" data-auth="register" onclick="gateTab('register')">Регистрация</button>
             </div>
-            <p class="login-hint">Логин и пароль выдаёт бот
-                <a href="https://t.me/Lad_passed_bot?start=menu" target="_blank" rel="noopener">@Lad_passed_bot</a>:
-                /start → «Логин и пароль».</p>
+
+            <div id="gate-login">
+                <label class="login-label" for="auth-login-name">Логин</label>
+                <input class="login-input" id="auth-login-name" autocomplete="username" autocapitalize="off">
+                <label class="login-label" for="auth-login-pass">Пароль</label>
+                <input class="login-input" id="auth-login-pass" type="password" autocomplete="current-password">
+                <button class="pbtn primary" onclick="authLogin()">Войти</button>
+                <p class="login-status" id="auth-status"></p>
+            </div>
+
+            <div id="gate-register" style="display:none">
+                <label class="login-label" for="auth-reg-name">Как вас зовут</label>
+                <input class="login-input" id="auth-reg-name" autocomplete="name">
+                <label class="login-label" for="auth-reg-login">Логин (латиница, 3–24 символа)</label>
+                <input class="login-input" id="auth-reg-login" autocomplete="username" autocapitalize="off">
+                <label class="login-label" for="auth-reg-pass">Пароль (от 8 символов)</label>
+                <input class="login-input" id="auth-reg-pass" type="password" autocomplete="new-password">
+                <label class="consent">
+                    <input type="checkbox" id="auth-consent">
+                    <span>Я принимаю <a href="terms.html" target="_blank" rel="noopener">соглашение</a>
+                        и <a href="privacy.html" target="_blank" rel="noopener">политику обработки данных</a></span>
+                </label>
+                <button class="pbtn primary" onclick="authRegister()">Создать аккаунт</button>
+                <p class="login-status" id="auth-reg-status"></p>
+            </div>
+
+            <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>
+            <p class="login-hint">Логин и пароль работают всегда. Telegram — быстрее, но требует VPN.</p>
         </div>
     </div>
+
 </body>
 </html>
