@@ -400,7 +400,14 @@
         }
         async function toggleAudio() { if (isPlaying) { stopCurrentAudio(); } else { await playSound(currentSound); } }
         function setVolume(val) { if (gainNode) gainNode.gain.value = val; }
-        function openNoiseModal() { document.getElementById('noise-modal').style.display = 'flex'; }
+        async function openNoiseModal() {
+            if (!(await ensurePremium())) {
+                toast('Белый шум и звуки — в Премиуме 🔒', true);
+                openProfile();
+                return;
+            }
+            document.getElementById('noise-modal').style.display = 'flex';
+        }
         function closeNoiseModal(e) { if (!e || e.target.id === 'noise-modal') document.getElementById('noise-modal').style.display = 'none'; }
 
         // --- ТРЕКЕР ---
@@ -1323,6 +1330,11 @@
         }
 
         async function downloadDoctorReport() {
+            if (!(await ensurePremium())) {
+                toast('Отчёт для врача — в Премиуме 🔒', true);
+                openProfile();
+                return;
+            }
             try {
                 toast('Готовлю отчёт…');
 
@@ -1569,7 +1581,23 @@
 
         let ladProfile = null;
         let childGender = 'girl';
-        let familyPremium = false;
+        let familyPremium = null;
+
+        async function ensurePremium() {
+            if (familyPremium !== null) return familyPremium;
+            try {
+                const token = ladToken();
+                if (!token) { familyPremium = false; return false; }
+                const res = await fetch(`${API_URL}/billing/status`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const d = await res.json().catch(function () { return {}; });
+                familyPremium = !!d.active;
+            } catch (e) {
+                familyPremium = false;
+            }
+            return familyPremium;
+        }
 
         function g(female, male) { return childGender === 'boy' ? male : female; }
 
