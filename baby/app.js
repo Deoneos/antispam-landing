@@ -1720,6 +1720,44 @@
             }
         }
 
+
+        // ===== НАПОМИНАНИЯ =====
+        async function loadReminders() {
+            try {
+                const res = await fetch(`${API_URL}/reminders`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+                if (d.feed_hours) document.getElementById('rem-feed').value = d.feed_hours;
+                if (d.diaper_hours) document.getElementById('rem-diaper').value = d.diaper_hours;
+                const st = document.getElementById('rem-status');
+                if (st) st.textContent = d.premium ? '' : 'Настройка интервалов — в Премиуме';
+            } catch (e) {}
+        }
+
+        async function saveReminders() {
+            const st = document.getElementById('rem-status');
+            if (!(await ensurePremium())) {
+                toast('Настройка напоминаний — в Премиуме 🔒', true);
+                if (st) st.textContent = 'Доступно в Премиуме';
+                return;
+            }
+            const feed = parseFloat(document.getElementById('rem-feed').value) || 3.5;
+            const diaper = parseFloat(document.getElementById('rem-diaper').value) || 3;
+            if (st) st.textContent = 'Сохраняю…';
+            try {
+                const res = await fetch(`${API_URL}/reminders`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ladToken() },
+                    body: JSON.stringify({ feed_hours: feed, diaper_hours: diaper })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(d.detail || 'Не удалось сохранить');
+                if (st) st.textContent = 'Сохранено ✅';
+            } catch (e) {
+                if (st) st.textContent = e.message || 'Ошибка';
+            }
+        }
+
         function setTzPref(value) {
             try { localStorage.setItem(TZ_KEY, value); } catch (e) {}
             const st = document.getElementById('settings-status');
@@ -2155,7 +2193,7 @@ async function sendFeedback() {
                 if (dbg) dbg.textContent = 'dbg: нет токена';
                 return;
             }
-            loadReminders();
+            if (typeof loadReminders === 'function') loadReminders();
             try {
                 const res = await fetch(`${API_URL}/billing/status`, {
                     headers: apiHeaders()
