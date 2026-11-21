@@ -359,7 +359,7 @@
                 <h2>Белый шум</h2>
                 <button class="btn-close" onclick="closeNoiseModal()">✕</button>
             </div>
-            <div class="noise-grid">
+            <div class="noise-grid" id="noise-grid">
                 <button class="noise-btn active" data-sound="white" onclick="changeNoise(this)"><span class="icon">📻</span> Белый шум</button>
                 <button class="noise-btn" data-sound="rain" onclick="changeNoise(this)"><span class="icon">🌧️</span> Дождь</button>
                 <button class="noise-btn" data-sound="womb" onclick="changeNoise(this)"><span class="icon">🤰</span> Утроба</button>
@@ -392,7 +392,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=54" defer></script>
+    <script src="app.js?v=55" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

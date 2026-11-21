@@ -461,12 +461,35 @@
         }
         async function toggleAudio() { if (isPlaying) { stopCurrentAudio(); } else { await playSound(currentSound); } }
         function setVolume(val) { if (gainNode) gainNode.gain.value = val; }
+
+        async function loadSounds() {
+            try {
+                const res = await fetch(`${API_URL}/sounds`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const list = await res.json();
+                if (!Array.isArray(list) || !list.length) return;
+                const grid = document.getElementById('noise-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                list.forEach(function (s, idx) {
+                    sounds[s.id] = s.url;
+                    const b = document.createElement('button');
+                    b.className = 'noise-btn' + (idx === 0 ? ' active' : '');
+                    b.setAttribute('data-sound', s.id);
+                    b.innerHTML = '<span class="icon">' + s.emoji + '</span> ' + s.title;
+                    b.onclick = function () { changeNoise(b); };
+                    grid.appendChild(b);
+                });
+            } catch (e) {}
+        }
+
         async function openNoiseModal() {
             if (!(await ensurePremium())) {
                 toast('Белый шум и звуки — в Премиуме 🔒', true);
                 openProfile();
                 return;
             }
+            loadSounds();
             document.getElementById('noise-modal').style.display = 'flex';
         }
         function closeNoiseModal(e) { if (!e || e.target.id === 'noise-modal') document.getElementById('noise-modal').style.display = 'none'; }
