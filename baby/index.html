@@ -61,7 +61,6 @@
             <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
             <button class="action-btn btn-diaper" id="btn-pee" onclick="quickDiaper('pee')"><span class="icon">💦</span> <span id="label-pee">Пописала</span></button>
             
-            <button class="action-btn btn-noise" onclick="openNoiseModal()"><span class="icon">🎵</span> Белый шум</button>
             <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Помоги!</button>
             <button class="action-btn" id="push-btn" onclick="subscribePush()" style="grid-column: span 2; background: var(--bg);">
                 <span class="icon">🔔</span> Включить уведомления
@@ -393,7 +392,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=45" defer></script>
+    <script src="app.js?v=46" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
