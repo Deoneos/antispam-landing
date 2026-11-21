@@ -527,10 +527,10 @@
                 <div class="modal-content">
                     <div class="modal-header"><h2>Изменить запись</h2>
                         <button class="btn-close" onclick="closeEventEdit()">✕</button></div>
-                    <p class="sleep-hint">Поправь начало и конец записи.</p>
-                    <label class="sleep-hint">Начало</label>
+                    <p class="sleep-hint" id="event-edit-hint">Поправь начало и конец записи.</p>
+                    <label class="sleep-hint" id="event-edit-start-label">Начало</label>
                     <input type="datetime-local" id="event-edit-start" class="sleep-time-input">
-                    <label class="sleep-hint">Конец</label>
+                    <label class="sleep-hint" id="event-edit-end-label">Конец</label>
                     <input type="datetime-local" id="event-edit-end" class="sleep-time-input">
                     <button class="btn-save-ml" id="event-edit-save">Сохранить</button>
                 </div>`;
@@ -539,11 +539,23 @@
             document.getElementById('event-edit-save').onclick = saveEventEdit;
         }
 
-        function editEventTime(id, startIso, endIso) {
+        let editingEventInstant = false;
+
+        function editEventTime(id, startIso, endIso, type) {
             ensureEventEditModal();
             editingEventId = id;
+            // Мгновенные записи (подгузник) — это точка во времени, а не промежуток.
+            const instant = type === 'diaper'
+                || (startIso && endIso && Math.abs(new Date(endIso) - new Date(startIso)) < 2000);
+            editingEventInstant = instant;
             document.getElementById('event-edit-start').value = toLocalInputValue(new Date(startIso));
-            document.getElementById('event-edit-end').value = endIso ? toLocalInputValue(new Date(endIso)) : '';
+            document.getElementById('event-edit-end').value = endIso && !instant ? toLocalInputValue(new Date(endIso)) : '';
+            document.getElementById('event-edit-end-label').style.display = instant ? 'none' : '';
+            document.getElementById('event-edit-end').style.display = instant ? 'none' : '';
+            document.getElementById('event-edit-start-label').textContent = instant ? 'Когда' : 'Начало';
+            document.getElementById('event-edit-hint').textContent = instant
+                ? 'Поправь время записи.'
+                : 'Поправь начало и конец записи.';
             document.getElementById('event-edit-modal').style.display = 'flex';
         }
 
@@ -560,7 +572,9 @@
             let start = new Date(sEl.value);
             if (isNaN(start.getTime())) start = new Date();
             const body = { start_time: start.toISOString() };
-            if (eEl && eEl.value) {
+            if (editingEventInstant) {
+                body.end_time = start.toISOString();
+            } else if (eEl && eEl.value) {
                 const end = new Date(eEl.value);
                 if (!isNaN(end.getTime()) && end >= start) body.end_time = end.toISOString();
             }
@@ -903,7 +917,7 @@
                             </div>
                             <div class="log-right">
                                 ${rightSide}
-                                ${e.event_type === 'feed' ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}')">✎</button>` : (e.end_time ? `<button class="btn-delete" title="Изменить время" onclick="editEventTime(${e.id}, '${e.start_time}', '${e.end_time}')">✎</button>` : '')}
+                                ${e.event_type === 'feed' ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}')">✎</button>` : (e.end_time ? `<button class="btn-delete" title="Изменить время" onclick="editEventTime(${e.id}, '${e.start_time}', '${e.end_time}', '${e.event_type}')">✎</button>` : '')}
                                 <button class="btn-delete" onclick="deleteEvent(${e.id})">✕</button>
                             </div>
                         </div>
