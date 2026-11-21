@@ -109,6 +109,14 @@
             };
         })();
 
+
+        // ?profile=1 — сразу открыть профиль (удобно для ссылок и скриншотов)
+        if (/[?&]profile=1/.test(location.search)) {
+            setTimeout(function () {
+                if (typeof openProfile === 'function') openProfile();
+            }, 400);
+        }
+
         function apiToken() {
             try { return localStorage.getItem('baby_api_token') || ''; } catch (e) { return ''; }
         }
