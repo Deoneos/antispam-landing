@@ -2150,15 +2150,18 @@ async function sendFeedback() {
 
         // ===== ПОДПИСКА =====
         async function loadBilling() {
-            if (!ladToken() && !apiToken()) return;
+            const dbg = document.getElementById('plan-status');
+            if (!ladToken() && !apiToken()) {
+                if (dbg) dbg.textContent = 'dbg: нет токена';
+                return;
+            }
             loadReminders();
             try {
                 const res = await fetch(`${API_URL}/billing/status`, {
                     headers: apiHeaders()
                 });
                 if (!res.ok) {
-                    const el = document.getElementById('plan-status');
-                    if (el) el.textContent = 'http ' + res.status;
+                    if (dbg) dbg.textContent = 'dbg http ' + res.status;
                     return;
                 }
                 const d = await res.json();
@@ -2195,8 +2198,7 @@ async function sendFeedback() {
                     btn.style.display = (d.configured && !d.active) ? '' : 'none';
                 }
             } catch (e) {
-                const el = document.getElementById('plan-status');
-                if (el) el.textContent = 'err ' + (e && e.message ? e.message : 'fetch');
+                if (dbg) dbg.textContent = 'dbg err ' + (e && e.message ? e.message : 'fetch');
             }
         }
 
