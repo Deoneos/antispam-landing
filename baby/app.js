@@ -2217,7 +2217,7 @@ async function sendFeedback() {
                     try { untilText = 'до ' + new Date(d.plan_until).toLocaleDateString('ru-RU'); } catch (e) {}
                 }
                 until.textContent = untilText;
-                if (st) st.textContent = 'dbg a=' + d.active + ' p=' + d.plan + ' f=' + d.family_id + ' c=' + d.configured;
+                if (st) st.textContent = '';
 
                 // Потом — необязательные элементы интерфейса.
                 try {
