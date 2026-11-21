@@ -416,7 +416,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=69" defer></script>
+    <script src="app.js?v=70" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -447,6 +447,7 @@
             <div class="seg" id="gate-tabs">
                 <button type="button" class="active" data-auth="login" onclick="gateTab('login')">Вход</button>
                 <button type="button" data-auth="register" onclick="gateTab('register')">Регистрация</button>
+                <button type="button" data-auth="code" onclick="gateTab('code')">По коду</button>
             </div>
 
             <div id="gate-login">
@@ -472,6 +473,20 @@
                 </label>
                 <button class="pbtn primary" onclick="authRegister()">Создать аккаунт</button>
                 <p class="login-status" id="auth-reg-status"></p>
+            </div>
+
+            <div id="gate-code" style="display:none">
+                <label class="login-label" for="auth-code">Личный код</label>
+                <input class="login-input" id="auth-code" placeholder="ЛАД-XXXX-XXXX" autocapitalize="characters">
+                <button class="pbtn primary" onclick="authCodeLogin()">Войти по коду</button>
+                <p class="login-status" id="auth-code-status"></p>
+            </div>
+
+            <div id="gate-code-done" style="display:none">
+                <p class="login-sub" style="margin-top:6px">Аккаунт создан. Твой личный код:</p>
+                <div class="code-big" id="code-value">—</div>
+                <p class="login-hint">Сохрани его: по коду можно войти без логина и пароля.</p>
+                <button class="pbtn primary" onclick="location.reload()">Продолжить</button>
             </div>
 
             <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>

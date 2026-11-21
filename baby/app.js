@@ -1613,8 +1613,10 @@
         function gateTab(tab) {
             const loginBox = document.getElementById('gate-login');
             const regBox = document.getElementById('gate-register');
-            if (loginBox) loginBox.style.display = tab === 'register' ? 'none' : 'block';
+            const codeBox = document.getElementById('gate-code');
+            if (loginBox) loginBox.style.display = tab === 'login' ? 'block' : 'none';
             if (regBox) regBox.style.display = tab === 'register' ? 'block' : 'none';
+            if (codeBox) codeBox.style.display = tab === 'code' ? 'block' : 'none';
             document.querySelectorAll('#gate-tabs button').forEach(function (b) {
                 b.classList.toggle('active', b.getAttribute('data-auth') === tab);
             });
@@ -1640,6 +1642,31 @@
 
         function authNotice(el, text) {
             if (el) el.textContent = text;
+        }
+
+
+        async function authCodeLogin() {
+            const input = document.getElementById('auth-code');
+            const st = document.getElementById('auth-code-status');
+            const code = ((input && input.value) || '').trim();
+            if (!code) { if (st) st.textContent = 'Введите код'; return; }
+            if (st) st.textContent = 'Проверяю…';
+            try {
+                const res = await fetch(`${API_URL}/auth/code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(d.detail || 'Код не подошёл');
+                localStorage.setItem(LAD_TOKEN_KEY, d.token);
+                location.reload();
+            } catch (e) {
+                const msg = (e && e.message) || '';
+                if (st) st.textContent = msg === 'Failed to fetch'
+                    ? 'Нет связи с сервером — проверьте интернет или VPN'
+                    : (msg || 'Ошибка');
+            }
         }
 
         async function authLogin() {
@@ -1687,8 +1714,17 @@
                 const d = await res.json().catch(function () { return {}; });
                 if (!res.ok) throw new Error(d.detail || 'Не удалось зарегистрироваться');
                 localStorage.setItem(LAD_TOKEN_KEY, d.token);
-                authNotice(st, 'Аккаунт создан');
-                location.reload();
+                if (d.personal_code) {
+                    document.getElementById('gate-tabs').style.display = 'none';
+                    document.getElementById('gate-login').style.display = 'none';
+                    document.getElementById('gate-register').style.display = 'none';
+                    const codeBox = document.getElementById('gate-code');
+                    if (codeBox) codeBox.style.display = 'none';
+                    document.getElementById('code-value').textContent = d.personal_code;
+                    document.getElementById('gate-code-done').style.display = 'block';
+                } else {
+                    location.reload();
+                }
             } catch (e) {
                 const msg = (e && e.message) || '';
                 authNotice(st, msg === 'Failed to fetch'
