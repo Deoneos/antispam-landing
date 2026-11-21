@@ -1,5 +1,5 @@
 // ===== ЛИЧНЫЙ КАБИНЕТ =====
-const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
+const API_BASE = 'https://baby.kustos.ru';
 
 // === API FAILOVER (Client-side) ===
 const API_BACKUP = 'https://api.kustos.ru';

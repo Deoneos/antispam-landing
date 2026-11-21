@@ -44,7 +44,7 @@ function setupScrollReveal() {
 
     sections.forEach(section => observer.observe(section));
 }// ===== LIVE STATS =====
-const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
+const API_BASE = 'https://baby.kustos.ru';
 
 let liveStatsLastUpdated = null;
 let liveStatsPrevValues = {};
