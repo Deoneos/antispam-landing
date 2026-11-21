@@ -412,7 +412,7 @@
         // --- АУДИО ---
         let audioCtx = null, gainNode = null, currentSource = null;
         let audioBuffers = {}, isPlaying = false, currentSound = 'white', isAudioLoading = false;
-        const sounds = { 'white': 'sounds/white.mp3', 'rain': 'sounds/rain.mp3', 'womb': 'sounds/womb.mp3', 'heart': 'sounds/heart.mp3' };
+        const sounds = { 'white': 'sounds/white.mp3', 'rain': 'sounds/rain.mp3', 'womb': 'sounds/womb.mp3', 'heart': 'sounds/heart.mp3', 'pink': 'sounds/pink.mp3', 'brown': 'sounds/brown.mp3', 'ocean': 'sounds/ocean.mp3', 'heartbeat': 'sounds/heart2.mp3', 'fan': 'sounds/fan.mp3' };
         const playPauseBtn = document.getElementById('play-pause-btn');
 
         async function unlockAudio() {

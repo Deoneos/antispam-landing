@@ -286,6 +286,9 @@
         <button class="nav-item" onclick="switchView('analytics', this)">
             <span class="icon">📈</span> Аналитика
         </button>
+        <button class="nav-item" onclick="openNoiseModal()">
+            <span class="icon">🎵</span> Звуки
+        </button>
     </div>
 
     <!-- ОБРАТНАЯ СВЯЗЬ -->
@@ -356,6 +359,11 @@
                 <button class="noise-btn" data-sound="rain" onclick="changeNoise(this)"><span class="icon">🌧️</span> Дождь</button>
                 <button class="noise-btn" data-sound="womb" onclick="changeNoise(this)"><span class="icon">🤰</span> Утроба</button>
                 <button class="noise-btn" data-sound="heart" onclick="changeNoise(this)"><span class="icon">❤️</span> Сердце</button>
+                <button class="noise-btn" data-sound="pink" onclick="changeNoise(this)"><span class="icon">🌸</span> Розовый шум</button>
+                <button class="noise-btn" data-sound="brown" onclick="changeNoise(this)"><span class="icon">🟤</span> Коричневый шум</button>
+                <button class="noise-btn" data-sound="ocean" onclick="changeNoise(this)"><span class="icon">🌊</span> Океан</button>
+                <button class="noise-btn" data-sound="heartbeat" onclick="changeNoise(this)"><span class="icon">💗</span> Сердцебиение</button>
+                <button class="noise-btn" data-sound="fan" onclick="changeNoise(this)"><span class="icon">💨</span> Вентилятор</button>
             </div>
             <div class="player-controls">
                 <button class="btn-play-main" id="play-pause-btn" onclick="toggleAudio()">▶</button>
@@ -379,7 +387,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=43" defer></script>
+    <script src="app.js?v=44" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
