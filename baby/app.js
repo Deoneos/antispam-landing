@@ -92,6 +92,23 @@
             location.replace('https://baby.kustos.ru' + location.pathname + location.search + location.hash);
         }
 
+        // Резервный адрес API через Cloudflare: работает, когда прямой IP
+        // недоступен из-за VPN или блокировки оператора.
+        const API_FALLBACK = 'https://api.kustos.ru/api/baby';
+        (function () {
+            const nativeFetch = window.fetch.bind(window);
+            window.fetch = function (input, init) {
+                const url = (typeof input === 'string') ? input : ((input && input.url) || '');
+                if (url.indexOf(API_URL) === 0) {
+                    const alt = url.replace(API_URL, API_FALLBACK);
+                    return nativeFetch(input, init).catch(function (err) {
+                        return nativeFetch(alt, init);
+                    });
+                }
+                return nativeFetch(input, init);
+            };
+        })();
+
         function apiToken() {
             try { return localStorage.getItem('baby_api_token') || ''; } catch (e) { return ''; }
         }
@@ -1671,9 +1688,25 @@
                 login.style.display = 'none';
                 me.style.display = 'block';
             } catch (e) {
-                try { localStorage.removeItem(LAD_TOKEN_KEY); } catch (err) {}
-                login.style.display = 'block';
-                me.style.display = 'none';
+                const msg = (e && e.message) || '';
+                const status = msg.indexOf('HTTP ') === 0 ? parseInt(msg.slice(5), 10) : 0;
+                if (status === 401) {
+                    // токен правда просрочен — только тогда разлогиниваем
+                    try { localStorage.removeItem(LAD_TOKEN_KEY); } catch (err) {}
+                    login.style.display = 'block';
+                    me.style.display = 'none';
+                    return;
+                }
+                // Сеть, VPN, таймаут — токен НЕ трогаем, иначе выкидывает при каждом сбое.
+                const st = document.getElementById('profile-status');
+                if (st) st.textContent = 'Нет связи с сервером — проверьте интернет или VPN';
+                if (ladProfile) {
+                    login.style.display = 'none';
+                    me.style.display = 'block';
+                } else {
+                    login.style.display = 'block';
+                    me.style.display = 'none';
+                }
             }
         }
 
