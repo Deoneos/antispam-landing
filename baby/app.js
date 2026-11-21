@@ -283,6 +283,59 @@
         window.addEventListener('online', () => { renderStatus(); flushQueue(); });
         window.addEventListener('offline', renderStatus);
 
+
+        const EVENT_NAMES = { feed: 'Кормление', sleep: 'Сон', awake: 'Бодрствование',
+                              diaper: 'Подгузник', walk: 'Прогулка' };
+
+        async function exportCsv() {
+            if (!(await ensurePremium())) {
+                toast('Экспорт в Excel — в Премиуме 🔒', true);
+                openProfile();
+                return;
+            }
+            const token = ladToken();
+            if (!token) { toast('Нужно войти в профиль', true); return; }
+            try {
+                toast('Готовлю таблицу…');
+                const res = await fetch(`${API_URL}/events/history?days=90`, { headers: apiHeaders() });
+                const events = await res.json();
+                if (!Array.isArray(events) || !events.length) {
+                    toast('Нет данных за 90 дней', true);
+                    return;
+                }
+                const rows = [['Дата', 'Время', 'Событие', 'Длительность, мин', 'Детали']];
+                events.slice().sort(function (a, b) {
+                    return (a.start_time || '') < (b.start_time || '') ? -1 : 1;
+                }).forEach(function (e) {
+                    const start = new Date(e.start_time);
+                    const end = e.end_time ? new Date(e.end_time) : null;
+                    const dur = end ? Math.round((end - start) / 60000) : '';
+                    rows.push([
+                        start.toLocaleDateString('ru-RU'),
+                        start.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                        EVENT_NAMES[e.event_type] || e.event_type,
+                        dur,
+                        (e.details || '').replace(/\s+/g, ' ').trim()
+                    ]);
+                });
+                const csv = '\ufeff' + rows.map(function (r) {
+                    return r.map(function (v) {
+                        return '"' + String(v).replace(/"/g, '""') + '"';
+                    }).join(';');
+                }).join('\r\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'lad-' + new Date().toISOString().slice(0, 10) + '.csv';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                toast('Таблица скачана');
+            } catch (e) {
+                toast('Не удалось выгрузить', true);
+            }
+        }
+
         async function exportData() {
             let payload = null;
             try {
@@ -2044,6 +2097,7 @@ async function sendFeedback() {
         async function loadBilling() {
             const token = ladToken();
             if (!token) return;
+            loadReminders();
             try {
                 const res = await fetch(`${API_URL}/billing/status`, {
                     headers: { 'Authorization': 'Bearer ' + token }
