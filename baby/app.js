@@ -86,6 +86,12 @@
             setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 2600);
         }
 
+        // Канонический адрес приложения — baby.kustos.ru.
+        // Старое зеркало на kustos.ru отправляем туда же, чтобы вход не терялся.
+        if (location.hostname === 'kustos.ru' || location.hostname === 'www.kustos.ru') {
+            location.replace('https://baby.kustos.ru' + location.pathname + location.search + location.hash);
+        }
+
         function apiToken() {
             try { return localStorage.getItem('baby_api_token') || ''; } catch (e) { return ''; }
         }
