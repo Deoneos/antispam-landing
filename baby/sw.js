@@ -1,4 +1,4 @@
-const VERSION = 'v18';
+const VERSION = 'v19';
 const CACHE = 'baby-' + VERSION;
 
 // Предзагружаем только оболочку приложения. Аудио (16 МБ!) грузится по требованию.
@@ -60,14 +60,13 @@ self.addEventListener('fetch', (e) => {
     // Аудио: cache-first, кладём в кэш при первом проигрывании
     if (url.pathname.startsWith('/baby/sounds/')) {
         e.respondWith((async () => {
-            const cached = await caches.match(req);
-            if (cached) return cached;
-            const res = await fetch(req);
-            if (res.ok) {
-                const cache = await caches.open(CACHE);
-                cache.put(req, res.clone());
-            }
-            return res;
+            const cache = await caches.open(CACHE);
+            const cached = await cache.match(req);
+            const fresh = fetch(req).then((res) => {
+                if (res.ok) cache.put(req, res.clone());
+                return res;
+            }).catch(() => cached);
+            return cached || fresh;
         })());
         return;
     }
