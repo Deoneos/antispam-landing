@@ -1641,10 +1641,9 @@
         async function ensurePremium() {
             if (familyPremium !== null) return familyPremium;
             try {
-                const token = ladToken();
-                if (!token) { familyPremium = false; return false; }
+                if (!ladToken() && !apiToken()) { familyPremium = false; return false; }
                 const res = await fetch(`${API_URL}/billing/status`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: apiHeaders()
                 });
                 const d = await res.json().catch(function () { return {}; });
                 familyPremium = !!d.active;
@@ -2151,12 +2150,11 @@ async function sendFeedback() {
 
         // ===== ПОДПИСКА =====
         async function loadBilling() {
-            const token = ladToken();
-            if (!token) return;
+            if (!ladToken() && !apiToken()) return;
             loadReminders();
             try {
                 const res = await fetch(`${API_URL}/billing/status`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: apiHeaders()
                 });
                 if (!res.ok) {
                     const el = document.getElementById('plan-status');
