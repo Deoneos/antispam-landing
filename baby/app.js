@@ -1819,6 +1819,27 @@
             }
         }
 
+
+        async function showMyCode() {
+            try {
+                const res = await fetch(`${API_URL}/auth/code/issue`, {
+                    method: 'POST',
+                    headers: apiHeaders()
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok || !d.personal_code) throw new Error(d.detail || 'Не удалось получить код');
+                document.getElementById('code-modal-value').textContent = d.personal_code;
+                document.getElementById('code-modal').style.display = 'flex';
+            } catch (e) {
+                toast(e.message === 'Failed to fetch' ? 'Нет связи с сервером' : e.message, true);
+            }
+        }
+
+        function closeCodeModal() {
+            const m = document.getElementById('code-modal');
+            if (m) m.style.display = 'none';
+        }
+
         async function loadProfile() {
             const login = document.getElementById('profile-login');
             const me = document.getElementById('profile-me');

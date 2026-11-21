@@ -287,6 +287,8 @@
                     </div>
                     <p class="login-status" id="plan-status"></p>
                 </div>
+                <button class="row" onclick="showMyCode()">
+                    <span class="ri">🔑</span> Мой код для входа <span class="chev">›</span></button>
                 <a class="row" href="install.html" target="_blank" rel="noopener">
                     <span class="ri">📲</span> Установить на телефон <span class="chev">›</span></a>
                 <a class="row" href="payment.html" target="_blank" rel="noopener">
@@ -416,7 +418,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=70" defer></script>
+    <script src="app.js?v=71" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -435,7 +437,17 @@
         </div>
     </div>
 
-    <div class="toast-host" id="toast-host"></div>
+    
+    <div id="code-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeCodeModal()">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Код для входа</h2><button class="btn-close" onclick="closeCodeModal()">✕</button></div>
+            <p class="login-sub">По нему можно войти без логина и пароля.</p>
+            <div class="code-big" id="code-modal-value">—</div>
+            <p class="login-hint">Если код потеряется — выпусти новый, старый перестанет работать.</p>
+            <button class="pbtn primary" onclick="closeCodeModal()">Готово</button>
+        </div>
+    </div>
+<div class="toast-host" id="toast-host"></div>
 
     <!-- ЭКРАН ВХОДА -->
     <div id="login-gate" class="login-gate" style="display:none">
