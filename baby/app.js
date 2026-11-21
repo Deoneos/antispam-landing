@@ -97,6 +97,8 @@
             // Вошли через Telegram — ходим от имени семьи, а не ссылки с токеном.
             const lad = ladToken();
             if (lad) headers['Authorization'] = 'Bearer ' + lad;
+            const cid = activeChildId();
+            if (cid) headers['X-Child-Id'] = String(cid);
             return headers;
         }
 
@@ -1666,6 +1668,59 @@
         }
 
 
+
+        function activeChildId() {
+            try { return parseInt(localStorage.getItem('lad_child') || '0', 10) || 0; } catch (e) { return 0; }
+        }
+
+        function renderChildren(children) {
+            const box = document.getElementById('children-list');
+            if (!box) return;
+            box.innerHTML = '';
+            if (!children || !children.length) return;
+            let active = activeChildId();
+            if (!active || !children.some(function (c) { return c.id === active; })) {
+                active = children[0].id;
+                try { localStorage.setItem('lad_child', String(active)); } catch (e) {}
+            }
+            children.forEach(function (c) {
+                const chip = document.createElement('button');
+                chip.className = 'sleep-chip' + (c.id === active ? ' active' : '');
+                chip.textContent = (c.id === active ? '✓ ' : '') + (c.name || 'Малыш');
+                chip.onclick = function () {
+                    try { localStorage.setItem('lad_child', String(c.id)); } catch (e) {}
+                    location.reload();
+                };
+                box.appendChild(chip);
+            });
+        }
+
+        async function addChild() {
+            const st = document.getElementById('child-add-status');
+            if (!(await ensurePremium())) {
+                toast('Несколько детей — в Премиуме 🔒', true);
+                if (st) st.textContent = 'Доступно в Премиуме';
+                return;
+            }
+            const name = prompt('Имя ребёнка');
+            if (!name) return;
+            if (st) st.textContent = 'Добавляю…';
+            try {
+                const res = await fetch(`${API_URL}/child`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ladToken() },
+                    body: JSON.stringify({ name: name })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(d.detail || 'Не удалось');
+                try { localStorage.setItem('lad_child', String(d.id)); } catch (e) {}
+                if (st) st.textContent = 'Готово';
+                location.reload();
+            } catch (e) {
+                if (st) st.textContent = e.message || 'Ошибка';
+            }
+        }
+
         function setTzPref(value) {
             try { localStorage.setItem(TZ_KEY, value); } catch (e) {}
             const st = document.getElementById('settings-status');
@@ -1716,6 +1771,7 @@
             document.getElementById('profile-family').textContent = (data.family && data.family.name) || '—';
             const child = data.children && data.children[0];
             document.getElementById('profile-child').textContent = (child && child.name) || '—';
+            renderChildren(data.children || []);
             document.getElementById('profile-events').textContent = (data.stats && data.stats.events) || 0;
             const membersBox = document.getElementById('profile-members');
             if (membersBox) {

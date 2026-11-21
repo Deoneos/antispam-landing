@@ -245,6 +245,12 @@
                 <div class="invite-box" id="invite-box" style="display:none"></div>
                 <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
                 <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
+                <div class="profile-settings" id="children-box">
+                    <div class="settings-title">Дети</div>
+                    <div id="children-list" class="children-list"></div>
+                    <button class="pbtn" onclick="addChild()">＋ Добавить ребёнка</button>
+                    <p class="login-status" id="child-add-status"></p>
+                </div>
                 <div class="profile-settings" id="reminders-box">
                     <div class="settings-title">Напоминания</div>
                     <div class="profile-row"><span>Кормление, ч</span>
@@ -387,7 +393,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=44" defer></script>
+    <script src="app.js?v=45" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
