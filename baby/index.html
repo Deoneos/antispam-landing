@@ -175,10 +175,41 @@
             </div>
 
             <div id="profile-login">
-                <p class="profile-lead">Один аккаунт на семью. Войдите — и записи будут привязаны к вам, а не к ссылке с токеном.</p>
+                <p class="profile-lead">Один аккаунт на семью: записи привязаны к вам, а не к ссылке.</p>
+
+                <div class="seg" id="auth-tabs">
+                    <button type="button" class="active" data-auth="login" onclick="setAuthTab('login')">Вход</button>
+                    <button type="button" data-auth="register" onclick="setAuthTab('register')">Регистрация</button>
+                </div>
+
+                <div id="auth-login">
+                    <label class="login-label" for="auth-login-name">Логин</label>
+                    <input class="login-input" id="auth-login-name" autocomplete="username" autocapitalize="off">
+                    <label class="login-label" for="auth-login-pass">Пароль</label>
+                    <input class="login-input" id="auth-login-pass" type="password" autocomplete="current-password">
+                    <button class="pbtn primary" onclick="authLogin()">Войти</button>
+                    <p class="login-status" id="auth-status"></p>
+                </div>
+
+                <div id="auth-register" style="display:none">
+                    <label class="login-label" for="auth-reg-name">Как вас зовут</label>
+                    <input class="login-input" id="auth-reg-name" autocomplete="name">
+                    <label class="login-label" for="auth-reg-login">Логин (латиница, 3–24 символа)</label>
+                    <input class="login-input" id="auth-reg-login" autocomplete="username" autocapitalize="off">
+                    <label class="login-label" for="auth-reg-pass">Пароль (от 8 символов)</label>
+                    <input class="login-input" id="auth-reg-pass" type="password" autocomplete="new-password">
+                    <label class="login-hint" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0">
+                        <input type="checkbox" id="auth-consent" style="margin-top:3px">
+                        <span>Согласен(на) на обработку персональных данных</span>
+                    </label>
+                    <button class="pbtn primary" onclick="authRegister()">Создать аккаунт</button>
+                    <p class="login-status" id="auth-reg-status"></p>
+                </div>
+
+                <p class="profile-hint" style="margin:14px 0 8px">или</p>
                 <a class="pbtn" id="tg-login-btn" href="#" target="_blank" rel="noopener" onclick="return onLoginClick(event)">Войти через Telegram</a>
                 <p class="profile-status" id="profile-status"></p>
-                <p class="profile-hint">Откроется бот «Лад» — нажмите в нём «Start», и вход подтвердится сам. Пароль не нужен, это бесплатно.</p>
+                <p class="profile-hint">Вход по логину работает всегда. Telegram — быстрый, но требует VPN.</p>
             </div>
 
             <div id="profile-me" style="display:none">
@@ -392,7 +423,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=56" defer></script>
+    <script src="app.js?v=57" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -428,7 +459,7 @@
                 <span>Я принимаю <a href="terms.html" target="_blank" rel="noopener">соглашение</a>
                     и <a href="privacy.html" target="_blank" rel="noopener">политику обработки данных</a></span>
             </label>
-            <button class="pbtn primary" onclick="submitPasswordLogin()">Войти</button>
+            <button class="pbtn primary" onclick="authLogin()">Войти</button>
             <p class="login-status" id="login-status"></p>
             <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>
             <button class="link-btn" style="display:block;margin:12px auto 0" onclick="toggleRegister()">Нет аккаунта? Создать</button>

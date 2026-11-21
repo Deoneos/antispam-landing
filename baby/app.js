@@ -1583,6 +1583,79 @@
             });
         }
 
+
+        // ===== ВХОД И РЕГИСТРАЦИЯ ПО ЛОГИНУ (основной способ) =====
+        function setAuthTab(tab) {
+            const loginBox = document.getElementById('auth-login');
+            const regBox = document.getElementById('auth-register');
+            if (loginBox) loginBox.style.display = tab === 'register' ? 'none' : 'block';
+            if (regBox) regBox.style.display = tab === 'register' ? 'block' : 'none';
+            document.querySelectorAll('#auth-tabs button').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-auth') === tab);
+            });
+            const st = document.getElementById('auth-status');
+            if (st) st.textContent = '';
+        }
+
+        function authNotice(el, text) {
+            if (el) el.textContent = text;
+        }
+
+        async function authLogin() {
+            const login = (document.getElementById('auth-login-name').value || '').trim();
+            const pass = document.getElementById('auth-login-pass').value || '';
+            const st = document.getElementById('auth-status');
+            if (!login || !pass) { authNotice(st, 'Заполните логин и пароль'); return; }
+            authNotice(st, 'Вхожу…');
+            try {
+                const res = await fetch(`${API_URL}/auth/password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: login, password: pass })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(d.detail || 'Не удалось войти');
+                localStorage.setItem(LAD_TOKEN_KEY, d.token);
+                authNotice(st, 'Готово');
+                location.reload();
+            } catch (e) {
+                const msg = (e && e.message) || '';
+                authNotice(st, msg === 'Failed to fetch'
+                    ? 'Нет связи с сервером — проверьте интернет или VPN'
+                    : (msg || 'Ошибка входа'));
+            }
+        }
+
+        async function authRegister() {
+            const name = (document.getElementById('auth-reg-name').value || '').trim();
+            const login = (document.getElementById('auth-reg-login').value || '').trim();
+            const pass = document.getElementById('auth-reg-pass').value || '';
+            const consent = document.getElementById('auth-consent');
+            const st = document.getElementById('auth-reg-status');
+            if (!login || !pass) { authNotice(st, 'Заполните логин и пароль'); return; }
+            if (!consent || !consent.checked) { authNotice(st, 'Нужно согласие на обработку данных'); return; }
+            authNotice(st, 'Создаю аккаунт…');
+            try {
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        login: login, password: pass, name: name, consent_version: '2026-11'
+                    })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(d.detail || 'Не удалось зарегистрироваться');
+                localStorage.setItem(LAD_TOKEN_KEY, d.token);
+                authNotice(st, 'Аккаунт создан');
+                location.reload();
+            } catch (e) {
+                const msg = (e && e.message) || '';
+                authNotice(st, msg === 'Failed to fetch'
+                    ? 'Нет связи с сервером — проверьте интернет или VPN'
+                    : (msg || 'Ошибка регистрации'));
+            }
+        }
+
         async function prepareTelegramLogin(force) {
             if (ladLoginUrl && !force) return;
             try {
