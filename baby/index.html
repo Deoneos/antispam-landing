@@ -30,6 +30,15 @@
             <button class="profile-btn" onclick="openProfile()" aria-label="Профиль">👤</button>
             <div class="net-status" id="net-status" style="display: none;"></div>
             <div class="last-feed-badge" id="last-feed-badge">🍼 Последнее: давно</div>
+
+            <div id="onboarding-hint" class="onboard" style="display:none">
+                <div class="onboard-title">С чего начать</div>
+                <p class="onboard-text">Нажми то, что происходит прямо сейчас:</p>
+                <div class="onboard-row">😴 ребёнок спит — кнопка «Сон»</div>
+                <div class="onboard-row">🍼 ест — кнопка «Кормление»</div>
+                <div class="onboard-row">💩 покакал — кнопка «Покакал»</div>
+                <button class="link-btn" onclick="dismissOnboarding()">Понятно</button>
+            </div>
         </div>
 
         <!-- ТАЙМЕРЫ -->
@@ -407,7 +416,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=68" defer></script>
+    <script src="app.js?v=69" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

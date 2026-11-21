@@ -295,3 +295,9 @@ a.row .chev { margin-left: auto; color: var(--muted); }
 .premium-title { font-size: 13px; font-weight: 700; margin: 12px 0 6px; }
 .premium-list { margin: 0 0 4px; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 .premium-list li { margin: 5px 0; }
+
+.onboard { background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+           padding: 14px 16px; margin: 12px 0; }
+.onboard-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+.onboard-text { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+.onboard-row { font-size: 13.5px; padding: 3px 0; }

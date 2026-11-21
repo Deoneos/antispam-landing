@@ -788,6 +788,21 @@
             }
         }
 
+
+        function updateOnboarding(count) {
+            const box = document.getElementById('onboarding-hint');
+            if (!box) return;
+            let done = false;
+            try { done = localStorage.getItem('lad_onboard_done') === '1'; } catch (e) {}
+            box.style.display = (count === 0 && !done) ? 'block' : 'none';
+        }
+
+        function dismissOnboarding() {
+            try { localStorage.setItem('lad_onboard_done', '1'); } catch (e) {}
+            const box = document.getElementById('onboarding-hint');
+            if (box) box.style.display = 'none';
+        }
+
         async function loadEvents() {
             try {
                 let events = [];
@@ -809,6 +824,7 @@
                     }
                 }
                 renderStatus();
+                updateOnboarding(events.length);
                 
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 const activeAwake = events.find(e => e.event_type === 'awake' && !e.end_time);
