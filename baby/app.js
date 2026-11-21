@@ -2168,22 +2168,32 @@ async function sendFeedback() {
                 const st = document.getElementById('plan-status');
                 if (!name || !btn) return;
                 familyPremium = !!d.active;
-                const reportBtn = document.getElementById('report-btn');
-                if (reportBtn) reportBtn.style.display = familyPremium ? '' : 'none';
-                const lockEl = document.getElementById('analytics-lock');
-                if (lockEl) {
-                    const analyticsOpen = document.getElementById('view-analytics').classList.contains('active');
-                    lockEl.style.display = (!familyPremium && analyticsOpen) ? 'block' : 'none';
-                }
+
+                // Сначала то, что видит человек: надпись и дата.
                 name.textContent = d.active ? 'Премиум' : 'Бесплатная';
                 let untilText = '';
                 if (d.active && d.plan_until) {
                     try { untilText = 'до ' + new Date(d.plan_until).toLocaleDateString('ru-RU'); } catch (e) {}
                 }
                 until.textContent = untilText;
-                btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
-                btn.style.display = (d.configured && !d.active) ? '' : 'none';
-                st.textContent = d.active ? '' : ('f' + (d.family_id || '?') + ' · ' + (d.plan || '?') + ' · ' + (d.active ? '1' : '0'));
+                if (st) st.textContent = '';
+
+                // Потом — необязательные элементы интерфейса.
+                try {
+                    const reportBtn = document.getElementById('report-btn');
+                    if (reportBtn) reportBtn.style.display = familyPremium ? '' : 'none';
+                    const lockEl = document.getElementById('analytics-lock');
+                    const analyticsView = document.getElementById('view-analytics');
+                    if (lockEl && analyticsView) {
+                        const analyticsOpen = analyticsView.classList.contains('active');
+                        lockEl.style.display = (!familyPremium && analyticsOpen) ? 'block' : 'none';
+                    }
+                } catch (e) { /* не ломаем подписку из-за аналитики */ }
+
+                if (btn) {
+                    btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
+                    btn.style.display = (d.configured && !d.active) ? '' : 'none';
+                }
             } catch (e) {
                 const el = document.getElementById('plan-status');
                 if (el) el.textContent = 'err ' + (e && e.message ? e.message : 'fetch');
