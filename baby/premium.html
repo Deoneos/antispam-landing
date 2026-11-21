@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лад Премиум</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0F1014; color: #ECEDF1;
+         font-family: "Nunito", "Segoe UI", system-ui, sans-serif; line-height: 1.55; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 28px 18px 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; color: #ECEDF1; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 22px 0 6px; letter-spacing: -0.02em; }
+  .lead { color: #9AA0AE; font-size: 14px; margin-bottom: 20px; }
+  .card { background: #171A22; border: 1px solid #262B36; border-radius: 20px; padding: 18px; margin-bottom: 14px; }
+  .price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .price b { font-size: 34px; }
+  .price span { color: #9AA0AE; font-size: 14px; }
+  .hint { color: #9AA0AE; font-size: 12.5px; }
+  ul { list-style: none; padding: 0; margin: 12px 0 0; }
+  li { padding: 9px 0; border-bottom: 1px solid #232833; font-size: 14.5px; }
+  li:last-child { border-bottom: 0; }
+  li i { font-style: normal; margin-right: 8px; }
+  .btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 54px;
+         border: none; border-radius: 16px; background: #F29B93; color: #2B1B18;
+         font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 16px; }
+  .btn:disabled { opacity: .6; }
+  .status { text-align: center; font-size: 13px; color: #9AA0AE; margin-top: 10px; min-height: 18px; }
+  .compare { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .compare td { padding: 9px 0; border-bottom: 1px solid #232833; }
+  .compare td:first-child { color: #C9CED8; }
+  .compare td:last-child { text-align: right; color: #9AA0AE; }
+  .compare tr:last-child td { border-bottom: 0; }
+  .links { margin-top: 22px; font-size: 12.5px; color: #9AA0AE; line-height: 1.7; }
+  a { color: #F29B93; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 200 200"><defs><clipPath id="lg"><circle cx="100" cy="100" r="86"/></clipPath></defs>
+      <g clip-path="url(#lg)"><rect x="10" y="10" width="90" height="180" fill="#F29B93"/>
+      <rect x="100" y="10" width="90" height="180" fill="#A9C8F5"/>
+      <path d="M100 10 C 74 62, 126 138, 100 190" fill="none" stroke="#0F1014" stroke-width="8"/></g>
+      <circle cx="48" cy="66" r="7" fill="#0F1014"/>
+      <path d="M139 104 a19 19 0 1 0 13 31 a14 14 0 1 1 -13 -31" fill="#0F1014"/>
+    </svg>
+    Лад
+  </div>
+
+  <h1>Лад Премиум</h1>
+  <p class="lead">Больше пользы от дневника: аналитика, отчёт для врача, звуки для сна и несколько детей.</p>
+
+  <div class="card">
+    <div class="price"><b>299 ₽</b><span>за 30 дней</span></div>
+    <div class="hint">Разовая оплата, без автосписаний. Продление — когда захотите.</div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:800;font-size:15px;margin-bottom:2px">Что входит</div>
+    <ul>
+      <li><i>📈</i> Аналитика: графики сна, кормлений и объёма, сравнение дней</li>
+      <li><i>📄</i> PDF-отчёт для врача — с графиками и сводкой</li>
+      <li><i>🎵</i> 12 звуков для сна: белый шум, дождь, океан, сердце, «шшш»</li>
+      <li><i>👶</i> Несколько детей в одной семье</li>
+      <li><i>📊</i> Экспорт в Excel (CSV)</li>
+      <li><i>🔔</i> Свои интервалы напоминаний</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <table class="compare">
+      <tr><td>Таймеры и история</td><td>бесплатно</td></tr>
+      <tr><td>Календарь и напоминания</td><td>бесплатно</td></tr>
+      <tr><td>Аналитика и отчёт</td><td>Премиум</td></tr>
+      <tr><td>Звуки для сна</td><td>Премиум</td></tr>
+      <tr><td>Второй ребёнок</td><td>Премиум</td></tr>
+    </table>
+  </div>
+
+  <button class="btn" id="buy" onclick="buy()">Оформить за 299 ₽</button>
+  <p class="status" id="status"></p>
+
+  <div class="links">
+    Оплата через ЮKassa — картой или СБП. Данные карты приложению не передаются.<br>
+    <a href="payment.html">Условия оплаты и возврата</a> ·
+    <a href="terms.html">Соглашение</a> ·
+    <a href="privacy.html">Политика данных</a> ·
+    <a href="./">Вернуться в приложение</a>
+  </div>
+</div>
+
+<script>
+  const API = 'https://baby.kustos.ru/api/baby';
+
+  function token() {
+    try { return localStorage.getItem('lad_token') || localStorage.getItem('baby_api_token') || ''; } catch (e) { return ''; }
+  }
+
+  async function loadStatus() {
+    const t = token();
+    const st = document.getElementById('status');
+    if (!t) { st.textContent = 'Войдите в приложении, чтобы оформить подписку'; return; }
+    try {
+      const res = await fetch(API + '/billing/status', { headers: { 'Authorization': 'Bearer ' + t } });
+      if (!res.ok) return;
+      const d = await res.json();
+      if (d.active) {
+        const until = d.plan_until ? new Date(d.plan_until).toLocaleDateString('ru-RU') : '';
+        st.textContent = 'Премиум уже активен' + (until ? ' до ' + until : '');
+        document.getElementById('buy').textContent = 'Продлить за ' + d.price_rub + ' ₽';
+      }
+    } catch (e) {}
+  }
+
+  async function buy() {
+    const t = token();
+    const btn = document.getElementById('buy');
+    const st = document.getElementById('status');
+    if (!t) { st.textContent = 'Сначала войдите в приложении'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Создаю платёж…';
+    try {
+      const res = await fetch(API + '/billing/pay', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + t }
+      });
+      const d = await res.json().catch(function () { return {}; });
+      if (!res.ok || !d.confirmation_url) throw new Error(d.detail || 'Не удалось создать платёж');
+      location.href = d.confirmation_url;
+    } catch (e) {
+      st.textContent = e.message === 'Failed to fetch'
+        ? 'Нет связи с сервером — проверьте интернет или VPN'
+        : e.message;
+      btn.disabled = false;
+      btn.textContent = 'Оформить за 299 ₽';
+    }
+  }
+
+  loadStatus();
+</script>
+</body>
+</html>

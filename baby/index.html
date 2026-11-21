@@ -129,7 +129,7 @@
             <div class="premium-lock-icon">🔒</div>
             <h2>Аналитика — в Премиуме</h2>
             <p>Графики сна, кормлений и объёма, сравнение дней, отчёт для врача и звуки для сна.</p>
-            <a class="pbtn primary" href="payment.html" target="_blank" rel="noopener">Подробнее о подписке</a>
+            <a class="pbtn primary" href="premium.html">Подробнее о подписке</a>
         </div>
         <div class="header">
             <h1>📈 Аналитика</h1>
@@ -274,7 +274,7 @@
                             <li>📊 Экспорт в Excel</li>
                             <li>🔔 Свои интервалы напоминаний</li>
                         </ul>
-                        <button class="pbtn primary" id="plan-btn" onclick="startPayment()">Оформить за 299 ₽</button>
+                        <button class="pbtn primary" id="plan-btn" onclick="location.href='premium.html'">Оформить за 299 ₽</button>
                     </div>
                     <p class="login-status" id="plan-status"></p>
                 </div>
@@ -405,7 +405,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=63" defer></script>
+    <script src="app.js?v=64" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
