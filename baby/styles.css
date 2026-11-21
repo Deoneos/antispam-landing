@@ -291,3 +291,7 @@ a.row .chev { margin-left: auto; color: var(--muted); }
         .seg button.active { background: var(--card); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
         .tips { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
         .tips li { margin: 5px 0; }
+
+.premium-title { font-size: 13px; font-weight: 700; margin: 12px 0 6px; }
+.premium-list { margin: 0 0 4px; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.premium-list li { margin: 5px 0; }

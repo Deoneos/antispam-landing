@@ -14,7 +14,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=24">
+    <link rel="stylesheet" href="styles.css?v=25">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -264,7 +264,18 @@
                 <div class="plan-card" id="plan-card">
                     <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
                     <div class="plan-until" id="plan-until"></div>
-                    <button class="pbtn primary" id="plan-btn" onclick="startPayment()" style="display:none">Оформить</button>
+                    <div id="premium-promo">
+                        <div class="premium-title">⭐ Премиум открывает</div>
+                        <ul class="premium-list">
+                            <li>📈 Аналитика и графики сна, кормлений и объёма</li>
+                            <li>📄 PDF-отчёт для врача</li>
+                            <li>🎵 12 звуков для сна: дождь, океан, сердце, «шшш»</li>
+                            <li>👶 Несколько детей в одной семье</li>
+                            <li>📊 Экспорт в Excel</li>
+                            <li>🔔 Свои интервалы напоминаний</li>
+                        </ul>
+                        <button class="pbtn primary" id="plan-btn" onclick="startPayment()">Оформить за 299 ₽</button>
+                    </div>
                     <p class="login-status" id="plan-status"></p>
                 </div>
                 <a class="row" href="install.html" target="_blank" rel="noopener">
@@ -394,7 +405,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=62" defer></script>
+    <script src="app.js?v=63" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

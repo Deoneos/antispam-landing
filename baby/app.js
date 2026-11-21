@@ -2405,9 +2405,11 @@ async function sendFeedback() {
                     }
                 } catch (e) { /* не ломаем подписку из-за аналитики */ }
 
+                const promo = document.getElementById('premium-promo');
+                if (promo) promo.style.display = d.active ? 'none' : 'block';
                 if (btn) {
                     btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
-                    btn.style.display = (d.configured && !d.active) ? '' : 'none';
+                    btn.style.display = d.configured ? '' : 'none';
                 }
             } catch (e) {
                 if (dbg) dbg.textContent = 'dbg err ' + (e && e.message ? e.message : 'fetch');
