@@ -1,84 +1,93 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Оплата и возврат — Лад</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: #FBF7F1; color: #2B2723;
-         font-family: "Nunito", "Segoe UI", system-ui, sans-serif; line-height: 1.65; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
-  .brand svg { width: 34px; height: 34px; }
-  h1 { font-size: 28px; line-height: 1.25; margin: 26px 0 6px; letter-spacing: -0.02em; }
-  .meta { color: #8A7F73; font-size: 13px; margin-bottom: 26px; }
-  h2 { font-size: 18px; margin: 28px 0 8px; }
-  p, li { font-size: 15px; color: #3A342E; }
-  ul { padding-left: 20px; }
-  a { color: #B06A5E; }
-  .price { background: #FFF1EC; border: 1px solid #F3D4CB; border-radius: 16px; padding: 18px 20px; margin: 16px 0; }
-  .price b { font-size: 26px; }
-  footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #E8DFD2; font-size: 13px; color: #8A7F73; }
+  body { margin: 0; background: #0F1014; color: #ECEDF1;
+         font-family: "Nunito", "Segoe UI", system-ui, sans-serif; line-height: 1.6; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 26px 18px 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+  h1 { font-size: 26px; margin: 20px 0 4px; letter-spacing: -0.02em; }
+  .meta { color: #8B92A0; font-size: 12.5px; margin-bottom: 18px; }
+  .card { background: #171A22; border: 1px solid #262B36; border-radius: 18px; padding: 16px 18px; margin-bottom: 12px; }
+  .price { display: flex; align-items: baseline; gap: 8px; }
+  .price b { font-size: 30px; }
+  .price span { color: #8B92A0; font-size: 13.5px; }
+  h2 { font-size: 15px; margin: 0 0 8px; }
+  p, li { font-size: 14px; color: #C6CBD6; margin: 0 0 8px; }
+  ul { margin: 0 0 4px; padding-left: 18px; }
+  li { margin: 4px 0; }
+  a { color: #F29B93; }
+  .small { font-size: 12.5px; color: #8B92A0; }
+  footer { margin-top: 22px; font-size: 12.5px; color: #8B92A0; line-height: 1.8; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="brand">
-    <svg viewBox="0 0 200 200"><defs><clipPath id="m"><circle cx="100" cy="100" r="86"/></clipPath></defs>
-      <g clip-path="url(#m)"><rect x="10" y="10" width="90" height="180" fill="#F29B93"/>
+    <svg width="28" height="28" viewBox="0 0 200 200"><defs><clipPath id="lg"><circle cx="100" cy="100" r="86"/></clipPath></defs>
+      <g clip-path="url(#lg)"><rect x="10" y="10" width="90" height="180" fill="#F29B93"/>
       <rect x="100" y="10" width="90" height="180" fill="#A9C8F5"/>
-      <path d="M100 10 C 74 62, 126 138, 100 190" fill="none" stroke="#FBF7F1" stroke-width="8"/></g>
-      <circle cx="48" cy="66" r="7" fill="#FBF7F1"/>
-      <path d="M139 104 a19 19 0 1 0 13 31 a14 14 0 1 1 -13 -31" fill="#FBF7F1"/>
+      <path d="M100 10 C 74 62, 126 138, 100 190" fill="none" stroke="#0F1014" stroke-width="8"/></g>
+      <circle cx="48" cy="66" r="7" fill="#0F1014"/>
+      <path d="M139 104 a19 19 0 1 0 13 31 a14 14 0 1 1 -13 -31" fill="#0F1014"/>
     </svg>
     Лад
   </div>
 
   <h1>Оплата и возврат</h1>
-  <div class="meta">Редакция от 16.11.2026 · приложение «Лад» (kustos.ru/baby)</div>
+  <div class="meta">Редакция от 21.11.2026 · приложение «Лад»</div>
 
-  <h2>1. Исполнитель</h2>
-  <p>Сахаров Захар Андреевич, плательщик налога на профессиональный доход (самозанятый),
-     ИНН 262903139762. Контакты: <a href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a>,
-     Telegram <a href="https://t.me/Lad_passed_bot">@Lad_passed_bot</a>.</p>
-
-  <h2>2. Услуга и цена</h2>
-  <div class="price">
-    <b>299 ₽</b> — подписка «Лад Премиум» на 30 дней.<br>
-    Оплата разовая, без автоматического списания.
+  <div class="card">
+    <div class="price"><b>299 ₽</b><span>подписка «Лад Премиум» на 30 дней</span></div>
+    <p class="small" style="margin-top:6px">Разовая оплата. Автоматического списания и продления нет.</p>
   </div>
-  <p>Подписка открывает: аналитику и графики, PDF-отчёт для врача,
-     звуки для сна (белый шум, дождь, утроба, сердце) и приоритетную поддержку.
-     Базовые функции (таймеры, история,
-     статистика) остаются бесплатными.</p>
-  <p>Актуальная цена всегда указана на этой странице и в приложении перед оплатой.</p>
 
-  <h2>3. Как оплатить</h2>
-  <p>Оплата проходит на стороне платёжного сервиса (ЮKassa или Robokassa) банковской картой
-     или через СБП. Приложение не получает и не хранит данные вашей карты.</p>
-  <p>После успешной оплаты подписка активируется автоматически, обычно в течение минуты.
-     Чек самозанятого формируется в приложении «Мой налог» и направляется покупателю.</p>
+  <div class="card">
+    <h2>Кто оказывает услугу</h2>
+    <p>Сахаров Захар Андреевич, плательщик НПД (самозанятый), ИНН 262903139762.</p>
+    <p class="small">Связь: <a href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a> ·
+      Telegram <a href="https://t.me/Lad_passed_bot">@Lad_passed_bot</a></p>
+  </div>
 
-  <h2>4. Возврат</h2>
-  <p>Вы можете отказаться от услуги и запросить возврат в течение 14 дней с момента оплаты,
-     если платные функции не использовались. Для возврата напишите на
-     <a href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a> с указанием
-     даты и суммы платежа.</p>
-  <p>Возврат производится тем же способом, которым была произведена оплата, в течение
-     10 рабочих дней с момента получения заявления. Если платные функции уже использовались,
-     возврат производится пропорционально неиспользованному периоду по согласованию сторон.</p>
+  <div class="card">
+    <h2>Что входит в подписку</h2>
+    <ul>
+      <li>аналитика и графики сна, кормлений и объёма;</li>
+      <li>PDF-отчёт для врача;</li>
+      <li>звуки для сна;</li>
+      <li>несколько детей в одной семье;</li>
+      <li>экспорт в Excel;</li>
+      <li>свои интервалы напоминаний.</li>
+    </ul>
+    <p class="small" style="margin-top:8px">Базовые функции — таймеры, история, календарь и напоминания — бесплатны.</p>
+  </div>
 
-  <h2>5. Продление</h2>
-  <p>Автоматического продления нет. По окончании 30 дней подписка переходит в бесплатный
-     тариф; продлить можно в любой момент в профиле приложения.</p>
+  <div class="card">
+    <h2>Как оплатить</h2>
+    <p>Оплата проходит в ЮKassa: банковской картой или через СБП. Приложение не получает и не хранит данные карты.</p>
+    <p>Подписка включается автоматически, обычно в течение минуты после оплаты. Чек самозанятого формируется в приложении «Мой налог».</p>
+  </div>
 
-  <h2>6. Документы</h2>
-  <p><a href="terms.html">Пользовательское соглашение</a> ·
-     <a href="privacy.html">Политика обработки персональных данных</a></p>
+  <div class="card">
+    <h2>Возврат</h2>
+    <p>Вернуть деньги можно в течение <b>14 дней</b> с момента оплаты, если платными функциями не пользовались.</p>
+    <p>Напишите на <a href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a>: дата и сумма платежа. Вернём тем же способом в течение 10 рабочих дней. Если функции уже использовались — вернём пропорционально оставшемуся периоду по согласованию.</p>
+  </div>
+
+  <div class="card">
+    <h2>Продление</h2>
+    <p>Через 30 дней подписка сама переходит в бесплатный тариф. Продлить можно в любой момент в профиле.</p>
+  </div>
 
   <footer>
-    © 2026 Лад · <a href="./">Вернуться в приложение</a>
+    <a href="premium.html">Оформить подписку</a> ·
+    <a href="terms.html">Пользовательское соглашение</a> ·
+    <a href="privacy.html">Политика обработки данных</a><br>
+    <a href="./">Вернуться в приложение</a>
   </footer>
 </div>
 </body>
