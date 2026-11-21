@@ -14,9 +14,9 @@
   .install-sub { text-align: center; color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 22px; }
   .step-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 14px; }
   .step-card h3 { font-size: 17px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
-  .step { display: flex; gap: 12px; margin: 10px 0; font-size: 14px; line-height: 1.45; }
-  .step b { flex: 0 0 24px; height: 24px; border-radius: 50%; background: #2a6df4; color: #fff;
-            display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step { display: flex; gap: 12px; margin: 10px 0; font-size: 14px; line-height: 1.45; align-items: flex-start; }
+  .step .n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; background: #2a6df4; color: #fff;
+             display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
   .install-cta { display: block; text-align: center; margin-top: 18px; }
   .note { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin-top: 14px; }
 </style>
@@ -27,28 +27,28 @@
     <svg width="72" height="72" viewBox="0 0 200 200"><defs><clipPath id="lg"><circle cx="100" cy="100" r="86"/></clipPath></defs><g clip-path="url(#lg)"><rect x="10" y="10" width="90" height="180" fill="#F29B93"/><rect x="100" y="10" width="90" height="180" fill="#A9C8F5"/><path d="M100 10 C 74 62, 126 138, 100 190" fill="none" stroke="#1C1D22" stroke-width="8"/></g><circle cx="48" cy="66" r="7" fill="#1C1D22"/><path d="M139 104 a19 19 0 1 0 13 31 a14 14 0 1 1 -13 -31" fill="#1C1D22"/></svg>
   </div>
   <div class="install-title">Установить «Лад»</div>
-  <p class="install-sub">Приложение ставится прямо из браузера — без App Store и Google Play.
-    Займёт меньше минуты, иконка появится на главном экране.</p>
+  <p class="install-sub">Ставится прямо из браузера — без App Store и Google Play.
+    Меньше минуты, иконка появится на главном экране.</p>
 
   <div class="step-card">
     <h3>🍏 iPhone / iPad</h3>
-    <div class="step"><b>1</b><span>Откройте <b>эту страницу</b> в <b>Safari</b> (именно Safari, не Chrome и не встроенный браузер Telegram).</span></div>
-    <div class="step"><b>2</b><span>Нажмите кнопку <b>«Поделиться»</b> — квадрат со стрелкой вверх внизу экрана.</span></div>
-    <div class="step"><b>3</b><span>Прокрутите и выберите <b>«На экран „Домой“»</b>.</span></div>
-    <div class="step"><b>4</b><span>Нажмите <b>«Добавить»</b> — иконка «Лад» появится на рабочем столе.</span></div>
+    <div class="step"><span class="n">1</span><span>Откройте эту страницу в <strong>Safari</strong> — не в Chrome и не во встроенном браузере Telegram.</span></div>
+    <div class="step"><span class="n">2</span><span>Нажмите <strong>«Поделиться»</strong> — квадрат со стрелкой вверх внизу экрана.</span></div>
+    <div class="step"><span class="n">3</span><span>Выберите <strong>«На экран „Домой“»</strong>.</span></div>
+    <div class="step"><span class="n">4</span><span>Нажмите <strong>«Добавить»</strong> — иконка «Лад» появится на рабочем столе.</span></div>
   </div>
 
   <div class="step-card">
     <h3>🤖 Android</h3>
-    <div class="step"><b>1</b><span>Откройте страницу в <b>Chrome</b>.</span></div>
-    <div class="step"><b>2</b><span>Нажмите <b>⋮</b> в правом верхнем углу.</span></div>
-    <div class="step"><b>3</b><span>Выберите <b>«Установить приложение»</b> (или «Добавить на главный экран»).</span></div>
-    <div class="step"><b>4</b><span>Подтвердите — «Лад» появится среди приложений.</span></div>
+    <div class="step"><span class="n">1</span><span>Откройте страницу в <strong>Chrome</strong>.</span></div>
+    <div class="step"><span class="n">2</span><span>Нажмите <strong>⋮</strong> в правом верхнем углу.</span></div>
+    <div class="step"><span class="n">3</span><span>Выберите <strong>«Установить приложение»</strong> (или «Добавить на главный экран»).</span></div>
+    <div class="step"><span class="n">4</span><span>Подтвердите — «Лад» появится среди приложений.</span></div>
   </div>
 
   <a class="pbtn primary install-cta" href="./">Открыть приложение</a>
 
-  <p class="note">Если кнопки «Установить» нет — значит страница открыта во встроенном браузере
+  <p class="note">Если кнопки «Установить» нет — страница открыта во встроенном браузере
     (например, из Telegram). Нажмите «⋯» → «Открыть в Safari» или «Открыть в Chrome» и повторите.</p>
   <p class="note">Вход — по логину и паролю или через Telegram. Данные семьи хранятся на нашем сервере.</p>
 </div>
