@@ -1,7 +1,7 @@
 'use strict';
 
 // ===== КОНСТАНТЫ =====
-const API_BASE = 'https://telegram-bot-zakharsakharov.msk1.amvera.tech';
+const API_BASE = 'https://baby.kustos.ru';
 const LS_STATE = 'personal_state_v1';
 const LS_TOKEN = 'personal_token_v1';
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];

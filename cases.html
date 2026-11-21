@@ -120,7 +120,7 @@
     // Загрузка отзывов
     async function loadReviews() {
         try {
-            const res = await fetch('https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/reviews');
+            const res = await fetch('https://baby.kustos.ru/api/reviews');
             const data = await res.json();
             const container = document.getElementById('dynamic-reviews');
             if (!container || !data.reviews || data.reviews.length === 0) return;
@@ -154,7 +154,7 @@
         status.textContent = '';
         
         try {
-            const res = await fetch('https://telegram-bot-zakharsakharov.msk1.amvera.tech/api/reviews', {
+            const res = await fetch('https://baby.kustos.ru/api/reviews', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, role, text })
