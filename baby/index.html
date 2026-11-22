@@ -351,6 +351,7 @@
                 <button class="htab active" data-tab="growth" onclick="switchHealthTab('growth')">Вес и рост</button>
                 <button class="htab" data-tab="vaccines" onclick="switchHealthTab('vaccines')">Прививки</button>
                 <button class="htab" data-tab="health" onclick="switchHealthTab('health')">Температура</button>
+                <button class="htab" data-tab="milestones" onclick="switchHealthTab('milestones')">Вехи</button>
             </div>
 
             <div id="growth-pane">
@@ -380,6 +381,20 @@
                     <button class="pbtn primary" style="width:54px;flex:none" onclick="addMed()">＋</button>
                 </div>
                 <div id="health-list" class="measure-list"></div>
+            </div>
+
+            <div id="milestones-pane" style="display:none">
+                <div class="ms-quick">
+                    <button class="ms-chip" onclick="openMilestoneModal('Первый зуб')">🦷 Первый зуб</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('Первая улыбка')">😊 Первая улыбка</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('Первый шаг')">👣 Первый шаг</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('Первое слово')">💬 Первое слово</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('Начал сидеть')">🪑 Сидит</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('Начал ползать')">🐛 Ползает</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('Начал вставать')">🧍 Встаёт</button>
+                    <button class="ms-chip" onclick="openMilestoneModal('')">＋ Своё</button>
+                </div>
+                <div id="milestone-list" class="measure-list"></div>
             </div>
 
             <button class="pbtn ghost" onclick="backFromGrowth()">← Назад</button>
@@ -452,6 +467,24 @@
     </div>
 
     <audio id="noise-audio" loop preload="auto" playsinline></audio>
+
+    <!-- ВЕХА -->
+    <div class="modal-overlay" id="milestone-modal" onclick="closeMilestoneModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>Новая веха</h2>
+            <label class="m-label">Событие
+                <input type="text" id="ms-title" maxlength="60" placeholder="напр. Первый зуб">
+            </label>
+            <label class="m-label">Дата
+                <input type="date" id="ms-date">
+            </label>
+            <label class="m-label">Заметка
+                <input type="text" id="ms-note" maxlength="200" placeholder="необязательно">
+            </label>
+            <button class="pbtn primary" onclick="saveMilestone()">Сохранить</button>
+            <button class="pbtn ghost" onclick="document.getElementById('milestone-modal').style.display='none'">Отмена</button>
+        </div>
+    </div>
 
     <!-- ОБРАТНАЯ СВЯЗЬ -->
     <div class="modal-overlay" id="feedback-modal" onclick="closeFeedback(event)">

@@ -2682,6 +2682,112 @@ async function sendFeedback() {
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
 
 
+
+        // ===== ВЕХИ =====
+        let healthMilestones = [];
+
+        function msAge(dateStr) {
+            try {
+                const child = (typeof ladProfile !== 'undefined' && ladProfile && ladProfile.children && ladProfile.children[0]) || null;
+                if (!child || !child.birth_date) return '';
+                const birth = new Date(child.birth_date + 'T12:00:00');
+                const d = new Date(dateStr + 'T12:00:00');
+                if (isNaN(birth) || isNaN(d)) return '';
+                let months = (d.getFullYear() - birth.getFullYear()) * 12 + (d.getMonth() - birth.getMonth());
+                if (d.getDate() < birth.getDate()) months -= 1;
+                if (months < 0) return '';
+                if (months < 1) {
+                    const days = Math.max(0, Math.round((d - birth) / 86400000));
+                    return days + ' дн.';
+                }
+                return months + ' мес.';
+            } catch (e) { return ''; }
+        }
+
+        async function loadMilestones() {
+            try {
+                const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : 0;
+                const res = await fetch(`${API_URL}/milestones?child_id=${cid}`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
+                healthMilestones = await res.json();
+                if (!Array.isArray(healthMilestones)) healthMilestones = [];
+                renderMilestones();
+            } catch (e) {}
+        }
+
+        function renderMilestones() {
+            const list = document.getElementById('milestone-list');
+            if (!list) return;
+            const items = (healthMilestones || []).slice().reverse();
+            if (!items.length) {
+                list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 2px">' +
+                    'Пока пусто. Отметь первое событие — оно останется здесь навсегда.</div>';
+                return;
+            }
+            list.innerHTML = items.map(function (m) {
+                const age = msAge(m.date);
+                return '<div class="ms-row" onclick="openMilestoneModal(\'' + esc(m.title).replace(/'/g, '') + '\',' + m.id + ')">' +
+                    '<div><b>' + esc(m.title) + '</b><div class="d" style="color:var(--muted);font-size:12px">' +
+                    gFmtDate(m.date) + (m.note ? ' · ' + esc(m.note) : '') + '</div></div>' +
+                    '<span class="ms-age">' + age + '</span>' +
+                    '<button class="del" onclick="event.stopPropagation();deleteMilestone(' + m.id + ')">✕</button></div>';
+            }).join('');
+        }
+
+        function openMilestoneModal(title, id) {
+            const m = document.getElementById('milestone-modal');
+            if (!m) return;
+            document.getElementById('ms-title').value = title || '';
+            document.getElementById('ms-date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('ms-note').value = '';
+            if (id) {
+                const item = (healthMilestones || []).find(function (x) { return x.id === id; });
+                if (item) {
+                    document.getElementById('ms-title').value = item.title || '';
+                    document.getElementById('ms-date').value = item.date || '';
+                    document.getElementById('ms-note').value = item.note || '';
+                }
+            }
+            m.dataset.editId = id || '';
+            m.style.display = 'flex';
+        }
+
+        function closeMilestoneModal(e) {
+            if (!e || e.target.id === 'milestone-modal') {
+                const m = document.getElementById('milestone-modal');
+                if (m) m.style.display = 'none';
+            }
+        }
+
+        async function saveMilestone() {
+            const title = (document.getElementById('ms-title').value || '').trim();
+            const date = document.getElementById('ms-date').value;
+            const note = document.getElementById('ms-note').value || '';
+            if (!title) { toast('Укажите событие', true); return; }
+            const modal = document.getElementById('milestone-modal');
+            const editId = modal.dataset.editId ? Number(modal.dataset.editId) : 0;
+            try {
+                const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : null;
+                let url = `${API_URL}/milestones`;
+                let method = 'POST';
+                let body = { title: title, date: date, note: note, child_id: cid };
+                if (editId) { url += '/' + editId; method = 'PATCH'; delete body.child_id; }
+                const res = await fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(body) });
+                if (!res.ok) throw new Error();
+                modal.style.display = 'none';
+                toast('Сохранено');
+                loadMilestones();
+            } catch (e) { toast('Не удалось сохранить', true); }
+        }
+
+        async function deleteMilestone(id) {
+            try {
+                const res = await fetch(`${API_URL}/milestones/${id}`, { method: 'DELETE', headers: apiHeaders() });
+                if (!res.ok) throw new Error();
+                loadMilestones();
+            } catch (e) { toast('Не удалось удалить', true); }
+        }
+
         // ===== ЗДОРОВЬЕ: ВЕС, РОСТ, ПРИВИВКИ =====
         let growthChart = null;
         let healthMeasurements = [];
@@ -2705,6 +2811,7 @@ async function sendFeedback() {
             document.getElementById('health-pane').style.display = tab === 'health' ? '' : 'none';
             if (tab === 'vaccines') loadVaccines();
             if (tab === 'health') loadHealthLog();
+            if (tab === 'milestones') loadMilestones();
         }
 
         function gPad(n) { return n < 10 ? '0' + n : '' + n; }
