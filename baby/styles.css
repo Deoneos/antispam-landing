@@ -163,6 +163,12 @@
         .player-controls { display: flex; flex-direction: column; align-items: center;
             gap: 16px; margin-top: 18px; }
         .pc-main { display: flex; align-items: center; gap: 18px; }
+        .sleep-timer { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+        .timer-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+            background: transparent; color: var(--muted); font: inherit; font-size: 13px;
+            font-weight: 700; cursor: pointer; }
+        .timer-chip.active { border-color: #F29B93; color: #F29B93; background: rgba(242,155,147,.1); }
+
         .pc-play { width: 72px; height: 72px; border-radius: 50%; border: none;
             display: flex; align-items: center; justify-content: center;
             background: linear-gradient(145deg, #F7B4AD, #E8837A); color: #2b1b18;
@@ -192,6 +198,18 @@
         input.pc-range::-webkit-slider-thumb:active { transform: scale(1.15); }
         input.pc-range::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%;
             background: #fff; border: none; box-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
+
+        .toggle-row { display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; padding: 10px 0; font-size: 14px; }
+        .sw { position: relative; display: inline-block; width: 46px; height: 26px; flex: none; }
+        .sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .sw .sl { position: absolute; inset: 0; background: var(--border);
+            border-radius: 13px; transition: background .2s; }
+        .sw .sl:before { content: ''; position: absolute; width: 20px; height: 20px;
+            left: 3px; top: 3px; background: #fff; border-radius: 50%;
+            transition: transform .2s; box-shadow: 0 2px 5px rgba(0,0,0,.35); }
+        .sw input:checked + .sl { background: #F29B93; }
+        .sw input:checked + .sl:before { transform: translateX(20px); }
 
         .cal-primary { display: flex; align-items: center; justify-content: center; width: calc(100% - 32px);
             margin: 4px 16px 12px; height: 52px; border: none; border-radius: 16px;

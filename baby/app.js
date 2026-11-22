@@ -84,6 +84,88 @@
         }
 
 
+
+
+        // ===== ТАЙМЕР СНА =====
+        let sleepTimerId = null;
+        let sleepFadeId = null;
+
+        function resetTimerChips() {
+            document.querySelectorAll('.timer-chip').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-min') === '0');
+            });
+        }
+
+        function setSleepTimer(minutes) {
+            if (sleepTimerId) { clearTimeout(sleepTimerId); sleepTimerId = null; }
+            if (sleepFadeId) { clearInterval(sleepFadeId); sleepFadeId = null; }
+            document.querySelectorAll('.timer-chip').forEach(function (b) {
+                b.classList.toggle('active', Number(b.getAttribute('data-min')) === Number(minutes));
+            });
+            if (!minutes) return;
+            sleepTimerId = setTimeout(fadeOutAndStop, minutes * 60 * 1000);
+            toast('Звук выключится через ' + minutes + ' мин');
+        }
+
+        function fadeOutAndStop() {
+            const startVolume = currentVolume;
+            let v = startVolume;
+            sleepFadeId = setInterval(function () {
+                v = Math.max(0, v - startVolume / 20);
+                if (noiseEl) noiseEl.volume = v;
+                if (v <= 0.001) {
+                    clearInterval(sleepFadeId);
+                    sleepFadeId = null;
+                    sleepTimerId = null;
+                    stopCurrentAudio();
+                    if (noiseEl) noiseEl.volume = currentVolume;
+                    resetTimerChips();
+                }
+            }, 500);
+        }
+
+        // ===== НАСТРОЙКИ УВЕДОМЛЕНИЙ =====
+        const NOTIFY_LABELS = {
+            push: 'Push-уведомления',
+            reminders: 'Кормление и подгузник',
+            appointments: 'Приёмы у врача',
+            vaccines: 'Прививки',
+            weekly: 'Итоги недели'
+        };
+
+        async function loadNotifyPrefs() {
+            try {
+                const res = await fetch(`${API_URL}/notify/prefs`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const prefs = await res.json();
+                Object.keys(NOTIFY_LABELS).forEach(function (key) {
+                    const el = document.getElementById('np-' + key);
+                    if (el) el.checked = prefs[key] !== false;
+                });
+            } catch (e) {}
+        }
+
+        async function setNotifyPref(key, enabled) {
+            const status = document.getElementById('notify-status');
+            try {
+                const res = await fetch(`${API_URL}/notify/prefs`, {
+                    method: 'PUT',
+                    headers: apiHeaders(true),
+                    body: JSON.stringify({ key: key, enabled: !!enabled })
+                });
+                if (!res.ok) throw new Error();
+                if (status) {
+                    status.textContent = (NOTIFY_LABELS[key] || key) + ': ' + (enabled ? 'включено' : 'выключено');
+                    status.style.color = '';
+                }
+                setTimeout(function () { if (status) status.textContent = ''; }, 2500);
+            } catch (e) {
+                const el = document.getElementById('np-' + key);
+                if (el) el.checked = !enabled;
+                toast('Не удалось сохранить', true);
+            }
+        }
+
         // ===== СКРОЛЛ НИЖНЕГО МЕНЮ =====
         function navArrowUpdate() {
             const nav = document.getElementById('bottom-nav');
@@ -528,6 +610,9 @@
         }
 
         function stopCurrentAudio() {
+            if (sleepTimerId) { clearTimeout(sleepTimerId); sleepTimerId = null; }
+            if (sleepFadeId) { clearInterval(sleepFadeId); sleepFadeId = null; }
+            if (typeof resetTimerChips === 'function') resetTimerChips();
             if (noiseEl) { try { noiseEl.pause(); } catch (e) {} }
             isPlaying = false;
             if (playPauseBtn) playPauseBtn.classList.remove('playing');
@@ -1937,6 +2022,7 @@
         function openProfile() {
             document.getElementById('profile-modal').style.display = 'flex';
             loadProfile();
+            loadNotifyPrefs();
         }
 
         function closeProfileModal(e) {
