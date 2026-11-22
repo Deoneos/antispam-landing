@@ -140,6 +140,7 @@
             <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="exportData()">⬇️ Экспорт данных</button>
             <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="exportCsv()">📊 Экспорт в Excel (CSV)</button>
             <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="openTokenModal()">🔑 Токен доступа</button>
+            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="openGrowth()">📏 Вес, рост и прививки</button>
             <div class="log-list" id="app-list"></div>
         </div>
     </div>
@@ -312,6 +313,33 @@
         </div>
     </div>
 
+    <!-- ЗДОРОВЬЕ: ВЕС, РОСТ, ПРИВИВКИ -->
+    <div id="view-growth" class="view">
+        <div class="header"><h1>📏 Здоровье</h1></div>
+        <div class="stats-container">
+            <div class="health-tabs">
+                <button class="htab active" data-tab="growth" onclick="switchHealthTab('growth')">Вес и рост</button>
+                <button class="htab" data-tab="vaccines" onclick="switchHealthTab('vaccines')">Прививки</button>
+            </div>
+
+            <div id="growth-pane">
+                <div class="stat-cards">
+                    <div class="stat-card"><div class="value" id="g-last-weight">—</div><div class="label">Вес</div></div>
+                    <div class="stat-card"><div class="value" id="g-last-height">—</div><div class="label">Рост</div></div>
+                </div>
+                <div class="chart-wrap"><canvas id="growth-chart"></canvas></div>
+                <button class="pbtn primary" id="g-add" onclick="openMeasurementModal()">＋ Добавить измерение</button>
+                <div id="measure-list" class="measure-list"></div>
+            </div>
+
+            <div id="vaccines-pane" style="display:none">
+                <div id="vaccine-list" class="vaccine-list"></div>
+            </div>
+
+            <button class="pbtn ghost" onclick="backFromGrowth()">← Назад</button>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchView('tracker', this)">
             <span class="icon">🏠</span> Трекер
@@ -328,6 +356,30 @@
         <button class="nav-item" onclick="openNoiseModal()">
             <span class="icon">🎵</span> Звуки
         </button>
+    </div>
+
+    <!-- ИЗМЕРЕНИЕ -->
+    <div class="modal-overlay" id="measure-modal" onclick="closeMeasureModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>Добавить измерение</h2>
+            <label class="m-label">Дата
+                <input type="date" id="m-date">
+            </label>
+            <label class="m-label">Вес, кг
+                <input type="number" inputmode="decimal" step="0.01" id="m-weight" placeholder="напр. 6.4">
+            </label>
+            <label class="m-label">Рост, см
+                <input type="number" inputmode="decimal" step="0.1" id="m-height" placeholder="напр. 62">
+            </label>
+            <label class="m-label">Окружность головы, см
+                <input type="number" inputmode="decimal" step="0.1" id="m-head" placeholder="необязательно">
+            </label>
+            <label class="m-label">Заметка
+                <input type="text" id="m-note" maxlength="200" placeholder="необязательно">
+            </label>
+            <button class="pbtn primary" onclick="saveMeasurement()">Сохранить</button>
+            <button class="pbtn ghost" onclick="document.getElementById('measure-modal').style.display='none'">Отмена</button>
+        </div>
     </div>
 
     <!-- ОБРАТНАЯ СВЯЗЬ -->

@@ -13,8 +13,8 @@
   h1 { font-size: 26px; margin: 20px 0 4px; letter-spacing: -0.02em; }
   .meta { color: #8B92A0; font-size: 12.5px; margin-bottom: 18px; }
   .card { background: #171A22; border: 1px solid #262B36; border-radius: 18px; padding: 16px 18px; margin-bottom: 12px; }
-  .price { display: flex; align-items: baseline; gap: 8px; }
-  .price b { font-size: 30px; }
+  .price { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .price b { font-size: 30px; white-space: nowrap; }
   .price span { color: #8B92A0; font-size: 13.5px; }
   h2 { font-size: 15px; margin: 0 0 8px; }
   p, li { font-size: 14px; color: #C6CBD6; margin: 0 0 8px; }
@@ -22,7 +22,15 @@
   li { margin: 4px 0; }
   a { color: #F29B93; }
   .small { font-size: 12.5px; color: #8B92A0; }
-  footer { margin-top: 22px; font-size: 12.5px; color: #8B92A0; line-height: 1.8; }
+  footer { margin-top: 22px; }
+  .flink { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+           padding: 13px 15px; margin-bottom: 8px; border: 1px solid #262B36; border-radius: 14px;
+           background: #171A22; color: #ECEDF1; font-size: 13.5px; text-decoration: none;
+           -webkit-tap-highlight-color: transparent; }
+  .flink span { color: #8B92A0; font-size: 18px; line-height: 1; }
+  .flink:active { background: #1F2430; }
+  .flink.primary { border-color: #F29B93; color: #F29B93; font-weight: 700; }
+  .flink.primary span { color: #F29B93; }
 </style>
 </head>
 <body>
@@ -42,7 +50,7 @@
   <div class="meta">Редакция от 21.11.2026 · приложение «Лад»</div>
 
   <div class="card">
-    <div class="price"><b>299 ₽</b><span>подписка «Лад Премиум» на 30 дней</span></div>
+    <div class="price"><b>299 руб.</b><span>подписка «Лад Премиум» на 30 дней</span></div>
     <p class="small" style="margin-top:6px">Разовая оплата. Автоматического списания и продления нет.</p>
   </div>
 
@@ -84,10 +92,10 @@
   </div>
 
   <footer>
-    <a href="premium.html">Оформить подписку</a> ·
-    <a href="terms.html">Пользовательское соглашение</a> ·
-    <a href="privacy.html">Политика обработки данных</a><br>
-    <a href="./">Вернуться в приложение</a>
+    <a class="flink primary" href="premium.html">Оформить подписку <span>›</span></a>
+    <a class="flink" href="terms.html">Пользовательское соглашение <span>›</span></a>
+    <a class="flink" href="privacy.html">Политика обработки данных <span>›</span></a>
+    <a class="flink" href="./">Вернуться в приложение <span>›</span></a>
   </footer>
 </div>
 </body>

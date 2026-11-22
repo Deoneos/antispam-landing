@@ -13,8 +13,8 @@
   h1 { font-size: 30px; line-height: 1.2; margin: 22px 0 6px; letter-spacing: -0.02em; }
   .lead { color: #9AA0AE; font-size: 14px; margin-bottom: 20px; }
   .card { background: #171A22; border: 1px solid #262B36; border-radius: 20px; padding: 18px; margin-bottom: 14px; }
-  .price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-  .price b { font-size: 34px; }
+  .price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+  .price b { font-size: 34px; white-space: nowrap; }
   .price span { color: #9AA0AE; font-size: 14px; }
   .hint { color: #9AA0AE; font-size: 12.5px; }
   ul { list-style: none; padding: 0; margin: 12px 0 0; }
@@ -52,7 +52,7 @@
   <p class="lead">Больше пользы от дневника: аналитика, отчёт для врача, звуки для сна и несколько детей.</p>
 
   <div class="card">
-    <div class="price"><b>299 ₽</b><span>за 30 дней</span></div>
+    <div class="price"><b>299 руб.</b><span>за 30 дней</span></div>
     <div class="hint">Разовая оплата, без автосписаний. Продление — когда захотите.</div>
   </div>
 
@@ -78,7 +78,7 @@
     </table>
   </div>
 
-  <button class="btn" id="buy" onclick="buy()">Оформить за 299 ₽</button>
+  <button class="btn" id="buy" onclick="buy()">Оформить за 299 руб.</button>
   <p class="status" id="status"></p>
 
   <div class="links">
@@ -108,7 +108,7 @@
       if (d.active) {
         const until = d.plan_until ? new Date(d.plan_until).toLocaleDateString('ru-RU') : '';
         st.textContent = 'Премиум уже активен' + (until ? ' до ' + until : '');
-        document.getElementById('buy').textContent = 'Продлить за ' + d.price_rub + ' ₽';
+        document.getElementById('buy').textContent = 'Продлить за ' + d.price_rub + ' руб.';
       }
     } catch (e) {}
   }
@@ -133,7 +133,7 @@
         ? 'Нет связи с сервером — проверьте интернет или VPN'
         : e.message;
       btn.disabled = false;
-      btn.textContent = 'Оформить за 299 ₽';
+      btn.textContent = 'Оформить за 299 руб.';
     }
   }
 

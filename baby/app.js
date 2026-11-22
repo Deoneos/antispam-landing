@@ -2,6 +2,13 @@
         const THEME_KEY = 'lad_theme';
         const TZ_KEY = 'lad_tz';
 
+        // Фильтр ленты записей по типу
+        const LOG_FILTER_KEY = 'lad_log_filter';
+        let logFilter = 'all';
+        try {
+            logFilter = localStorage.getItem(LOG_FILTER_KEY) || 'all';
+        } catch (e) {}
+
         function themePref() {
             try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch (e) { return 'auto'; }
         }
@@ -62,7 +69,8 @@
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`view-${viewName}`).classList.add('active');
-            btn.classList.add('active');
+            if (btn) btn.classList.add('active');
+            if (viewName === 'growth') { loadGrowth(); return; }
             if (viewName === 'stats') loadStats();
             if (viewName === 'calendar') loadAppointments();
             if (viewName === 'analytics') {
@@ -331,7 +339,7 @@
             if (!token) { toast('Нужно войти в профиль', true); return; }
             try {
                 toast('Готовлю таблицу…');
-                const res = await fetch(`${API_URL}/events/history?days=90`, { headers: apiHeaders() });
+                const res = await fetch(`${API_URL}/events/history?days=14`, { headers: apiHeaders() });
                 const events = await res.json();
                 if (!Array.isArray(events) || !events.length) {
                     toast('Нет данных за 90 дней', true);
@@ -910,7 +918,11 @@
                 const labelOf = (key) => new Date(key + 'T12:00:00+03:00')
                     .toLocaleDateString('ru-RU', { timeZone: tz(), day: '2-digit', month: 'long' });
 
-                events.forEach(e => {
+                const listEvents = events.filter(e =>
+                    logFilter === 'all' || e.event_type === logFilter
+                );
+
+                listEvents.forEach(e => {
                     if ((e.event_type === 'sleep' || e.event_type === 'awake' || e.event_type === 'walk') && !e.end_time) return;
                     const k = dayKey(e.start_time);
                     if (!grouped[k]) grouped[k] = [];
@@ -923,13 +935,36 @@
                     const dateStr = labelOf(key);
                     const open = isToday || expandedDays.has(key);
 
+                    // Сводка по дню: что и сколько записей
+                    const cnt = { feed: 0, sleep: 0, awake: 0, diaper: 0, walk: 0 };
+                    grouped[key].forEach(e => {
+                        if (Object.prototype.hasOwnProperty.call(cnt, e.event_type)) {
+                            if ((e.event_type === 'sleep' || e.event_type === 'awake' || e.event_type === 'walk') && !e.end_time) return;
+                            cnt[e.event_type] += 1;
+                        }
+                    });
+                    const metaParts = [];
+                    if (cnt.feed) metaParts.push('🍼 ' + cnt.feed);
+                    if (cnt.sleep) metaParts.push('🌙 ' + cnt.sleep);
+                    if (cnt.awake) metaParts.push('👀 ' + cnt.awake);
+                    if (cnt.diaper) metaParts.push('💧 ' + cnt.diaper);
+                    if (cnt.walk) metaParts.push('🚶 ' + cnt.walk);
+                    const meta = metaParts.join('  ·  ') || 'записи';
+                    const parts = dateStr.split(' ');
+                    const dayNum = parts[0];
+                    const monShort = (parts[1] || '').slice(0, 3);
+
                     html += `<div class="day-section${isToday ? ' today' : ''}${open ? ' open' : ''}">`;
 
+                    const tile = `<span class="day-tile"><b>${dayNum}</b><i>${monShort}</i></span>`;
+                    const info = `<span class="day-info"><b>${isToday ? 'Сегодня' : dateStr}</b>`
+                        + `<span class="day-meta">${meta}</span></span>`;
+
                     if (isToday) {
-                        html += `<div class="log-date-title">Сегодня</div>`;
+                        html += `<div class="log-date-title day-head">${tile}${info}</div>`;
                     } else {
-                        html += `<button type="button" class="log-date-title day-toggle" data-day="${key}" aria-expanded="${open}">`
-                            + `<span>📅 ${dateStr}</span><span class="chev" aria-hidden="true">▼</span></button>`;
+                        html += `<button type="button" class="log-date-title day-toggle day-head" data-day="${key}" aria-expanded="${open}">`
+                            + `${tile}${info}<span class="chev" aria-hidden="true">▼</span></button>`;
                     }
 
                     html += `<div class="day-body">`;
@@ -995,8 +1030,9 @@
                 if (html) {
                     if (list.innerHTML !== html) list.innerHTML = html;
                 } else {
-                    list.innerHTML = '<div class="log-empty">Пока нет записей за две недели</div>';
+                    list.innerHTML = '<div class="log-empty">Нет записей за выбранный период</div>';
                 }
+                syncFilterUi();
             } catch(e) { console.error("Ошибка загрузки событий", e); }
         }
 
@@ -2415,6 +2451,27 @@ async function sendFeedback() {
             } catch (e) {}
         }
 
+        function syncFilterUi() {
+            document.querySelectorAll('#log-chips .chip').forEach(function (c) {
+                c.classList.toggle('active', c.getAttribute('data-f') === logFilter);
+            });
+        }
+
+        (function initLogFilters() {
+            const chips = document.getElementById('log-chips');
+            if (chips) {
+                chips.addEventListener('click', function (ev) {
+                    const btn = ev.target.closest('.chip');
+                    if (!btn) return;
+                    logFilter = btn.getAttribute('data-f') || 'all';
+                    try { localStorage.setItem(LOG_FILTER_KEY, logFilter); } catch (e) {}
+                    syncFilterUi();
+                    loadEvents();
+                });
+            }
+            syncFilterUi();
+        })();
+
         if (ladToken() || apiToken()) {
             refreshPushSubscription();
             loadBilling();
@@ -2433,6 +2490,231 @@ async function sendFeedback() {
         }
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
+
+
+        // ===== ЗДОРОВЬЕ: ВЕС, РОСТ, ПРИВИВКИ =====
+        let growthChart = null;
+        let healthMeasurements = [];
+        let healthVaccines = [];
+
+        function openGrowth() {
+            switchView('growth', null);
+        }
+
+        function backFromGrowth() {
+            const btn = document.querySelector('.nav-item[onclick*="calendar"]');
+            switchView('calendar', btn);
+        }
+
+        function switchHealthTab(tab) {
+            document.querySelectorAll('.htab').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+            });
+            document.getElementById('growth-pane').style.display = tab === 'growth' ? '' : 'none';
+            document.getElementById('vaccines-pane').style.display = tab === 'vaccines' ? '' : 'none';
+            if (tab === 'vaccines') loadVaccines();
+        }
+
+        function gPad(n) { return n < 10 ? '0' + n : '' + n; }
+
+        function gFmtDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T12:00:00');
+            if (isNaN(d)) return iso;
+            return gPad(d.getDate()) + '.' + gPad(d.getMonth() + 1) + '.' + d.getFullYear();
+        }
+
+        function gFmtShort(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T12:00:00');
+            if (isNaN(d)) return iso;
+            return gPad(d.getDate()) + '.' + gPad(d.getMonth() + 1);
+        }
+
+        function gAddDays(iso, days) {
+            const d = new Date(iso + 'T12:00:00');
+            d.setDate(d.getDate() + days);
+            return d.toISOString().slice(0, 10);
+        }
+
+        async function loadGrowth() {
+            try {
+                const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : 0;
+                const res = await fetch(`${API_URL}/measurements?child_id=${cid}`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
+                healthMeasurements = await res.json();
+                if (!Array.isArray(healthMeasurements)) healthMeasurements = [];
+                renderGrowth();
+            } catch (e) {}
+        }
+
+        function renderGrowth() {
+            const items = healthMeasurements || [];
+            const lastW = items.slice().reverse().find(function (m) { return m.weight_g; });
+            const lastH = items.slice().reverse().find(function (m) { return m.height_cm; });
+            const wEl = document.getElementById('g-last-weight');
+            const hEl = document.getElementById('g-last-height');
+            if (wEl) wEl.textContent = lastW ? (lastW.weight_g / 1000).toFixed(2) + ' кг' : '—';
+            if (hEl) hEl.textContent = lastH ? lastH.height_cm + ' см' : '—';
+
+            const list = document.getElementById('measure-list');
+            if (list) {
+                list.innerHTML = items.slice().reverse().map(function (m) {
+                    const parts = [];
+                    if (m.weight_g) parts.push('<b>' + (m.weight_g / 1000).toFixed(2) + ' кг</b>');
+                    if (m.height_cm) parts.push(m.height_cm + ' см');
+                    if (m.head_cm) parts.push('голова ' + m.head_cm + ' см');
+                    return '<div class="measure-row"><div>' + parts.join(' · ') +
+                        '<div class="d">' + gFmtDate(m.date) +
+                        (m.note ? ' · ' + esc(m.note) : '') + '</div></div>' +
+                        '<button class="del" onclick="deleteMeasurement(' + m.id + ')">✕</button></div>';
+                }).join('') || '<div style="color:var(--muted);font-size:13px;padding:4px 2px">Пока нет измерений</div>';
+            }
+            drawGrowthChart(items);
+        }
+
+        async function drawGrowthChart(items) {
+            const canvas = document.getElementById('growth-chart');
+            if (!canvas || !items.length) return;
+            try { await loadChartLib(); } catch (e) { return; }
+            if (typeof Chart === 'undefined') return;
+            const labels = items.map(function (m) { return gFmtShort(m.date); });
+            const weights = items.map(function (m) { return m.weight_g ? +(m.weight_g / 1000).toFixed(2) : null; });
+            const heights = items.map(function (m) { return m.height_cm ? +m.height_cm : null; });
+            if (growthChart) { growthChart.destroy(); growthChart = null; }
+            growthChart = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Вес, кг', data: weights, borderColor: '#F29B93',
+                          backgroundColor: 'rgba(242,155,147,.15)', tension: .35, spanGaps: true, yAxisID: 'y' },
+                        { label: 'Рост, см', data: heights, borderColor: '#A9C8F5',
+                          backgroundColor: 'rgba(169,200,245,.15)', tension: .35, spanGaps: true, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#9CA3AF', boxWidth: 12 } } },
+                    scales: {
+                        x: { ticks: { color: '#9CA3AF', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,.05)' } },
+                        y: { position: 'left', ticks: { color: '#F29B93' }, grid: { color: 'rgba(255,255,255,.05)' } },
+                        y1: { position: 'right', ticks: { color: '#A9C8F5' }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        }
+
+        function openMeasurementModal() {
+            const m = document.getElementById('measure-modal');
+            if (!m) return;
+            document.getElementById('m-date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('m-weight').value = '';
+            document.getElementById('m-height').value = '';
+            document.getElementById('m-head').value = '';
+            document.getElementById('m-note').value = '';
+            m.style.display = 'flex';
+        }
+
+        function closeMeasureModal(e) {
+            if (!e || e.target.id === 'measure-modal' || e.type === 'click') {
+                const m = document.getElementById('measure-modal');
+                if (m && (!e || e.target.id === 'measure-modal' || e.target.tagName === 'BUTTON')) m.style.display = 'none';
+            }
+        }
+
+        async function saveMeasurement() {
+            const date = document.getElementById('m-date').value;
+            const w = parseFloat(document.getElementById('m-weight').value);
+            const h = parseFloat(document.getElementById('m-height').value);
+            const hd = parseFloat(document.getElementById('m-head').value);
+            const note = document.getElementById('m-note').value || '';
+            if (!date) { toast('Укажите дату', true); return; }
+            if (!w && !h && !hd) { toast('Введите вес или рост', true); return; }
+            const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : null;
+            try {
+                const res = await fetch(`${API_URL}/measurements`, {
+                    method: 'POST',
+                    headers: apiHeaders(true),
+                    body: JSON.stringify({
+                        date: date,
+                        weight_g: w ? Math.round(w * 1000) : null,
+                        height_cm: h || null,
+                        head_cm: hd || null,
+                        note: note,
+                        child_id: cid
+                    })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                document.getElementById('measure-modal').style.display = 'none';
+                toast('Сохранено');
+                loadGrowth();
+            } catch (e) {
+                toast('Не удалось сохранить', true);
+            }
+        }
+
+        async function deleteMeasurement(id) {
+            try {
+                const res = await fetch(`${API_URL}/measurements/${id}`, { method: 'DELETE', headers: apiHeaders() });
+                if (!res.ok) throw new Error();
+                loadGrowth();
+            } catch (e) { toast('Не удалось удалить', true); }
+        }
+
+        async function loadVaccines() {
+            try {
+                const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : 0;
+                const res = await fetch(`${API_URL}/vaccines?child_id=${cid}`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
+                healthVaccines = await res.json();
+                if (!Array.isArray(healthVaccines)) healthVaccines = [];
+                renderVaccines();
+            } catch (e) {}
+        }
+
+        function renderVaccines() {
+            const list = document.getElementById('vaccine-list');
+            if (!list) return;
+            const items = healthVaccines || [];
+            if (!items.length) {
+                list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 2px">' +
+                    'Добавьте дату рождения ребёнка в профиле — календарь прививок построится сам.</div>';
+                return;
+            }
+            const today = new Date().toISOString().slice(0, 10);
+            list.innerHTML = items.map(function (v) {
+                const done = !!v.done_date;
+                const late = !done && v.due_date && v.due_date < today;
+                const soon = !done && !late && v.due_date && v.due_date <= gAddDays(today, 30);
+                const cls = 'vaccine-row' + (done ? ' done' : '');
+                const dcls = late ? 'late' : (soon ? 'soon' : '');
+                const right = done ? ('сделана ' + gFmtDate(v.done_date))
+                                   : (late ? 'просрочена · ' : '') + gFmtDate(v.due_date);
+                return '<label class="' + cls + '">' +
+                    '<input type="checkbox"' + (done ? ' checked' : '') +
+                    ' onchange="toggleVaccine(' + v.id + ', this.checked)">' +
+                    '<span class="vn">' + esc(v.name) + '</span>' +
+                    '<span class="vd ' + dcls + '">' + right + '</span></label>';
+            }).join('');
+        }
+
+        async function toggleVaccine(id, done) {
+            try {
+                const url = done ? `${API_URL}/vaccines/${id}/done` : `${API_URL}/vaccines/${id}/done`;
+                const method = done ? 'POST' : 'DELETE';
+                const res = await fetch(url, {
+                    method: method,
+                    headers: done ? apiHeaders(true) : apiHeaders(),
+                    body: done ? JSON.stringify({}) : undefined
+                });
+                if (!res.ok) throw new Error();
+                loadVaccines();
+            } catch (e) {
+                toast('Не удалось сохранить', true);
+                loadVaccines();
+            }
+        }
 
         // ===== ПОДПИСКА =====
         async function loadBilling() {
@@ -2482,7 +2764,7 @@ async function sendFeedback() {
                 const promo = document.getElementById('premium-promo');
                 if (promo) promo.style.display = d.active ? 'none' : 'block';
                 if (btn) {
-                    btn.textContent = 'Оформить за ' + d.price_rub + ' ₽';
+                    btn.textContent = 'Оформить за ' + d.price_rub + ' руб.';
                     btn.style.display = d.configured ? '' : 'none';
                 }
             } catch (e) {
