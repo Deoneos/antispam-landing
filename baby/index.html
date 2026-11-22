@@ -320,6 +320,7 @@
             <div class="health-tabs">
                 <button class="htab active" data-tab="growth" onclick="switchHealthTab('growth')">Вес и рост</button>
                 <button class="htab" data-tab="vaccines" onclick="switchHealthTab('vaccines')">Прививки</button>
+                <button class="htab" data-tab="health" onclick="switchHealthTab('health')">Температура</button>
             </div>
 
             <div id="growth-pane">
@@ -334,6 +335,21 @@
 
             <div id="vaccines-pane" style="display:none">
                 <div id="vaccine-list" class="vaccine-list"></div>
+            </div>
+
+            <div id="health-pane" style="display:none">
+                <div class="temp-quick">
+                    <button class="temp-btn" onclick="addTemp(36.6)">36.6</button>
+                    <button class="temp-btn" onclick="addTemp(37.5)">37.5</button>
+                    <button class="temp-btn" onclick="addTemp(38.5)">38.5</button>
+                    <button class="temp-btn" onclick="addTemp(39.5)">39.5</button>
+                </div>
+                <div class="med-row">
+                    <input id="med-name" placeholder="Лекарство" maxlength="40">
+                    <input id="med-dose" placeholder="Доза" maxlength="20">
+                    <button class="pbtn primary" style="width:54px;flex:none" onclick="addMed()">＋</button>
+                </div>
+                <div id="health-list" class="measure-list"></div>
             </div>
 
             <button class="pbtn ghost" onclick="backFromGrowth()">← Назад</button>

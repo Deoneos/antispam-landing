@@ -2512,7 +2512,9 @@ async function sendFeedback() {
             });
             document.getElementById('growth-pane').style.display = tab === 'growth' ? '' : 'none';
             document.getElementById('vaccines-pane').style.display = tab === 'vaccines' ? '' : 'none';
+            document.getElementById('health-pane').style.display = tab === 'health' ? '' : 'none';
             if (tab === 'vaccines') loadVaccines();
+            if (tab === 'health') loadHealthLog();
         }
 
         function gPad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -2659,6 +2661,75 @@ async function sendFeedback() {
                 const res = await fetch(`${API_URL}/measurements/${id}`, { method: 'DELETE', headers: apiHeaders() });
                 if (!res.ok) throw new Error();
                 loadGrowth();
+            } catch (e) { toast('Не удалось удалить', true); }
+        }
+
+
+        async function loadHealthLog() {
+            try {
+                const res = await fetch(`${API_URL}/health?days=30`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
+                const items = await res.json();
+                renderHealthLog(Array.isArray(items) ? items : []);
+            } catch (e) {}
+        }
+
+        function renderHealthLog(items) {
+            const list = document.getElementById('health-list');
+            if (!list) return;
+            if (!items.length) {
+                list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 2px">Пока ничего не записано</div>';
+                return;
+            }
+            const icons = { temp: '🌡', med: '💊', symptom: '🤒' };
+            list.innerHTML = items.map(function (h) {
+                let title = '';
+                if (h.kind === 'temp') title = h.value + ' °C';
+                else if (h.kind === 'med') title = esc(h.note || 'лекарство');
+                else title = esc(h.note || 'симптом');
+                const t = new Date(h.at);
+                const time = isNaN(t) ? '' : gPad(t.getHours()) + ':' + gPad(t.getMinutes());
+                const date = isNaN(t) ? '' : gPad(t.getDate()) + '.' + gPad(t.getMonth() + 1);
+                return '<div class="measure-row"><div><b>' + (icons[h.kind] || '•') + ' ' + title + '</b>' +
+                    '<div class="d">' + date + ' · ' + time + (h.kind === 'med' && h.unit ? ' · ' + esc(h.unit) : '') + '</div></div>' +
+                    '<button class="del" onclick="deleteHealthLog(' + h.id + ')">✕</button></div>';
+            }).join('');
+        }
+
+        async function addTemp(v) {
+            try {
+                const res = await fetch(`${API_URL}/health`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ kind: 'temp', value: v, unit: 'C' })
+                });
+                if (!res.ok) throw new Error();
+                toast('Записано: ' + v + ' °C');
+                loadHealthLog();
+            } catch (e) { toast('Не удалось сохранить', true); }
+        }
+
+        async function addMed() {
+            const name = (document.getElementById('med-name').value || '').trim();
+            const dose = (document.getElementById('med-dose').value || '').trim();
+            if (!name) { toast('Укажите лекарство', true); return; }
+            try {
+                const res = await fetch(`${API_URL}/health`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ kind: 'med', note: name, unit: dose })
+                });
+                if (!res.ok) throw new Error();
+                document.getElementById('med-name').value = '';
+                document.getElementById('med-dose').value = '';
+                toast('Записано');
+                loadHealthLog();
+            } catch (e) { toast('Не удалось сохранить', true); }
+        }
+
+        async function deleteHealthLog(id) {
+            try {
+                const res = await fetch(`${API_URL}/health/${id}`, { method: 'DELETE', headers: apiHeaders() });
+                if (!res.ok) throw new Error();
+                loadHealthLog();
             } catch (e) { toast('Не удалось удалить', true); }
         }
 
