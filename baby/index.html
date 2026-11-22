@@ -14,7 +14,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=35">
+    <link rel="stylesheet" href="styles.css?v=36">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -80,11 +80,11 @@
             <div class="log-filters" id="log-filters">
                 <div class="chips" id="log-chips">
                     <button type="button" class="chip active" data-f="all">Все</button>
-                    <button type="button" class="chip" data-f="feed">🍼 Кормление</button>
-                    <button type="button" class="chip" data-f="sleep">🌙 Сон</button>
-                    <button type="button" class="chip" data-f="diaper">💧 Подгузник</button>
-                    <button type="button" class="chip" data-f="walk">🚶 Прогулка</button>
-                    <button type="button" class="chip" data-f="awake">👀 Бодрствование</button>
+                    <button type="button" class="chip" data-f="feed" title="Кормления" aria-label="Кормления">🍼</button>
+                    <button type="button" class="chip" data-f="sleep" title="Сон" aria-label="Сон">🌙</button>
+                    <button type="button" class="chip" data-f="diaper" title="Подгузники" aria-label="Подгузники">💧</button>
+                    <button type="button" class="chip" data-f="walk" title="Прогулки" aria-label="Прогулки">🚶</button>
+                    <button type="button" class="chip" data-f="awake" title="Бодрствование" aria-label="Бодрствование">👀</button>
                 </div>
             </div>
             <div class="log-list" id="log-list"></div>
@@ -428,7 +428,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=82" defer></script>
+    <script src="app.js?v=83" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
