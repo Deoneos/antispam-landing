@@ -499,44 +499,93 @@
         const sounds = { 'white': 'sounds/white.mp3?v=3', 'rain': 'sounds/rain.mp3?v=3', 'womb': 'sounds/womb.mp3?v=3', 'heart': 'sounds/heart.mp3?v=3', 'pink': 'sounds/pink.mp3?v=3', 'brown': 'sounds/brown.mp3?v=3', 'ocean': 'sounds/ocean.mp3?v=3', 'heartbeat': 'sounds/heart2.mp3?v=3', 'fan': 'sounds/fan.mp3?v=3', 'wind': 'sounds/wind.mp3?v=3', 'shush': 'sounds/shush.mp3?v=3', 'train': 'sounds/train.mp3?v=3' };
         const playPauseBtn = document.getElementById('play-pause-btn');
 
-        async function unlockAudio() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-            gainNode = audioCtx.createGain(); gainNode.gain.value = 0.5; gainNode.connect(audioCtx.destination);
-        }
-        async function loadSound(soundName) {
-            if (audioBuffers[soundName]) return audioBuffers[soundName];
-            const response = await fetch(sounds[soundName]);
-            if (!response.ok) throw new Error("Файл не найден");
-            const arrayBuffer = await response.arrayBuffer();
-            audioBuffers[soundName] = await audioCtx.decodeAudioData(arrayBuffer);
-            return audioBuffers[soundName];
-        }
-        function stopCurrentAudio() {
-            if (currentSource) { try { currentSource.stop(); currentSource.disconnect(); } catch(e){} currentSource = null; }
-            isPlaying = false; playPauseBtn.textContent = '▶'; playPauseBtn.classList.remove('playing');
-        }
-        async function playSound(soundName) {
-            if (isAudioLoading) return;
-            isAudioLoading = true;
-            stopCurrentAudio();
-            await unlockAudio();
+        const noiseEl = document.getElementById('noise-audio');
+        let currentVolume = 0.5;
+        const soundTitles = {};
+
+        function updateMediaSession(name) {
+            if (!('mediaSession' in navigator)) return;
             try {
-                const buffer = await loadSound(soundName);
-                currentSource = audioCtx.createBufferSource(); currentSource.buffer = buffer;
-                currentSource.loop = true; currentSource.connect(gainNode); currentSource.start(0);
-                isPlaying = true; playPauseBtn.textContent = '⏸'; playPauseBtn.classList.add('playing');
-            } catch (e) { toast("Ошибка загрузки звука", true); }
-            finally { isAudioLoading = false; }
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: soundTitles[name] || 'Звук для сна',
+                    artist: 'Лад',
+                    album: 'Звуки для сна',
+                    artwork: [
+                        { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+                        { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+                navigator.mediaSession.setActionHandler('play', function () {
+                    if (!isPlaying) playSound(currentSound);
+                });
+                navigator.mediaSession.setActionHandler('pause', function () {
+                    stopCurrentAudio();
+                });
+                navigator.mediaSession.setActionHandler('stop', function () {
+                    stopCurrentAudio();
+                });
+            } catch (e) {}
         }
+
+        function stopCurrentAudio() {
+            if (noiseEl) { try { noiseEl.pause(); } catch (e) {} }
+            isPlaying = false;
+            if (playPauseBtn) {
+                playPauseBtn.textContent = '▶';
+                playPauseBtn.classList.remove('playing');
+            }
+            if ('mediaSession' in navigator) {
+                try { navigator.mediaSession.playbackState = 'paused'; } catch (e) {}
+            }
+        }
+
+        async function playSound(soundName) {
+            if (!noiseEl || isAudioLoading) return;
+            isAudioLoading = true;
+            try {
+                noiseEl.pause();
+                noiseEl.src = sounds[soundName] || soundName;
+                noiseEl.loop = true;
+                noiseEl.volume = currentVolume;
+                await noiseEl.play();
+                isPlaying = true;
+                if (playPauseBtn) {
+                    playPauseBtn.textContent = '⏸';
+                    playPauseBtn.classList.add('playing');
+                }
+                updateMediaSession(soundName);
+                if ('mediaSession' in navigator) {
+                    try { navigator.mediaSession.playbackState = 'playing'; } catch (e) {}
+                }
+            } catch (e) {
+                toast('Не удалось включить звук', true);
+            } finally {
+                isAudioLoading = false;
+            }
+        }
+
         async function changeNoise(btn) {
-            document.querySelectorAll('.noise-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active'); currentSound = btn.getAttribute('data-sound');
+            document.querySelectorAll('.noise-btn').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            currentSound = btn.getAttribute('data-sound');
             if (isPlaying) await playSound(currentSound);
         }
-        async function toggleAudio() { if (isPlaying) { stopCurrentAudio(); } else { await playSound(currentSound); } }
-        function setVolume(val) { if (gainNode) gainNode.gain.value = val; }
+
+        async function toggleAudio() {
+            if (isPlaying) { stopCurrentAudio(); }
+            else { await playSound(currentSound); }
+        }
+
+        function setVolume(val) {
+            currentVolume = Math.max(0, Math.min(1, val));
+            if (noiseEl) noiseEl.volume = currentVolume;
+        }
+
+        if (noiseEl) {
+            noiseEl.addEventListener('pause', function () {
+                if (noiseEl.ended) stopCurrentAudio();
+            });
+        }
 
         async function loadSounds() {
             try {
@@ -549,6 +598,7 @@
                 grid.innerHTML = '';
                 list.forEach(function (s, idx) {
                     sounds[s.id] = s.url;
+                    soundTitles[s.id] = s.title;
                     const b = document.createElement('button');
                     b.className = 'noise-btn' + (idx === 0 ? ' active' : '');
                     b.setAttribute('data-sound', s.id);
