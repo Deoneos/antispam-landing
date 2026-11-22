@@ -83,6 +83,40 @@
             }
         }
 
+
+        // ===== СКРОЛЛ НИЖНЕГО МЕНЮ =====
+        function navArrowUpdate() {
+            const nav = document.getElementById('bottom-nav');
+            const left = document.getElementById('nav-left');
+            const right = document.getElementById('nav-right');
+            if (!nav || !left || !right) return;
+            const max = nav.scrollWidth - nav.clientWidth;
+            left.classList.toggle('show', nav.scrollLeft > 4);
+            right.classList.toggle('show', max > 8 && nav.scrollLeft < max - 4);
+        }
+
+        function navScroll(dir) {
+            const nav = document.getElementById('bottom-nav');
+            if (!nav) return;
+            const step = Math.round(nav.clientWidth * 0.8);
+            nav.scrollBy({ left: dir * step, behavior: 'smooth' });
+        }
+
+        (function initNavScroll() {
+            const nav = document.getElementById('bottom-nav');
+            if (!nav) return;
+            try {
+                const saved = parseInt(localStorage.getItem('lad_nav_scroll') || '0', 10);
+                if (saved > 0) nav.scrollLeft = saved;
+            } catch (e) {}
+            nav.addEventListener('scroll', function () {
+                navArrowUpdate();
+                try { localStorage.setItem('lad_nav_scroll', String(nav.scrollLeft)); } catch (e) {}
+            }, { passive: true });
+            window.addEventListener('resize', navArrowUpdate);
+            setTimeout(navArrowUpdate, 150);
+        })();
+
         // --- УВЕДОМЛЕНИЯ ---
         function toast(message, isError) {
             const host = document.getElementById('toast-host');
