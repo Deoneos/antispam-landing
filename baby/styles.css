@@ -160,6 +160,37 @@
             border: 1px solid var(--border); background: var(--bg); color: var(--text);
             font: inherit; font-size: 14px; }
 
+        .player-controls { display: flex; flex-direction: column; align-items: center;
+            gap: 16px; margin-top: 18px; }
+        .pc-main { display: flex; align-items: center; gap: 18px; }
+        .pc-play { width: 72px; height: 72px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(145deg, #F7B4AD, #E8837A); color: #2b1b18;
+            box-shadow: 0 10px 24px rgba(242, 155, 147, .35); cursor: pointer;
+            transition: transform .12s ease, box-shadow .2s ease; }
+        .pc-play:active { transform: scale(.94); box-shadow: 0 6px 16px rgba(242, 155, 147, .3); }
+        .pc-play svg { width: 30px; height: 30px; }
+        .pc-play .ic-pause { display: none; }
+        .pc-play.playing .ic-play { display: none; }
+        .pc-play.playing .ic-pause { display: block; }
+        .pc-side { width: 48px; height: 48px; border-radius: 50%;
+            border: 1px solid var(--border); background: var(--card); color: var(--muted);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: transform .12s ease, color .2s ease; }
+        .pc-side:active { transform: scale(.92); }
+        .pc-side svg { width: 20px; height: 20px; }
+        .pc-vol { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 320px; }
+        .pc-vol svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+        .pc-range { -webkit-appearance: none; appearance: none; flex: 1; height: 4px;
+            border-radius: 2px; outline: none; cursor: pointer;
+            background: linear-gradient(to right, #F29B93 var(--fill, 50%),
+                        var(--border) var(--fill, 50%)); }
+        .pc-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+            width: 16px; height: 16px; border-radius: 50%; background: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .45); border: none; }
+        .pc-range::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; border: none; box-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
+
         .cal-primary { display: flex; align-items: center; justify-content: center; width: calc(100% - 32px);
             margin: 4px 16px 12px; height: 52px; border: none; border-radius: 16px;
             background: #F29B93; color: #2b1b18; font: inherit; font-size: 16px;
