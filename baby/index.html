@@ -14,7 +14,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=34">
+    <link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -85,17 +85,6 @@
                     <button type="button" class="chip" data-f="diaper">💧 Подгузник</button>
                     <button type="button" class="chip" data-f="walk">🚶 Прогулка</button>
                     <button type="button" class="chip" data-f="awake">👀 Бодрствование</button>
-                </div>
-                <div class="range">
-                    <input type="date" id="log-from" aria-label="С даты">
-                    <span>—</span>
-                    <input type="date" id="log-to" aria-label="По дату">
-                </div>
-                <div class="presets" id="log-presets">
-                    <button type="button" data-days="0">Сегодня</button>
-                    <button type="button" data-days="7">7 дней</button>
-                    <button type="button" data-days="30">30 дней</button>
-                    <button type="button" id="log-reset">Сбросить</button>
                 </div>
             </div>
             <div class="log-list" id="log-list"></div>
@@ -439,7 +428,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=81" defer></script>
+    <script src="app.js?v=82" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
