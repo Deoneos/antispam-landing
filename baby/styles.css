@@ -164,6 +164,7 @@
             font-weight: 800; cursor: pointer; }
         .cal-primary:active { transform: scale(.985); }
         .cal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px 16px; }
+        .cal-grid.one { grid-template-columns: 1fr; }
         .cal-card { display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
             padding: 14px; border-radius: 16px; border: 1px solid var(--border);
             background: var(--card); color: var(--text); font: inherit; text-align: left;
