@@ -133,6 +133,21 @@
             weekly: 'Итоги недели'
         };
 
+
+        async function testPush() {
+            const status = document.getElementById('notify-status');
+            if (status) { status.style.color = ''; status.textContent = 'Отправляю…'; }
+            try {
+                const res = await fetch(`${API_URL}/push/test`, { method: 'POST', headers: apiHeaders() });
+                const d = await res.json();
+                if (status) {
+                    status.textContent = 'Доставлено: ' + (d.sent || 0) + ' из ' + (d.subs || 0);
+                }
+            } catch (e) {
+                if (status) { status.style.color = '#F87171'; status.textContent = 'Не удалось отправить'; }
+            }
+        }
+
         async function loadNotifyPrefs() {
             try {
                 const res = await fetch(`${API_URL}/notify/prefs`, { headers: apiHeaders() });
