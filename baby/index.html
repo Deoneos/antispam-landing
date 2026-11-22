@@ -136,12 +136,26 @@
     <div id="view-calendar" class="view">
         <div class="header"><h1>📅 Календарь</h1></div>
         <div class="stats-container">
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--awake); color: #111827;" onclick="openAppModal()">➕ Добавить запись</button>
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="exportData()">⬇️ Экспорт данных</button>
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="exportCsv()">📊 Экспорт в Excel (CSV)</button>
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="openTokenModal()">🔑 Токен доступа</button>
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" onclick="openGrowth()">📏 Вес, рост и прививки</button>
+            <button class="cal-primary" onclick="openAppModal()">＋ Добавить приём</button>
+
+            <div class="cal-grid">
+                <button class="cal-card" onclick="openGrowth()">
+                    <span class="ci">📏</span><span class="cl">Здоровье</span>
+                    <span class="cs">вес, рост, прививки</span>
+                </button>
+                <button class="cal-card" onclick="exportCsv()">
+                    <span class="ci">📊</span><span class="cl">Экспорт</span>
+                    <span class="cs">в Excel (CSV)</span>
+                </button>
+            </div>
+
+            <div class="cal-sub">Ближайшие приёмы</div>
             <div class="log-list" id="app-list"></div>
+
+            <div class="cal-links">
+                <button onclick="exportData()">Экспорт данных</button>
+                <button onclick="openTokenModal()">Токен доступа</button>
+            </div>
         </div>
     </div>
     <div id="view-analytics" class="view">
