@@ -2566,10 +2566,10 @@ async function sendFeedback() {
                     if (m.weight_g) parts.push('<b>' + (m.weight_g / 1000).toFixed(2) + ' кг</b>');
                     if (m.height_cm) parts.push(m.height_cm + ' см');
                     if (m.head_cm) parts.push('голова ' + m.head_cm + ' см');
-                    return '<div class="measure-row"><div>' + parts.join(' · ') +
+                    return '<div class="measure-row" onclick="openMeasurementModal(' + m.id + ')"><div>' + parts.join(' · ') +
                         '<div class="d">' + gFmtDate(m.date) +
                         (m.note ? ' · ' + esc(m.note) : '') + '</div></div>' +
-                        '<button class="del" onclick="deleteMeasurement(' + m.id + ')">✕</button></div>';
+                        '<button class="del" onclick="event.stopPropagation();deleteMeasurement(' + m.id + ')">✕</button></div>';
                 }).join('') || '<div style="color:var(--muted);font-size:13px;padding:4px 2px">Пока нет измерений</div>';
             }
             drawGrowthChart(items);
@@ -2607,14 +2607,31 @@ async function sendFeedback() {
             });
         }
 
-        function openMeasurementModal() {
+        let editingMeasurementId = null;
+
+        function openMeasurementModal(id) {
             const m = document.getElementById('measure-modal');
             if (!m) return;
-            document.getElementById('m-date').value = new Date().toISOString().slice(0, 10);
-            document.getElementById('m-weight').value = '';
-            document.getElementById('m-height').value = '';
-            document.getElementById('m-head').value = '';
-            document.getElementById('m-note').value = '';
+            editingMeasurementId = id || null;
+            const title = m.querySelector('h2');
+            if (id) {
+                const item = (healthMeasurements || []).find(function (x) { return x.id === id; });
+                if (item) {
+                    document.getElementById('m-date').value = item.date || new Date().toISOString().slice(0, 10);
+                    document.getElementById('m-weight').value = item.weight_g ? item.weight_g : '';
+                    document.getElementById('m-height').value = item.height_cm || '';
+                    document.getElementById('m-head').value = item.head_cm || '';
+                    document.getElementById('m-note').value = item.note || '';
+                    if (title) title.textContent = 'Изменить измерение';
+                }
+            } else {
+                document.getElementById('m-date').value = new Date().toISOString().slice(0, 10);
+                document.getElementById('m-weight').value = '';
+                document.getElementById('m-height').value = '';
+                document.getElementById('m-head').value = '';
+                document.getElementById('m-note').value = '';
+                if (title) title.textContent = 'Добавить измерение';
+            }
             m.style.display = 'flex';
         }
 
@@ -2635,20 +2652,31 @@ async function sendFeedback() {
             if (!w && !h && !hd) { toast('Введите вес или рост', true); return; }
             const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : null;
             try {
-                const res = await fetch(`${API_URL}/measurements`, {
-                    method: 'POST',
+                const payload = {
+                    date: date,
+                    weight_g: w ? Math.round(w) : null,
+                    height_cm: h || null,
+                    head_cm: hd || null,
+                    note: note
+                };
+                let url = `${API_URL}/measurements`;
+                let method = 'POST';
+                if (editingMeasurementId) {
+                    url += '/' + editingMeasurementId;
+                    method = 'PATCH';
+                    delete payload.date;  // дату тоже можно менять
+                    payload.date = date;
+                } else {
+                    payload.child_id = cid;
+                }
+                const res = await fetch(url, {
+                    method: method,
                     headers: apiHeaders(true),
-                    body: JSON.stringify({
-                        date: date,
-                        weight_g: w ? Math.round(w * 1000) : null,
-                        height_cm: h || null,
-                        head_cm: hd || null,
-                        note: note,
-                        child_id: cid
-                    })
+                    body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 document.getElementById('measure-modal').style.display = 'none';
+                editingMeasurementId = null;
                 toast('Сохранено');
                 loadGrowth();
             } catch (e) {
@@ -2665,6 +2693,60 @@ async function sendFeedback() {
         }
 
 
+
+        function openHealthEdit(id) {
+            const item = (healthItems || []).find(function (x) { return x.id === id; });
+            if (!item) return;
+            editingHealthId = id;
+            const isTemp = item.kind === 'temp';
+            document.getElementById('h-temp-wrap').style.display = isTemp ? '' : 'none';
+            document.getElementById('h-med-wrap').style.display = isTemp ? 'none' : '';
+            document.getElementById('h-dose-wrap').style.display = isTemp ? 'none' : '';
+            document.getElementById('h-temp').value = isTemp ? (item.value || '') : '';
+            document.getElementById('h-med').value = !isTemp ? (item.note || '') : '';
+            document.getElementById('h-dose').value = !isTemp ? (item.unit || '') : '';
+            document.getElementById('health-modal-title').textContent =
+                isTemp ? 'Изменить температуру' : 'Изменить лекарство';
+            document.getElementById('health-modal').style.display = 'flex';
+        }
+
+        function closeHealthModal(e) {
+            if (!e || e.target.id === 'health-modal') {
+                const m = document.getElementById('health-modal');
+                if (m) m.style.display = 'none';
+                editingHealthId = null;
+            }
+        }
+
+        async function saveHealthEdit() {
+            if (!editingHealthId) return;
+            const item = (healthItems || []).find(function (x) { return x.id === editingHealthId; });
+            if (!item) return;
+            let payload;
+            if (item.kind === 'temp') {
+                const v = parseFloat(document.getElementById('h-temp').value);
+                if (!v) { toast('Укажите температуру', true); return; }
+                payload = { value: v };
+            } else {
+                const name = (document.getElementById('h-med').value || '').trim();
+                const dose = (document.getElementById('h-dose').value || '').trim();
+                if (!name) { toast('Укажите лекарство', true); return; }
+                payload = { note: name, unit: dose };
+            }
+            try {
+                const res = await fetch(`${API_URL}/health/${editingHealthId}`, {
+                    method: 'PATCH',
+                    headers: apiHeaders(true),
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error();
+                document.getElementById('health-modal').style.display = 'none';
+                editingHealthId = null;
+                toast('Сохранено');
+                loadHealthLog();
+            } catch (e) { toast('Не удалось сохранить', true); }
+        }
+
         async function loadHealthLog() {
             try {
                 const res = await fetch(`${API_URL}/health?days=30`, { headers: apiHeaders() });
@@ -2674,7 +2756,11 @@ async function sendFeedback() {
             } catch (e) {}
         }
 
+        let healthItems = [];
+        let editingHealthId = null;
+
         function renderHealthLog(items) {
+            healthItems = items || [];
             const list = document.getElementById('health-list');
             if (!list) return;
             if (!items.length) {
@@ -2690,9 +2776,9 @@ async function sendFeedback() {
                 const t = new Date(h.at);
                 const time = isNaN(t) ? '' : gPad(t.getHours()) + ':' + gPad(t.getMinutes());
                 const date = isNaN(t) ? '' : gPad(t.getDate()) + '.' + gPad(t.getMonth() + 1);
-                return '<div class="measure-row"><div><b>' + (icons[h.kind] || '•') + ' ' + title + '</b>' +
+                return '<div class="measure-row" onclick="openHealthEdit(' + h.id + ')"><div><b>' + (icons[h.kind] || '•') + ' ' + title + '</b>' +
                     '<div class="d">' + date + ' · ' + time + (h.kind === 'med' && h.unit ? ' · ' + esc(h.unit) : '') + '</div></div>' +
-                    '<button class="del" onclick="deleteHealthLog(' + h.id + ')">✕</button></div>';
+                    '<button class="del" onclick="event.stopPropagation();deleteHealthLog(' + h.id + ')">✕</button></div>';
             }).join('');
         }
 

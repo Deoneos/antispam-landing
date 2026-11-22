@@ -398,6 +398,24 @@
         </div>
     </div>
 
+    <!-- ИЗМЕНЕНИЕ ЗАПИСИ ЗДОРОВЬЯ -->
+    <div class="modal-overlay" id="health-modal" onclick="closeHealthModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 id="health-modal-title">Изменить запись</h2>
+            <label class="m-label" id="h-temp-wrap">Температура, °C
+                <input type="number" inputmode="decimal" step="0.1" id="h-temp">
+            </label>
+            <label class="m-label" id="h-med-wrap">Лекарство
+                <input type="text" id="h-med" maxlength="40">
+            </label>
+            <label class="m-label" id="h-dose-wrap">Доза
+                <input type="text" id="h-dose" maxlength="20">
+            </label>
+            <button class="pbtn primary" onclick="saveHealthEdit()">Сохранить</button>
+            <button class="pbtn ghost" onclick="closeHealthModal()">Отмена</button>
+        </div>
+    </div>
+
     <!-- ОБРАТНАЯ СВЯЗЬ -->
     <div class="modal-overlay" id="feedback-modal" onclick="closeFeedback(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
