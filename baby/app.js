@@ -32,7 +32,8 @@
         applyTheme();
         setInterval(applyTheme, 60 * 60 * 1000);
 
-        const API_URL = 'https://baby.kustos.ru/api/baby';
+        // На baby.kustos.ru API проксируется тем же доменом, на GitHub Pages — на RU.
+        const API_URL = (location.hostname === 'baby.kustos.ru') ? '/api/baby' : 'https://baby.kustos.ru/api/baby';
 
         // Токен доступа: один раз приходит в ссылке ?token=..., дальше живёт в localStorage
         (function bootToken() {
