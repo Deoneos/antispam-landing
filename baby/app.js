@@ -113,8 +113,16 @@
                 navArrowUpdate();
                 try { localStorage.setItem('lad_nav_scroll', String(nav.scrollLeft)); } catch (e) {}
             }, { passive: true });
-            window.addEventListener('resize', navArrowUpdate);
-            setTimeout(navArrowUpdate, 150);
+            function syncArrowHeight() {
+                const h = nav.offsetHeight;
+                if (!h) return;
+                document.querySelectorAll('.nav-arrow').forEach(function (a) {
+                    a.style.height = h + 'px';
+                });
+            }
+            window.addEventListener('resize', function () { syncArrowHeight(); navArrowUpdate(); });
+            setTimeout(function () { syncArrowHeight(); navArrowUpdate(); }, 150);
+            setTimeout(syncArrowHeight, 600);
         })();
 
         // --- УВЕДОМЛЕНИЯ ---
