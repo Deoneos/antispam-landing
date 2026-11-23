@@ -2077,7 +2077,9 @@
 
         function openProfile() {
             document.getElementById('profile-modal').style.display = 'flex';
-            loadProfile();
+            loadProfile().then(function () {
+                if (typeof updateAppTitle === 'function') updateAppTitle();
+            });
             loadNotifyPrefs();
         }
 
@@ -3093,6 +3095,42 @@ async function sendFeedback() {
             if ((healthMeasurements || []).length) renderGrowth();
         }
 
+
+        // ===== ЗАГОЛОВОК С ИМЕНЕМ РЕБЁНКА =====
+        const NAME_EXCEPTIONS = { 'лев': 'Льва', 'любовь': 'Любови', 'пётр': 'Петра', 'петр': 'Петра' };
+
+        function genitiveName(name) {
+            name = (name || '').trim();
+            if (!name || name.length < 2) return '';
+            const lower = name.toLowerCase();
+            if (NAME_EXCEPTIONS[lower]) return NAME_EXCEPTIONS[lower];
+            if (lower.endsWith('ий')) return name.slice(0, -2) + 'ия';
+            if (lower.endsWith('а')) {
+                const prev = lower.slice(-2, -1);
+                return name.slice(0, -1) + (/[гкхжчшщц]/.test(prev) ? 'и' : 'ы');
+            }
+            if (lower.endsWith('я')) return name.slice(0, -1) + 'и';
+            if (lower.endsWith('ь')) return name.slice(0, -1) + 'я';
+            if (lower.endsWith('й')) return name.slice(0, -1) + 'я';
+            if (/[оеуыэюи]$/.test(lower)) return name;
+            return name + 'а';
+        }
+
+        function updateAppTitle() {
+            const el = document.getElementById('app-title');
+            if (!el) return;
+            const child = (typeof childInfo === 'function') ? childInfo() : null;
+            const name = child && child.name ? String(child.name).trim() : '';
+            if (name && name !== 'Малыш') {
+                const gen = genitiveName(name);
+                el.textContent = '🌗 Трекер ' + gen;
+                try { document.title = 'Трекер ' + gen; } catch (e) {}
+            } else {
+                el.textContent = '🌗 Лад';
+                try { document.title = 'Лад'; } catch (e) {}
+            }
+        }
+
         function childInfo() {
             try {
                 if (typeof ladProfile !== 'undefined' && ladProfile && ladProfile.children && ladProfile.children[0]) {
@@ -3801,6 +3839,7 @@ async function sendFeedback() {
             try {
                 if (typeof ladToken !== 'function' || !ladToken()) return;
                 loadProfile().then(function () {
+                    if (typeof updateAppTitle === 'function') updateAppTitle();
                     if (typeof renderAgeHint === 'function') renderAgeHint();
                     var gv = document.getElementById('view-growth');
                     if (gv && gv.classList.contains('active') && typeof loadGrowth === 'function') loadGrowth();
