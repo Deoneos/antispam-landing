@@ -1581,6 +1581,29 @@
         }
 
         // --- WEB PUSH ---
+
+        // Проверяем подписку при запуске: если она уже есть — прячем кнопку
+        // и тихо пересылаем её на сервер (после перезапуска приложения).
+        async function initPushState() {
+            const btn = document.getElementById('push-btn');
+            if (!btn) return;
+            try {
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+                if (!('Notification' in window) || Notification.permission !== 'granted') return;
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                if (!sub) return;
+                try {
+                    await fetch(`${API_URL}/subscribe`, {
+                        method: 'POST',
+                        headers: apiHeaders(true),
+                        body: JSON.stringify(sub)
+                    });
+                } catch (e) {}
+                btn.style.display = 'none';
+            } catch (e) {}
+        }
+
         async function subscribePush() {
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 toast("Push не поддерживается. На iPhone добавьте сайт на экран «Домой».", true);
@@ -3835,6 +3858,15 @@ async function sendFeedback() {
 
         // Загружаем профиль ребёнка при старте: нужен возраст и пол
         // для кривых ВОЗ и подсказки по возрасту.
+        setTimeout(function () {
+            if (typeof initPushState === 'function') initPushState();
+        }, 1500);
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && typeof initPushState === 'function') {
+                initPushState();
+            }
+        });
+
         (function initChildInfo() {
             try {
                 if (typeof ladToken !== 'function' || !ladToken()) return;
