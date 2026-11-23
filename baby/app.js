@@ -2959,8 +2959,8 @@ async function sendFeedback() {
         }
 
         function backFromGrowth() {
-            const btn = document.querySelector('.nav-item[onclick*="calendar"]');
-            switchView('calendar', btn);
+            const btn = document.querySelector('.nav-item[onclick*="tracker"]');
+            switchView('tracker', btn);
         }
 
         function switchHealthTab(tab) {

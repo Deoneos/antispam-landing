@@ -123,7 +123,8 @@
 
         /* СТАТИСТИКА */
         .stats-container { padding: 20px; }
-        .stat-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+        .stat-cards.two { grid-template-columns: 1fr 1fr; }
+.stat-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
         .stat-card { background: var(--card); border: 1px solid var(--border); padding: 14px 8px; border-radius: 24px; text-align: center; box-shadow: 0 4px 12px var(--shadow); min-height: 88px; display: flex; flex-direction: column; justify-content: center; }
         .stat-card .value { font-size: 21px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
         .stat-card .label { font-size: 11px; color: var(--muted); font-weight: 700; line-height: 1.2; }
