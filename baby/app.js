@@ -2835,6 +2835,7 @@ async function sendFeedback() {
                 if (d && d.path) {
                     pendingMilestonePhoto = d.path;
                     showMilestonePhoto(d.path);
+                    toast('Фото добавлено');
                 }
             } catch (e) {
                 toast('Не удалось загрузить фото', true);
@@ -2888,7 +2889,8 @@ async function sendFeedback() {
                 const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : null;
                 let url = `${API_URL}/milestones`;
                 let method = 'POST';
-                let body = { title: title, date: date, note: note, photo: pendingMilestonePhoto || null, child_id: cid };
+                let body = { title: title, date: date, note: note, child_id: cid };
+                if (pendingMilestonePhoto) body.photo = pendingMilestonePhoto;
                 if (editId) { url += '/' + editId; method = 'PATCH'; delete body.child_id; }
                 const res = await fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(body) });
                 if (!res.ok) throw new Error();
