@@ -2809,6 +2809,8 @@ async function sendFeedback() {
             document.getElementById('growth-pane').style.display = tab === 'growth' ? '' : 'none';
             document.getElementById('vaccines-pane').style.display = tab === 'vaccines' ? '' : 'none';
             document.getElementById('health-pane').style.display = tab === 'health' ? '' : 'none';
+            const msPane = document.getElementById('milestones-pane');
+            if (msPane) msPane.style.display = tab === 'milestones' ? '' : 'none';
             if (tab === 'vaccines') loadVaccines();
             if (tab === 'health') loadHealthLog();
             if (tab === 'milestones') loadMilestones();
