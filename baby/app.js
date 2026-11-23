@@ -3165,7 +3165,13 @@ async function sendFeedback() {
             const el = document.querySelector(step.sel);
             if (!el || !el.offsetParent) { tourIndex += 1; showTourStep(); return; }
 
+            // меню прокручивается плавно — на время замера отключаем это,
+            // иначе координаты снимаются в середине анимации
+            const navEl = document.querySelector('.bottom-nav');
+            if (navEl) navEl.style.scrollBehavior = 'auto';
             try { el.scrollIntoView({ block: 'center', inline: 'center' }); } catch (e) {}
+            setTimeout(function () { if (navEl) navEl.style.scrollBehavior = ''; }, 120);
+
             setTimeout(function () {
                 const r = el.getBoundingClientRect();
                 if (r.width === 0 && r.height === 0) { tourIndex += 1; showTourStep(); return; }
@@ -3189,7 +3195,7 @@ async function sendFeedback() {
                 let top = r.bottom + 16;
                 if (top + cardH > window.innerHeight - 20) top = Math.max(20, r.top - cardH - 16);
                 card.style.top = top + 'px';
-            }, 260);
+            }, 120);
         }
 
         function nextTourStep() {
