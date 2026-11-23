@@ -2715,6 +2715,7 @@ async function sendFeedback() {
 
         // ===== ВЕХИ =====
         let healthMilestones = [];
+        let growthRangeMonths = 0;
 
         function msAge(dateStr) {
             try {
@@ -2974,6 +2975,15 @@ async function sendFeedback() {
             }
         };
 
+
+        function setGrowthRange(months) {
+            growthRangeMonths = Number(months) || 0;
+            document.querySelectorAll('.range-chip').forEach(function (b) {
+                b.classList.toggle('active', Number(b.getAttribute('data-range')) === growthRangeMonths);
+            });
+            if ((healthMeasurements || []).length) renderGrowth();
+        }
+
         function childInfo() {
             try {
                 if (typeof ladProfile !== 'undefined' && ladProfile && ladProfile.children && ladProfile.children[0]) {
@@ -3032,9 +3042,10 @@ async function sendFeedback() {
             return 'высокий';
         }
 
-        function whoSeries(sex, type) {
+        function whoSeries(sex, type, maxAge) {
             const out = { 3: [], 15: [], 50: [], 85: [], 97: [] };
-            for (let a = 0; a <= 24; a += 1) {
+            const limit = Math.min(24, Math.max(1, Math.ceil(maxAge || 24)));
+            for (let a = 0; a <= limit; a += 1) {
                 const v = whoAt(sex, type, a);
                 if (!v) continue;
                 [3, 15, 50, 85, 97].forEach(function (p, idx) {
@@ -3083,12 +3094,16 @@ async function sendFeedback() {
                 return;
             }
 
-            const wSeries = whoSeries(sex, 'weight');
-            const hSeries = whoSeries(sex, 'height');
+            const maxAge = Math.max.apply(null, ages.concat([1]));
+            const range = growthRangeMonths || Math.max(3, Math.ceil(maxAge + 1));
+            const wSeries = whoSeries(sex, 'weight', range);
+            const hSeries = whoSeries(sex, 'height', range);
             const wMeas = items.filter(function (m) { return m.weight_g; })
-                .map(function (m) { return { x: +ageMonthsOf(m.date).toFixed(2), y: +(m.weight_g / 1000).toFixed(2) }; });
+                .map(function (m) { return { x: +ageMonthsOf(m.date).toFixed(2), y: +(m.weight_g / 1000).toFixed(2) }; })
+                .filter(function (p) { return p.x <= range; });
             const hMeas = items.filter(function (m) { return m.height_cm; })
-                .map(function (m) { return { x: +ageMonthsOf(m.date).toFixed(2), y: +m.height_cm }; });
+                .map(function (m) { return { x: +ageMonthsOf(m.date).toFixed(2), y: +m.height_cm }; })
+                .filter(function (p) { return p.x <= range; });
 
             const whoSet = function (points, label, color, dashed, axis) {
                 return {
@@ -3141,9 +3156,9 @@ async function sendFeedback() {
                         }
                     },
                     scales: {
-                        x: { type: 'linear', min: 0, max: 24,
+                        x: { type: 'linear', min: 0, max: range,
                              title: { display: true, text: 'возраст, мес', color: '#6B7280', font: { size: 10 } },
-                             ticks: { color: '#9CA3AF', stepSize: 3 },
+                             ticks: { color: '#9CA3AF', stepSize: range <= 6 ? 1 : (range <= 12 ? 2 : 3) },
                              grid: { color: 'rgba(255,255,255,.05)' } },
                         y: { position: 'left', ticks: { color: '#F29B93' }, grid: { color: 'rgba(255,255,255,.05)' } },
                         y1: { position: 'right', ticks: { color: '#A9C8F5' }, grid: { drawOnChartArea: false } }

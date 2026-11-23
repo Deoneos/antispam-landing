@@ -108,6 +108,13 @@
         .stat-card .value { font-size: 21px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
         .stat-card .label { font-size: 11px; color: var(--muted); font-weight: 700; line-height: 1.2; }
         .chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 12px var(--shadow); }
+        .range-chips { display: flex; gap: 6px; justify-content: center;
+            margin: 0 16px 8px; flex-wrap: wrap; }
+        .range-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+            background: transparent; color: var(--muted); font: inherit; font-size: 12px;
+            font-weight: 700; cursor: pointer; }
+        .range-chip.active { border-color: #F29B93; color: #F29B93;
+            background: rgba(242, 155, 147, .1); }
         .g-perc { margin: -4px 16px 12px; font-size: 12.5px; color: var(--muted);
             text-align: center; line-height: 1.5; }
         .chart-wrap { position: relative; height: 220px; width: 100%; }

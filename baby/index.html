@@ -361,6 +361,13 @@
                     <div class="stat-card"><div class="value" id="g-last-height">—</div><div class="label">Рост</div></div>
                 </div>
                 <div class="chart-wrap"><canvas id="growth-chart"></canvas></div>
+                <div class="range-chips" id="range-chips">
+                    <button class="range-chip active" data-range="0" onclick="setGrowthRange(0)">авто</button>
+                    <button class="range-chip" data-range="3" onclick="setGrowthRange(3)">3 м</button>
+                    <button class="range-chip" data-range="6" onclick="setGrowthRange(6)">6 м</button>
+                    <button class="range-chip" data-range="12" onclick="setGrowthRange(12)">12 м</button>
+                    <button class="range-chip" data-range="24" onclick="setGrowthRange(24)">24 м</button>
+                </div>
                 <div class="g-perc" id="g-percentiles"></div>
                 <button class="pbtn primary" id="g-add" onclick="openMeasurementModal()">＋ Добавить измерение</button>
                 <div id="measure-list" class="measure-list"></div>
