@@ -1,3 +1,21 @@
+.tour { position: fixed; inset: 0; z-index: 600; }
+.tour-hole { position: fixed; border-radius: 18px; pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(6, 8, 12, .78), 0 0 0 2px rgba(242,155,147,.9);
+    transition: top .3s ease, left .3s ease, width .3s ease, height .3s ease; }
+.tour-card { position: fixed; left: 16px; right: 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 20px; padding: 16px 18px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+.tour-step { font-size: 11px; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: #F29B93; margin-bottom: 6px; }
+.tour-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+.tour-text { font-size: 14px; line-height: 1.45; color: var(--muted); }
+.tour-actions { display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 14px; }
+.tour-skip { background: none; border: none; color: var(--muted); font: inherit;
+    font-size: 14px; font-weight: 600; padding: 8px 0; cursor: pointer; }
+.tour-next { background: #F29B93; color: #2b1b18; border: none; border-radius: 12px;
+    padding: 11px 22px; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+
 .photo-view { position: fixed; inset: 0; z-index: 400; display: none;
     align-items: center; justify-content: center; background: rgba(0,0,0,.92); padding: 16px; }
 .photo-view.show { display: flex; }

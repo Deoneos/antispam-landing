@@ -3119,6 +3119,76 @@ async function sendFeedback() {
         }
 
 
+
+        // ===== ОБУЧЕНИЕ ПРИ ПЕРВОМ ЗАПУСКЕ =====
+        const TOUR_STEPS = [
+            { sel: '#btn-feed', title: 'Покормить', text: 'Одно нажатие — и кормление записано. Можно указать объём смеси.' },
+            { sel: '#awake-btn', title: 'Сон и бодрствование', text: 'Нажми «Уложить спать» — таймер запустится сам. Потом «Разбудить».' },
+            { sel: '#row-walk', title: 'Прогулка', text: 'Здесь же таймер прогулки — начнётся и остановится по нажатию.' },
+            { sel: '#today-card', title: 'Итоги дня', text: 'Кормления, сон, подгузники и прогулки за сегодня — одним взглядом.' },
+            { sel: '.nav-item[onclick*="growth"]', title: 'Здоровье', text: 'Вес, рост, прививки, температура, лекарства и вехи развития.' },
+            { sel: '.nav-item[onclick*="calendar"]', title: 'Календарь', text: 'Приёмы у врача и напоминания о них.' },
+            { sel: '.profile-btn', title: 'Профиль', text: 'Ребёнок, семья, уведомления, премиум и отчёт для врача.' }
+        ];
+        let tourIndex = 0;
+
+        function startTour(force) {
+            try {
+                if (!force && localStorage.getItem('lad_tour_done')) return;
+            } catch (e) { if (!force) return; }
+            tourIndex = 0;
+            const t = document.getElementById('tour');
+            if (!t) return;
+            t.style.display = 'block';
+            showTourStep();
+        }
+
+        function showTourStep() {
+            const t = document.getElementById('tour');
+            if (!t) return;
+            if (tourIndex >= TOUR_STEPS.length) { endTour(); return; }
+            const step = TOUR_STEPS[tourIndex];
+            const el = document.querySelector(step.sel);
+            if (!el || !el.offsetParent) { tourIndex += 1; showTourStep(); return; }
+
+            try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+            setTimeout(function () {
+                const r = el.getBoundingClientRect();
+                if (r.width === 0 && r.height === 0) { tourIndex += 1; showTourStep(); return; }
+                const pad = 6;
+                const hole = document.getElementById('tour-hole');
+                hole.style.top = (r.top - pad) + 'px';
+                hole.style.left = (r.left - pad) + 'px';
+                hole.style.width = (r.width + pad * 2) + 'px';
+                hole.style.height = (r.height + pad * 2) + 'px';
+
+                document.getElementById('tour-title').textContent = step.title;
+                document.getElementById('tour-text').textContent = step.text;
+                document.getElementById('tour-step').textContent = (tourIndex + 1) + ' из ' + TOUR_STEPS.length;
+                const next = document.getElementById('tour-next');
+                if (next) next.textContent = (tourIndex === TOUR_STEPS.length - 1) ? 'Готово' : 'Далее';
+
+                const card = document.getElementById('tour-card');
+                card.style.left = '16px';
+                card.style.right = '16px';
+                const cardH = card.offsetHeight || 170;
+                let top = r.bottom + 16;
+                if (top + cardH > window.innerHeight - 20) top = Math.max(20, r.top - cardH - 16);
+                card.style.top = top + 'px';
+            }, 320);
+        }
+
+        function nextTourStep() {
+            tourIndex += 1;
+            showTourStep();
+        }
+
+        function endTour() {
+            const t = document.getElementById('tour');
+            if (t) t.style.display = 'none';
+            try { localStorage.setItem('lad_tour_done', '1'); } catch (e) {}
+        }
+
         // ===== ЗАГОЛОВОК С ИМЕНЕМ РЕБЁНКА =====
         const NAME_EXCEPTIONS = { 'лев': 'Льва', 'любовь': 'Любови', 'пётр': 'Петра', 'петр': 'Петра' };
 
@@ -3861,6 +3931,9 @@ async function sendFeedback() {
         setTimeout(function () {
             if (typeof initPushState === 'function') initPushState();
         }, 1500);
+        setTimeout(function () {
+            if (typeof startTour === 'function' && typeof ladToken === 'function' && ladToken()) startTour(false);
+        }, 2200);
         document.addEventListener('visibilitychange', function () {
             if (document.visibilityState === 'visible' && typeof initPushState === 'function') {
                 initPushState();

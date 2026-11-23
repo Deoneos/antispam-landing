@@ -284,6 +284,7 @@
                 <div class="profile-members" id="profile-members"></div>
                 <div class="invite-box" id="invite-box" style="display:none"></div>
                 <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
+                <button class="pbtn" onclick="startTour(true)">💡 Показать подсказки</button>
                 <button class="pbtn" onclick="openRefModal()">🎁 Пригласить друга — 7 дней Премиума</button>
                 <button class="pbtn" onclick="openDoctorReport()">🖨 Отчёт для врача</button>
                 <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
@@ -558,6 +559,20 @@
     <!-- ПРОСМОТР ФОТО -->
     <div class="photo-view" id="photo-view" onclick="closePhotoView()">
         <img id="photo-view-img" alt="">
+    </div>
+
+    <!-- ОБУЧЕНИЕ -->
+    <div id="tour" class="tour" style="display:none">
+        <div id="tour-hole" class="tour-hole"></div>
+        <div id="tour-card" class="tour-card">
+            <div class="tour-step" id="tour-step"></div>
+            <div class="tour-title" id="tour-title"></div>
+            <div class="tour-text" id="tour-text"></div>
+            <div class="tour-actions">
+                <button class="tour-skip" onclick="endTour()">Пропустить</button>
+                <button class="tour-next" id="tour-next" onclick="nextTourStep()">Далее</button>
+            </div>
+        </div>
     </div>
 
     <!-- ОБРАТНАЯ СВЯЗЬ -->
