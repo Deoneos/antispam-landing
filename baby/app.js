@@ -3507,6 +3507,68 @@ async function sendFeedback() {
             } catch (e) { toast('Не удалось удалить', true); }
         }
 
+
+        let tempChart = null;
+
+        async function drawTempChart(items) {
+            const wrap = document.getElementById('temp-chart-wrap');
+            const canvas = document.getElementById('temp-chart');
+            const temps = (items || []).filter(function (h) { return h.kind === 'temp' && h.value; });
+            if (!wrap || !canvas) return;
+            if (temps.length < 2) { wrap.style.display = 'none'; return; }
+            wrap.style.display = '';
+            try { await loadChartLib(); } catch (e) { return; }
+            if (typeof Chart === 'undefined') return;
+
+            const sorted = temps.slice().sort(function (a, b) {
+                return new Date(a.at) - new Date(b.at);
+            });
+            const labels = sorted.map(function (h) {
+                const d = new Date(h.at);
+                return gPad(d.getDate()) + '.' + gPad(d.getMonth() + 1) + ' ' +
+                    gPad(d.getHours()) + ':' + gPad(d.getMinutes());
+            });
+            const values = sorted.map(function (h) { return Number(h.value); });
+            const colors = values.map(function (v) { return v >= 37.5 ? '#F87171' : '#F29B93'; });
+
+            if (tempChart) { tempChart.destroy(); tempChart = null; }
+            tempChart = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Температура',
+                        data: values,
+                        borderColor: '#F29B93',
+                        backgroundColor: 'rgba(242,155,147,.15)',
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: colors,
+                        tension: .25,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) { return ctx.parsed.y + ' °C'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#9CA3AF', maxTicksLimit: 5, font: { size: 10 } },
+                             grid: { color: 'rgba(255,255,255,.04)' } },
+                        y: { min: 35.5, max: 40,
+                             ticks: { color: '#9CA3AF', stepSize: 1, callback: function (v) { return v + '°'; } },
+                             grid: { color: 'rgba(255,255,255,.05)' } }
+                    }
+                }
+            });
+        }
+
         async function loadHealthLog() {
             try {
                 const res = await fetch(`${API_URL}/health?days=30`, { headers: apiHeaders() });
@@ -3527,6 +3589,7 @@ async function sendFeedback() {
                 list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 2px">Пока ничего не записано</div>';
                 return;
             }
+            drawTempChart(items);
             const icons = { temp: '🌡', med: '💊', symptom: '🤒' };
             list.innerHTML = items.map(function (h) {
                 let title = '';
