@@ -2757,12 +2757,74 @@ async function sendFeedback() {
             }
             list.innerHTML = items.map(function (m) {
                 const age = msAge(m.date);
+                const thumb = m.photo ? '<img class="ms-thumb" src="' + m.photo + '" alt="">' : '';
                 return '<div class="ms-row" onclick="openMilestoneModal(\'' + esc(m.title).replace(/'/g, '') + '\',' + m.id + ')">' +
+                    thumb +
                     '<div><b>' + esc(m.title) + '</b><div class="d" style="color:var(--muted);font-size:12px">' +
                     gFmtDate(m.date) + (m.note ? ' · ' + esc(m.note) : '') + '</div></div>' +
                     '<span class="ms-age">' + age + '</span>' +
                     '<button class="del" onclick="event.stopPropagation();deleteMilestone(' + m.id + ')">✕</button></div>';
             }).join('');
+        }
+
+
+        let pendingMilestonePhoto = '';
+
+        function showMilestonePhoto(path) {
+            const prev = document.getElementById('ms-photo-prev');
+            const img = document.getElementById('ms-photo-img');
+            if (prev && img) {
+                if (path) { img.src = path; prev.style.display = 'block'; }
+                else { prev.style.display = 'none'; img.removeAttribute('src'); }
+            }
+        }
+
+        function removeMilestonePhoto() {
+            pendingMilestonePhoto = '';
+            showMilestonePhoto('');
+        }
+
+        function loadImageFile(file) {
+            return new Promise(function (resolve, reject) {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+                img.onerror = function (e) { URL.revokeObjectURL(url); reject(e); };
+                img.src = url;
+            });
+        }
+
+        async function onMilestonePhoto(input) {
+            const file = (input.files && input.files[0]) || null;
+            if (!file) return;
+            try {
+                const img = await loadImageFile(file);
+                const max = 1200;
+                let w = img.width, h = img.height;
+                if (Math.max(w, h) > max) {
+                    const k = max / Math.max(w, h);
+                    w = Math.round(w * k);
+                    h = Math.round(h * k);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const blob = await new Promise(function (r) { canvas.toBlob(r, 'image/jpeg', 0.82); });
+                if (!blob) throw new Error('no blob');
+                const res = await fetch(`${API_URL}/upload`, {
+                    method: 'POST', headers: apiHeaders(), body: blob
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const d = await res.json();
+                if (d && d.path) {
+                    pendingMilestonePhoto = d.path;
+                    showMilestonePhoto(d.path);
+                }
+            } catch (e) {
+                toast('Не удалось загрузить фото', true);
+            } finally {
+                input.value = '';
+            }
         }
 
         function openMilestoneModal(title, id) {
@@ -2801,7 +2863,7 @@ async function sendFeedback() {
                 const cid = (typeof activeChildId === 'function' && activeChildId()) ? activeChildId() : null;
                 let url = `${API_URL}/milestones`;
                 let method = 'POST';
-                let body = { title: title, date: date, note: note, child_id: cid };
+                let body = { title: title, date: date, note: note, photo: pendingMilestonePhoto || null, child_id: cid };
                 if (editId) { url += '/' + editId; method = 'PATCH'; delete body.child_id; }
                 const res = await fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(body) });
                 if (!res.ok) throw new Error();

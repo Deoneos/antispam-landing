@@ -490,6 +490,14 @@
             <label class="m-label">Заметка
                 <input type="text" id="ms-note" maxlength="200" placeholder="необязательно">
             </label>
+            <input type="file" id="ms-photo-input" accept="image/*" style="display:none" onchange="onMilestonePhoto(this)">
+            <button type="button" class="pbtn ghost" onclick="document.getElementById('ms-photo-input').click()">📷 Добавить фото</button>
+            <div id="ms-photo-prev" style="display:none; margin:8px 0">
+                <div style="position:relative">
+                    <img id="ms-photo-img" alt="" style="width:100%; max-height:190px; object-fit:cover; border-radius:14px; display:block">
+                    <button type="button" class="del" style="position:absolute; top:6px; right:6px; background:rgba(0,0,0,.55); border-radius:50%; width:30px; height:30px" onclick="removeMilestonePhoto()">✕</button>
+                </div>
+            </div>
             <button class="pbtn primary" onclick="saveMilestone()">Сохранить</button>
             <button class="pbtn ghost" onclick="document.getElementById('milestone-modal').style.display='none'">Отмена</button>
         </div>
