@@ -3136,11 +3136,20 @@ async function sendFeedback() {
             try {
                 if (!force && localStorage.getItem('lad_tour_done')) return;
             } catch (e) { if (!force) return; }
+
+            // закрываем все модалки и возвращаемся на трекер
+            document.querySelectorAll('.modal-overlay').forEach(function (m) { m.style.display = 'none'; });
+            const trackerBtn = document.querySelector('.nav-item[onclick*="tracker"]');
+            if (trackerBtn) {
+                try { switchView('tracker', trackerBtn); } catch (e) {}
+            }
+            try { window.scrollTo(0, 0); } catch (e) {}
+
             tourIndex = 0;
             const t = document.getElementById('tour');
             if (!t) return;
             t.style.display = 'block';
-            showTourStep();
+            setTimeout(showTourStep, 180);
         }
 
         function showTourStep() {
