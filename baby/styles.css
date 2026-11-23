@@ -145,10 +145,9 @@
         .net-status { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
         /* ШТОРКИ ПО ДНЯМ */
         .day-section { border-bottom: 1px solid var(--border); }
-        .health-tabs { display: flex; gap: 6px; margin: 0 16px 14px; overflow-x: auto;
-            scrollbar-width: none; }
-        .health-tabs::-webkit-scrollbar { display: none; }
-        .htab { flex: 0 0 auto; min-width: 88px; }
+        .health-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            margin: 0 16px 14px; }
+        .htab { min-width: 0; padding: 11px 10px; font-size: 13.5px; }
         .ms-quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 16px 12px; }
         .ms-chip { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border);
             background: var(--card); color: var(--text); font: inherit; font-size: 12.5px;
