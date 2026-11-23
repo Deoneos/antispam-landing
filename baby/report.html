@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лад — отчёт для врача</title>
+<style>
+    :root { --ink: #111; --muted: #666; --line: #ddd; --accent: #c2185b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #f5f5f5; color: var(--ink);
+        font: 14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .page { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px 36px;
+        box-shadow: 0 2px 20px rgba(0,0,0,.08); border-radius: 6px; }
+    h1 { font-size: 22px; margin: 0 0 2px; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em;
+        color: var(--accent); margin: 22px 0 8px; border-bottom: 1px solid var(--line);
+        padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; font-size: 13px; }
+    .kv div { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line);
+        padding: 4px 0; }
+    .kv span:first-child { color: var(--muted); }
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 10px; text-align: center; }
+    .card b { display: block; font-size: 18px; }
+    .card span { color: var(--muted); font-size: 11.5px; }
+    .empty { color: var(--muted); font-size: 13px; }
+    .footer { margin-top: 26px; color: var(--muted); font-size: 11.5px;
+        border-top: 1px solid var(--line); padding-top: 10px; }
+    .actions { max-width: 800px; margin: 0 auto 14px; display: flex; gap: 10px; justify-content: flex-end; }
+    .btn { padding: 10px 16px; border-radius: 10px; border: none; background: var(--accent);
+        color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    .meta { color: var(--muted); font-size: 12px; }
+    @media print {
+        body { background: #fff; padding: 0; }
+        .page { box-shadow: none; border-radius: 0; padding: 0; max-width: none; }
+        .actions { display: none; }
+        h2 { color: #000; }
+        @page { size: A4; margin: 14mm; }
+    }
+</style>
+</head>
+<body>
+<div class="actions">
+    <button class="btn ghost" onclick="location.href='/baby/'">← В приложение</button>
+    <button class="btn" onclick="window.print()">Печать / PDF</button>
+</div>
+<div class="page" id="page">
+    <h1>Отчёт о ребёнке</h1>
+    <div class="sub" id="sub">Загрузка…</div>
+    <div id="content"></div>
+    <div class="footer" id="footer"></div>
+</div>
+
+<script>
+(function () {
+    var API = location.origin + '/api/baby';
+    var TOKEN_KEY = 'lad_token_v1';
+
+    function token() {
+        try {
+            return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('lad_token') || '';
+        } catch (e) { return ''; }
+    }
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+    }
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+    function fmtDate(iso) {
+        if (!iso) return '—';
+        var d = new Date(iso.length <= 10 ? iso + 'T12:00:00' : iso);
+        if (isNaN(d)) return esc(iso);
+        return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
+    }
+
+    function fmtTime(iso) {
+        var d = new Date(iso);
+        return isNaN(d) ? '' : pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function ageText(birth) {
+        if (!birth) return '';
+        var b = new Date(birth + 'T12:00:00');
+        var now = new Date();
+        if (isNaN(b)) return '';
+        var months = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth());
+        if (now.getDate() < b.getDate()) months -= 1;
+        var days = Math.floor((now - b) / 86400000);
+        if (months < 1) return days + ' дн.';
+        return months + ' мес. (' + days + ' дн.)';
+    }
+
+    function fetchJson(path) {
+        return fetch(API + path, { headers: { 'Authorization': 'Bearer ' + token() } })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .catch(function () { return null; });
+    }
+
+    function table(rows, head) {
+        var html = '<table><thead><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>';
+        rows.forEach(function (r) {
+            html += '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>';
+        });
+        return html + '</tbody></table>';
+    }
+
+    function daysBetween(a, b) { return Math.max(1, Math.round((b - a) / 86400000)); }
+
+    function render(me, events, measurements, vaccines, health, milestones) {
+        var child = (me && me.children && me.children[0]) || null;
+        var name = child ? child.name : 'Ребёнок';
+        var birth = child ? child.birth_date : '';
+        var sex = child ? (child.gender === 'boy' ? 'мальчик' : (child.gender === 'girl' ? 'девочка' : '—')) : '—';
+
+        document.getElementById('sub').innerHTML =
+            esc(name) + ' · ' + (birth ? 'дата рождения ' + fmtDate(birth) + ' · ' + ageText(birth) : 'дата рождения не указана');
+
+        var html = '';
+
+        html += '<h2>Ребёнок</h2><div class="kv">' +
+            '<div><span>Имя</span><b>' + esc(name) + '</b></div>' +
+            '<div><span>Пол</span><b>' + esc(sex) + '</b></div>' +
+            '<div><span>Дата рождения</span><b>' + (birth ? fmtDate(birth) : '—') + '</b></div>' +
+            '<div><span>Возраст</span><b>' + (birth ? ageText(birth) : '—') + '</b></div>' +
+            '</div>';
+
+        // --- антропометрия ---
+        var meas = (measurements || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+        if (meas.length) {
+            var rows = meas.map(function (m) {
+                return [fmtDate(m.date),
+                    m.weight_g ? (m.weight_g / 1000).toFixed(2) + ' кг' : '—',
+                    m.height_cm ? m.height_cm + ' см' : '—',
+                    m.head_cm ? m.head_cm + ' см' : '—',
+                    esc(m.note || '')];
+            });
+            var first = meas.find(function (m) { return m.weight_g; });
+            var last = meas.slice().reverse().find(function (m) { return m.weight_g; });
+            var gain = (first && last && first.id !== last.id) ? (last.weight_g - first.weight_g) : null;
+            html += '<h2>Антропометрия</h2>' +
+                table(rows, ['Дата', 'Вес', 'Рост', 'Голова', 'Примечание']) ;
+            if (gain !== null) {
+                html += '<p class="meta">Прибавка веса за период: ' + (gain >= 0 ? '+' : '') +
+                    (gain / 1000).toFixed(2) + ' кг.</p>';
+            }
+        } else {
+            html += '<h2>Антропометрия</h2><p class="empty">Измерений нет.</p>';
+        }
+
+        // --- питание, сон, подгузники за 30 дней ---
+        var evs = events || [];
+        var now = new Date();
+        var cutoff = now.getTime() - 30 * 86400000;
+        var recent = evs.filter(function (e) { return new Date(e.start_time).getTime() >= cutoff; });
+        var feeds = recent.filter(function (e) { return e.event_type === 'feed'; });
+        var diapers = recent.filter(function (e) { return e.event_type === 'diaper'; });
+        var sleepEv = recent.filter(function (e) { return e.event_type === 'sleep'; });
+        var ml = 0;
+        feeds.forEach(function (f) {
+            var m = String(f.details || '').match(/(\d+)/);
+            if (m) ml += parseInt(m[1], 10);
+        });
+        var sleepH = 0;
+        sleepEv.forEach(function (e) {
+            var s = new Date(e.start_time).getTime();
+            var t = e.end_time ? new Date(e.end_time).getTime() : now.getTime();
+            if (t > s) sleepH += (t - s) / 3600000;
+        });
+        var days = 30;
+        html += '<h2>Питание, сон, уход (за 30 дней)</h2><div class="cards">' +
+            '<div class="card"><b>' + (feeds.length / days).toFixed(1) + '</b><span>кормлений в сутки</span></div>' +
+            '<div class="card"><b>' + Math.round(ml / days) + '</b><span>мл в сутки</span></div>' +
+            '<div class="card"><b>' + (sleepH / days).toFixed(1) + ' ч</b><span>сон в сутки</span></div>' +
+            '<div class="card"><b>' + (diapers.length / days).toFixed(1) + '</b><span>подгузников в сутки</span></div>' +
+            '</div>';
+
+        // --- прививки ---
+        var vac = (vaccines || []);
+        var done = vac.filter(function (v) { return v.done_date; });
+        var pending = vac.filter(function (v) { return !v.done_date; }).slice(0, 4);
+        html += '<h2>Прививки</h2>';
+        if (vac.length) {
+            html += '<p class="meta">Сделано: ' + done.length + ' из ' + vac.length + '.</p>';
+            if (done.length) {
+                html += table(done.slice(-6).map(function (v) {
+                    return [esc(v.name), fmtDate(v.done_date)];
+                }), ['Прививка', 'Дата']);
+            }
+            if (pending.length) {
+                html += '<p class="meta" style="margin-top:10px">Ближайшие:</p>' +
+                    table(pending.map(function (v) {
+                        return [esc(v.name), fmtDate(v.due_date)];
+                    }), ['Прививка', 'План']);
+            }
+        } else {
+            html += '<p class="empty">Календарь не заполнен.</p>';
+        }
+
+        // --- температура и лекарства ---
+        var h = health || [];
+        var temps = h.filter(function (x) { return x.kind === 'temp' && x.value; })
+            .slice().sort(function (a, b) { return new Date(a.at) - new Date(b.at); });
+        var meds = h.filter(function (x) { return x.kind === 'med'; });
+        html += '<h2>Температура и лекарства (30 дней)</h2>';
+        if (temps.length) {
+            var maxT = temps.reduce(function (m, t) { return Math.max(m, Number(t.value)); }, 0);
+            html += '<p class="meta">Измерений: ' + temps.length +
+                ', максимум: ' + maxT.toFixed(1) + ' °C, последнее: ' +
+                Number(temps[temps.length - 1].value).toFixed(1) + ' °C (' +
+                fmtDate(temps[temps.length - 1].at) + ' ' + fmtTime(temps[temps.length - 1].at) + ').</p>';
+        } else {
+            html += '<p class="empty">Температуру не измеряли.</p>';
+        }
+        if (meds.length) {
+            html += table(meds.slice(0, 8).map(function (m) {
+                return [esc(m.note || '—'), esc(m.unit || ''), fmtDate(m.at) + ' ' + fmtTime(m.at)];
+            }), ['Лекарство', 'Доза', 'Когда']);
+        }
+
+        // --- вехи ---
+        var ms = (milestones || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 6);
+        if (ms.length) {
+            html += '<h2>Вехи развития</h2>' +
+                table(ms.map(function (m) { return [esc(m.title), fmtDate(m.date)]; }), ['Событие', 'Дата']);
+        }
+
+        document.getElementById('content').innerHTML = html;
+        var nowStr = new Date();
+        document.getElementById('footer').textContent =
+            'Сформировано ' + fmtDate(nowStr.toISOString().slice(0, 10)) + ' ' +
+            pad(nowStr.getHours()) + ':' + pad(nowStr.getMinutes()) +
+            '. Приложение «Лад».';
+    }
+
+    if (!token()) {
+        document.getElementById('sub').textContent = 'Нужно войти в приложение.';
+        document.getElementById('content').innerHTML =
+            '<p class="empty">Откройте приложение и войдите, затем вернитесь на эту страницу.</p>';
+        return;
+    }
+
+    Promise.all([
+        fetchJson('/me'),
+        fetchJson('/events/history?days=30'),
+        fetchJson('/measurements'),
+        fetchJson('/vaccines'),
+        fetchJson('/health?days=30'),
+        fetchJson('/milestones')
+    ]).then(function (r) {
+        if (!r[0]) {
+            document.getElementById('sub').textContent = 'Не удалось загрузить данные.';
+            return;
+        }
+        render(r[0], r[1], r[2], r[3], r[4], r[5]);
+    }).catch(function (e) {
+        document.getElementById('sub').textContent = 'Ошибка: ' + e.message;
+    });
+})();
+</script>
+</body>
+</html>
