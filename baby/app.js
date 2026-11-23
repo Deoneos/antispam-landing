@@ -3122,12 +3122,17 @@ async function sendFeedback() {
 
         // ===== ОБУЧЕНИЕ ПРИ ПЕРВОМ ЗАПУСКЕ =====
         const TOUR_STEPS = [
+            { sel: '#last-feed-badge', title: 'Последнее кормление', text: 'Здесь видно, сколько прошло с последнего кормления — удобно, когда руки заняты.' },
             { sel: '#btn-feed', title: 'Покормить', text: 'Одно нажатие — и кормление записано. Можно указать объём смеси.' },
             { sel: '#awake-btn', title: 'Сон и бодрствование', text: 'Нажми «Уложить спать» — таймер запустится сам. Потом «Разбудить».' },
-            { sel: '#row-walk', title: 'Прогулка', text: 'Здесь же таймер прогулки — начнётся и остановится по нажатию.' },
+            { sel: '#row-walk', title: 'Прогулка', text: 'Свой таймер: нажал — гуляем, нажал ещё раз — закончили.' },
+            { sel: '#btn-poop', title: 'Подгузник', text: 'Покакала или пописала — один тап, без лишних окон.' },
             { sel: '#today-card', title: 'Итоги дня', text: 'Кормления, сон, подгузники и прогулки за сегодня — одним взглядом.' },
+            { sel: '.nav-item[onclick*="stats"]', title: 'Статистика', text: 'Сколько кормлений, сна и смеси за день и за неделю.' },
             { sel: '.nav-item[onclick*="growth"]', title: 'Здоровье', text: 'Вес, рост, прививки, температура, лекарства и вехи развития.' },
+            { sel: '.nav-item[onclick*="analytics"]', title: 'Аналитика', text: 'Графики и сравнение дней. Полностью доступна в Премиуме.' },
             { sel: '.nav-item[onclick*="calendar"]', title: 'Календарь', text: 'Приёмы у врача и напоминания о них.' },
+            { sel: '.nav-item[onclick*="openNoiseModal"]', title: 'Звуки для сна', text: 'Белый шум, дождь, океан — с таймером и фоновым воспроизведением.' },
             { sel: '.profile-btn', title: 'Профиль', text: 'Ребёнок, семья, уведомления, премиум и отчёт для врача.' }
         ];
         let tourIndex = 0;
@@ -3160,7 +3165,7 @@ async function sendFeedback() {
             const el = document.querySelector(step.sel);
             if (!el || !el.offsetParent) { tourIndex += 1; showTourStep(); return; }
 
-            try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+            try { el.scrollIntoView({ block: 'center', inline: 'center' }); } catch (e) {}
             setTimeout(function () {
                 const r = el.getBoundingClientRect();
                 if (r.width === 0 && r.height === 0) { tourIndex += 1; showTourStep(); return; }
@@ -3184,7 +3189,7 @@ async function sendFeedback() {
                 let top = r.bottom + 16;
                 if (top + cardH > window.innerHeight - 20) top = Math.max(20, r.top - cardH - 16);
                 card.style.top = top + 'px';
-            }, 320);
+            }, 260);
         }
 
         function nextTourStep() {
