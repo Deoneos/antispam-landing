@@ -21,6 +21,16 @@
   li { padding: 9px 0; border-bottom: 1px solid #232833; font-size: 14.5px; }
   li:last-child { border-bottom: 0; }
   li i { font-style: normal; margin-right: 8px; }
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .plan { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+          padding: 14px; border-radius: 16px; border: 1px solid #262B36; background: #12151C;
+          color: #ECEDF1; font: inherit; cursor: pointer; text-align: left; }
+  .plan.active { border-color: #F29B93; background: rgba(242,155,147,.08); }
+  .plan-name { font-size: 12px; color: #9AA0AE; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .plan-price { font-size: 22px; font-weight: 800; white-space: nowrap; }
+  .plan-sub { font-size: 12px; color: #9AA0AE; }
+  .plan-badge { position: absolute; top: -9px; right: 10px; padding: 2px 8px; border-radius: 999px;
+                background: #F29B93; color: #2B1B18; font-size: 10px; font-weight: 800; }
   .btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 54px;
          border: none; border-radius: 16px; background: #F29B93; color: #2B1B18;
          font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 16px; }
@@ -52,8 +62,20 @@
   <p class="lead">Больше пользы от дневника: аналитика, отчёт для врача, звуки для сна и несколько детей.</p>
 
   <div class="card">
-    <div class="price"><b>299 руб.</b><span>за 30 дней</span></div>
-    <div class="hint">Разовая оплата, без автосписаний. Продление — когда захотите.</div>
+    <div class="plans">
+      <button type="button" class="plan active" id="plan-month" onclick="selectPlan('month')">
+        <span class="plan-name">Месяц</span>
+        <span class="plan-price">299 руб.</span>
+        <span class="plan-sub">30 дней</span>
+      </button>
+      <button type="button" class="plan" id="plan-year" onclick="selectPlan('year')">
+        <span class="plan-badge">выгоднее на 30%</span>
+        <span class="plan-name">Год</span>
+        <span class="plan-price">2 490 руб.</span>
+        <span class="plan-sub">≈ 207 руб./мес</span>
+      </button>
+    </div>
+    <div class="hint" style="margin-top:10px">Разовая оплата, без автосписаний. Продление — когда захотите.</div>
   </div>
 
   <div class="card">
@@ -113,6 +135,16 @@
     } catch (e) {}
   }
 
+  let currentPlan = 'month';
+
+  function selectPlan(plan) {
+    currentPlan = plan;
+    document.getElementById('plan-month').classList.toggle('active', plan === 'month');
+    document.getElementById('plan-year').classList.toggle('active', plan === 'year');
+    const btn = document.getElementById('buy');
+    btn.textContent = plan === 'year' ? 'Оформить год за 2 490 руб.' : 'Оформить за 299 руб.';
+  }
+
   async function buy() {
     const t = token();
     const btn = document.getElementById('buy');
@@ -121,7 +153,7 @@
     btn.disabled = true;
     btn.textContent = 'Создаю платёж…';
     try {
-      const res = await fetch(API + '/billing/pay', {
+      const res = await fetch(API + '/billing/pay?plan=' + encodeURIComponent(currentPlan), {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + t }
       });
@@ -133,8 +165,9 @@
         ? 'Нет связи с сервером — проверьте интернет или VPN'
         : e.message;
       btn.disabled = false;
-      btn.textContent = 'Оформить за 299 руб.';
+      btn.textContent = currentPlan === 'year' ? 'Оформить год за 2 490 руб.' : 'Оформить за 299 руб.';
     }
+    btn.disabled = false;
   }
 
   loadStatus();
