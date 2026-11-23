@@ -181,6 +181,36 @@
             }
         }
 
+
+        // ===== ПОДСКАЗКА ПО ВОЗРАСТУ =====
+        const AGE_NORMS = [
+            { max: 1,  sleep: '14–17 ч', feeds: '8–12', ml: '60–90 мл' },
+            { max: 2,  sleep: '14–17 ч', feeds: '7–9',  ml: '90–120 мл' },
+            { max: 3,  sleep: '14–16 ч', feeds: '6–8',  ml: '120–150 мл' },
+            { max: 4,  sleep: '14–16 ч', feeds: '5–7',  ml: '150–180 мл' },
+            { max: 6,  sleep: '12–16 ч', feeds: '4–6',  ml: '180–210 мл' },
+            { max: 9,  sleep: '12–15 ч', feeds: '4–5',  ml: '180–220 мл' },
+            { max: 12, sleep: '12–15 ч', feeds: '3–4',  ml: '200–240 мл' },
+            { max: 24, sleep: '11–14 ч', feeds: '3',    ml: '220–250 мл' }
+        ];
+
+        function renderAgeHint() {
+            const el = document.getElementById('age-hint');
+            if (!el) return;
+            const child = (typeof childInfo === 'function') ? childInfo() : null;
+            if (!child || !child.birth_date) { el.style.display = 'none'; return; }
+            const birth = new Date(child.birth_date + 'T12:00:00');
+            const now = new Date();
+            if (isNaN(birth)) { el.style.display = 'none'; return; }
+            const months = (now - birth) / (1000 * 60 * 60 * 24 * 30.4375);
+            if (months < 0 || months > 36) { el.style.display = 'none'; return; }
+            const norm = AGE_NORMS.find(function (n) { return months < n.max; }) || AGE_NORMS[AGE_NORMS.length - 1];
+            const label = months < 1 ? 'первый месяц' : Math.floor(months) + ' мес.';
+            el.innerHTML = '<b>' + label + '</b> · сон ' + norm.sleep +
+                ' · ' + norm.feeds + ' кормлений · ' + norm.ml;
+            el.style.display = '';
+        }
+
         // ===== СКРОЛЛ НИЖНЕГО МЕНЮ =====
         function navArrowUpdate() {
             const nav = document.getElementById('bottom-nav');
