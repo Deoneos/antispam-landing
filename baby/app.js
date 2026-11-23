@@ -1031,6 +1031,63 @@
             if (box) box.style.display = 'none';
         }
 
+
+        // ===== СЕГОДНЯ =====
+        function eventVolumeMl(details) {
+            if (!details) return 0;
+            const m = String(details).match(/(\d+(?:[.,]\d+)?)/);
+            return m ? Math.round(parseFloat(m[1].replace(',', '.'))) : 0;
+        }
+
+        function renderToday(events) {
+            const card = document.getElementById('today-card');
+            if (!card) return;
+            const list = Array.isArray(events) ? events : [];
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const isToday = function (iso) {
+                if (!iso) return false;
+                const t = new Date(iso).getTime();
+                return !isNaN(t) && t >= startOfDay;
+            };
+
+            let feeds = 0, ml = 0, diapers = 0, walks = 0, walkMs = 0, sleepMs = 0;
+            list.forEach(function (e) {
+                if (!isToday(e.start_time)) return;
+                const start = new Date(e.start_time).getTime();
+                if (e.event_type === 'feed') {
+                    feeds += 1;
+                    ml += eventVolumeMl(e.details);
+                } else if (e.event_type === 'diaper') {
+                    diapers += 1;
+                } else if (e.event_type === 'walk') {
+                    walks += 1;
+                    const end = e.end_time ? new Date(e.end_time).getTime() : now.getTime();
+                    if (!isNaN(start) && end > start) walkMs += end - start;
+                } else if (e.event_type === 'sleep') {
+                    const end = e.end_time ? new Date(e.end_time).getTime() : now.getTime();
+                    if (!isNaN(start) && end > start) sleepMs += end - start;
+                }
+            });
+
+            if (!feeds && !diapers && !walks && !sleepMs) { card.style.display = 'none'; return; }
+            card.style.display = '';
+
+            function fmt(ms) {
+                const min = Math.floor(ms / 60000);
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                return h > 0 ? h + ' ч ' + m + ' м' : m + ' м';
+            }
+
+            document.getElementById('t-feeds').textContent = feeds;
+            document.getElementById('t-ml').textContent = ml ? '· ' + ml + ' мл' : '';
+            document.getElementById('t-sleep').textContent = fmt(sleepMs);
+            document.getElementById('t-diapers').textContent = diapers;
+            document.getElementById('t-walks').textContent = walks;
+            document.getElementById('t-walk-min').textContent = walks ? ('· ' + fmt(walkMs)) : '';
+        }
+
         async function loadEvents() {
             try {
                 let events = [];
@@ -1053,6 +1110,7 @@
                 }
                 renderStatus();
                 updateOnboarding(events.length);
+                renderToday(events);
                 
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 const activeAwake = events.find(e => e.event_type === 'awake' && !e.end_time);
