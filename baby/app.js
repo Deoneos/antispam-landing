@@ -2858,6 +2858,24 @@ async function sendFeedback() {
             if (wEl) wEl.textContent = lastW ? (lastW.weight_g / 1000).toFixed(2) + ' кг' : '—';
             if (hEl) hEl.textContent = lastH ? lastH.height_cm + ' см' : '—';
 
+            const percEl = document.getElementById('g-percentiles');
+            if (percEl) {
+                const child = childInfo();
+                const sex = child && child.gender === 'boy' ? 'boys' : 'girls';
+                const parts = [];
+                if (lastW && child && child.birth_date) {
+                    const age = ageMonthsOf(lastW.date);
+                    const p = whoPercentile(sex, 'weight', age, lastW.weight_g / 1000);
+                    if (p !== null) parts.push('Вес — ' + p + '-й перцентиль (' + percWord(p) + ')');
+                }
+                if (lastH && child && child.birth_date) {
+                    const ageH = ageMonthsOf(lastH.date);
+                    const ph = whoPercentile(sex, 'height', ageH, lastH.height_cm);
+                    if (ph !== null) parts.push('Рост — ' + ph + '-й перцентиль (' + percWord(ph) + ')');
+                }
+                percEl.textContent = parts.join(' · ') || 'Кривые — нормы ВОЗ для ' + (sex === 'boys' ? 'мальчиков' : 'девочек');
+            }
+
             const list = document.getElementById('measure-list');
             if (list) {
                 list.innerHTML = items.slice().reverse().map(function (m) {
@@ -2874,31 +2892,229 @@ async function sendFeedback() {
             drawGrowthChart(items);
         }
 
+        // Нормы ВОЗ: [возраст, мес, P3, P15, P50, P85, P97]
+        const WHO = {
+            girls: {
+                weight: [
+                    [0, 2.4, 2.7, 3.2, 3.7, 4.2], [1, 3.2, 3.6, 4.2, 4.8, 5.5],
+                    [2, 3.9, 4.5, 5.1, 5.8, 6.6], [3, 4.5, 5.1, 5.8, 6.6, 7.5],
+                    [4, 5.0, 5.6, 6.4, 7.3, 8.2], [5, 5.4, 6.1, 6.9, 7.8, 8.8],
+                    [6, 5.7, 6.5, 7.3, 8.3, 9.3], [7, 6.0, 6.8, 7.6, 8.6, 9.8],
+                    [8, 6.3, 7.0, 7.9, 9.0, 10.2], [9, 6.5, 7.3, 8.2, 9.3, 10.5],
+                    [10, 6.7, 7.5, 8.5, 9.6, 10.9], [11, 6.9, 7.7, 8.7, 9.9, 11.2],
+                    [12, 7.0, 7.9, 8.9, 10.1, 11.5], [15, 7.6, 8.5, 9.6, 10.9, 12.4],
+                    [18, 8.1, 9.0, 10.2, 11.6, 13.2], [21, 8.6, 9.6, 10.9, 12.3, 14.0],
+                    [24, 9.0, 10.0, 11.5, 13.0, 14.8]
+                ],
+                height: [
+                    [0, 45.6, 47.2, 49.1, 51.1, 52.7], [1, 50.0, 51.7, 53.7, 55.7, 57.4],
+                    [2, 53.2, 55.0, 57.1, 59.1, 60.9], [3, 55.8, 57.6, 59.8, 61.9, 63.8],
+                    [4, 58.0, 59.9, 62.1, 64.3, 66.2], [5, 59.9, 61.8, 64.0, 66.2, 68.2],
+                    [6, 61.5, 63.5, 65.7, 68.0, 70.0], [7, 62.9, 64.9, 67.3, 69.6, 71.6],
+                    [8, 64.3, 66.3, 68.7, 71.1, 73.2], [9, 65.6, 67.7, 70.1, 72.6, 74.7],
+                    [10, 66.8, 69.0, 71.5, 74.0, 76.1], [11, 68.0, 70.2, 72.8, 75.3, 77.5],
+                    [12, 69.2, 71.4, 74.0, 76.6, 78.9], [15, 72.4, 74.7, 77.5, 80.2, 82.7],
+                    [18, 75.2, 77.7, 80.7, 83.6, 86.2], [21, 77.8, 80.4, 83.5, 86.6, 89.3],
+                    [24, 80.3, 82.9, 86.2, 89.4, 92.2]
+                ]
+            },
+            boys: {
+                weight: [
+                    [0, 2.5, 2.9, 3.3, 3.9, 4.3], [1, 3.4, 3.9, 4.5, 5.1, 5.8],
+                    [2, 4.3, 4.9, 5.6, 6.3, 7.1], [3, 5.0, 5.6, 6.4, 7.2, 8.0],
+                    [4, 5.6, 6.2, 7.0, 7.8, 8.7], [5, 6.0, 6.7, 7.5, 8.4, 9.3],
+                    [6, 6.4, 7.1, 7.9, 8.8, 9.8], [7, 6.7, 7.4, 8.3, 9.3, 10.3],
+                    [8, 6.9, 7.7, 8.6, 9.6, 10.7], [9, 7.1, 7.9, 8.9, 9.9, 11.0],
+                    [10, 7.4, 8.2, 9.2, 10.2, 11.4], [11, 7.6, 8.4, 9.4, 10.5, 11.7],
+                    [12, 7.8, 8.6, 9.6, 10.8, 12.0], [15, 8.4, 9.3, 10.4, 11.6, 12.9],
+                    [18, 8.9, 9.9, 11.0, 12.3, 13.7], [21, 9.4, 10.4, 11.6, 13.0, 14.5],
+                    [24, 9.8, 10.9, 12.2, 13.6, 15.2]
+                ],
+                height: [
+                    [0, 46.1, 48.0, 49.9, 51.8, 53.7], [1, 50.8, 52.8, 54.7, 56.7, 58.6],
+                    [2, 54.4, 56.4, 58.4, 60.4, 62.4], [3, 57.3, 59.3, 61.4, 63.5, 65.5],
+                    [4, 59.7, 61.7, 63.9, 66.0, 68.0], [5, 61.7, 63.8, 65.9, 68.1, 70.2],
+                    [6, 63.3, 65.5, 67.6, 69.8, 72.0], [7, 64.8, 67.0, 69.2, 71.4, 73.6],
+                    [8, 66.2, 68.4, 70.6, 72.9, 75.1], [9, 67.5, 69.7, 72.0, 74.2, 76.5],
+                    [10, 68.7, 71.0, 73.3, 75.6, 77.9], [11, 69.9, 72.2, 74.5, 76.9, 79.2],
+                    [12, 71.0, 73.4, 75.7, 78.1, 80.5], [15, 74.1, 76.6, 79.1, 81.7, 84.2],
+                    [18, 76.9, 79.6, 82.3, 85.0, 87.7], [21, 79.4, 82.3, 85.1, 88.0, 90.9],
+                    [24, 81.7, 84.8, 87.8, 90.9, 93.9]
+                ]
+            }
+        };
+
+        function childInfo() {
+            try {
+                if (typeof ladProfile !== 'undefined' && ladProfile && ladProfile.children && ladProfile.children[0]) {
+                    return ladProfile.children[0];
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function ageMonthsOf(dateStr) {
+            const c = childInfo();
+            if (!c || !c.birth_date) return null;
+            const b = new Date(c.birth_date + 'T12:00:00');
+            const d = new Date(dateStr + 'T12:00:00');
+            if (isNaN(b) || isNaN(d)) return null;
+            return Math.max(0, (d - b) / (1000 * 60 * 60 * 24 * 30.4375));
+        }
+
+        function whoAt(sex, type, age) {
+            const table = (WHO[sex] || WHO.girls)[type];
+            if (!table || !table.length) return null;
+            if (age <= table[0][0]) return table[0].slice(1);
+            const last = table[table.length - 1];
+            if (age >= last[0]) return last.slice(1);
+            for (let i = 0; i < table.length - 1; i++) {
+                const a = table[i], b = table[i + 1];
+                if (age >= a[0] && age <= b[0]) {
+                    const k = (age - a[0]) / (b[0] - a[0]);
+                    return [1, 2, 3, 4, 5].map(function (j) { return a[j] + (b[j] - a[j]) * k; });
+                }
+            }
+            return null;
+        }
+
+        function whoPercentile(sex, type, age, value) {
+            const v = whoAt(sex, type, age);
+            if (!v || !value) return null;
+            const ps = [3, 15, 50, 85, 97];
+            if (value <= v[0]) return 1;
+            if (value >= v[4]) return 99;
+            for (let i = 0; i < 4; i++) {
+                if (value <= v[i + 1]) {
+                    const k = (value - v[i]) / (v[i + 1] - v[i]);
+                    return Math.round(ps[i] + (ps[i + 1] - ps[i]) * k);
+                }
+            }
+            return 50;
+        }
+
+        function percWord(p) {
+            if (p === null || p === undefined) return '';
+            if (p < 3) return 'низкий';
+            if (p < 15) return 'ниже среднего';
+            if (p <= 85) return 'норма';
+            if (p <= 97) return 'выше среднего';
+            return 'высокий';
+        }
+
+        function whoSeries(sex, type) {
+            const out = { 3: [], 15: [], 50: [], 85: [], 97: [] };
+            for (let a = 0; a <= 24; a += 1) {
+                const v = whoAt(sex, type, a);
+                if (!v) continue;
+                [3, 15, 50, 85, 97].forEach(function (p, idx) {
+                    out[p].push({ x: a, y: +v[idx].toFixed(2) });
+                });
+            }
+            return out;
+        }
+
         async function drawGrowthChart(items) {
             const canvas = document.getElementById('growth-chart');
             if (!canvas || !items.length) return;
             try { await loadChartLib(); } catch (e) { return; }
             if (typeof Chart === 'undefined') return;
-            const labels = items.map(function (m) { return gFmtShort(m.date); });
-            const weights = items.map(function (m) { return m.weight_g ? +(m.weight_g / 1000).toFixed(2) : null; });
-            const heights = items.map(function (m) { return m.height_cm ? +m.height_cm : null; });
+
+            const child = childInfo();
+            const sex = child && child.gender === 'boy' ? 'boys' : 'girls';
+            const ages = items.map(function (m) { return ageMonthsOf(m.date); });
+            const useAge = child && child.birth_date && ages.every(function (a) { return a !== null; });
+
             if (growthChart) { growthChart.destroy(); growthChart = null; }
+
+            if (!useAge) {
+                const labels = items.map(function (m) { return gFmtShort(m.date); });
+                growthChart = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Вес, кг', data: items.map(function (m) { return m.weight_g ? +(m.weight_g / 1000).toFixed(2) : null; }),
+                              borderColor: '#F29B93', backgroundColor: 'rgba(242,155,147,.15)', tension: .35, spanGaps: true, yAxisID: 'y' },
+                            { label: 'Рост, см', data: items.map(function (m) { return m.height_cm ? +m.height_cm : null; }),
+                              borderColor: '#A9C8F5', backgroundColor: 'rgba(169,200,245,.15)', tension: .35, spanGaps: true, yAxisID: 'y1' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#9CA3AF', boxWidth: 12 } } },
+                        scales: {
+                            x: { ticks: { color: '#9CA3AF', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,.05)' } },
+                            y: { position: 'left', ticks: { color: '#F29B93' }, grid: { color: 'rgba(255,255,255,.05)' } },
+                            y1: { position: 'right', ticks: { color: '#A9C8F5' }, grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+                return;
+            }
+
+            const wSeries = whoSeries(sex, 'weight');
+            const hSeries = whoSeries(sex, 'height');
+            const wMeas = items.filter(function (m) { return m.weight_g; })
+                .map(function (m) { return { x: +ageMonthsOf(m.date).toFixed(2), y: +(m.weight_g / 1000).toFixed(2) }; });
+            const hMeas = items.filter(function (m) { return m.height_cm; })
+                .map(function (m) { return { x: +ageMonthsOf(m.date).toFixed(2), y: +m.height_cm }; });
+
+            const whoSet = function (points, label, color, dashed, axis) {
+                return {
+                    label: label, data: points, borderColor: color, borderWidth: dashed ? 1 : 1.4,
+                    borderDash: dashed ? [4, 4] : [], pointRadius: 0, tension: .3,
+                    fill: false, yAxisID: axis
+                };
+            };
+
+            const datasets = [
+                whoSet(wSeries[3], 'P3', 'rgba(242,155,147,.22)', true, 'y'),
+                whoSet(wSeries[15], 'P15', 'rgba(242,155,147,.30)', true, 'y'),
+                whoSet(wSeries[50], 'P50', 'rgba(242,155,147,.55)', false, 'y'),
+                whoSet(wSeries[85], 'P85', 'rgba(242,155,147,.30)', true, 'y'),
+                whoSet(wSeries[97], 'P97', 'rgba(242,155,147,.22)', true, 'y'),
+                whoSet(hSeries[3], 'P3', 'rgba(169,200,245,.22)', true, 'y1'),
+                whoSet(hSeries[50], 'P50', 'rgba(169,200,245,.55)', false, 'y1'),
+                whoSet(hSeries[97], 'P97', 'rgba(169,200,245,.22)', true, 'y1'),
+                { label: 'Вес', data: wMeas, borderColor: '#F29B93', backgroundColor: '#F29B93',
+                  borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#F29B93',
+                  tension: .25, yAxisID: 'y' },
+                { label: 'Рост', data: hMeas, borderColor: '#A9C8F5', backgroundColor: '#A9C8F5',
+                  borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#A9C8F5',
+                  tension: .25, yAxisID: 'y1' }
+            ];
+
             growthChart = new Chart(canvas, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Вес, кг', data: weights, borderColor: '#F29B93',
-                          backgroundColor: 'rgba(242,155,147,.15)', tension: .35, spanGaps: true, yAxisID: 'y' },
-                        { label: 'Рост, см', data: heights, borderColor: '#A9C8F5',
-                          backgroundColor: 'rgba(169,200,245,.15)', tension: .35, spanGaps: true, yAxisID: 'y1' }
-                    ]
-                },
+                data: { datasets: datasets },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#9CA3AF', boxWidth: 12 } } },
+                    interaction: { mode: 'nearest', intersect: false },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#9CA3AF', boxWidth: 12,
+                                filter: function (item) { return item.text === 'Вес' || item.text === 'Рост'; }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function (ctx) {
+                                    return ctx[0].parsed.x.toFixed(1) + ' мес';
+                                },
+                                label: function (ctx) {
+                                    const unit = ctx.dataset.yAxisID === 'y' ? ' кг' : ' см';
+                                    return ctx.dataset.label + ': ' + ctx.parsed.y + unit;
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        x: { ticks: { color: '#9CA3AF', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,.05)' } },
+                        x: { type: 'linear', min: 0, max: 24,
+                             title: { display: true, text: 'возраст, мес', color: '#6B7280', font: { size: 10 } },
+                             ticks: { color: '#9CA3AF', stepSize: 3 },
+                             grid: { color: 'rgba(255,255,255,.05)' } },
                         y: { position: 'left', ticks: { color: '#F29B93' }, grid: { color: 'rgba(255,255,255,.05)' } },
                         y1: { position: 'right', ticks: { color: '#A9C8F5' }, grid: { drawOnChartArea: false } }
                     }
