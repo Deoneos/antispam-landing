@@ -2842,6 +2842,15 @@ async function sendFeedback() {
                 }
             }
             m.dataset.editId = id || '';
+            pendingMilestonePhoto = '';
+            showMilestonePhoto('');
+            if (id) {
+                const it = (healthMilestones || []).find(function (x) { return x.id === id; });
+                if (it && it.photo) {
+                    pendingMilestonePhoto = it.photo;
+                    showMilestonePhoto(it.photo);
+                }
+            }
             m.style.display = 'flex';
         }
 
