@@ -241,12 +241,35 @@
             '. Приложение «Лад».';
     }
 
+    function paywall() {
+        document.getElementById('sub').textContent = 'Отчёт для врача — в Премиуме';
+        document.getElementById('content').innerHTML =
+            '<div style="text-align:center;padding:30px 10px">' +
+            '<div style="font-size:40px;margin-bottom:10px">🖨</div>' +
+            '<p style="font-size:15px;margin:0 0 6px"><b>Отчёт для врача</b> — в Премиуме</p>' +
+            '<p class="meta" style="margin:0 0 18px">Печатная сводка за 30 дней: вес, рост, сон, ' +
+            'кормления, прививки и температура. Оформите премиум, чтобы открыть.</p>' +
+            '<a href="/baby/premium.html" style="display:inline-block;padding:12px 22px;border-radius:12px;' +
+            'background:#c2185b;color:#fff;text-decoration:none;font-weight:700">Оформить за 299 руб.</a>' +
+            '</div>';
+    }
+
     if (!token()) {
         document.getElementById('sub').textContent = 'Нужно войти в приложение.';
         document.getElementById('content').innerHTML =
             '<p class="empty">Откройте приложение и войдите, затем вернитесь на эту страницу.</p>';
         return;
     }
+
+    fetch(API + '/billing/status', { headers: { 'Authorization': 'Bearer ' + token() } })
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (d) {
+            if (!d || !d.active) { paywall(); return; }
+            loadAll();
+        })
+        .catch(paywall);
+
+    function loadAll() {
 
     Promise.all([
         fetchJson('/me'),
@@ -261,9 +284,10 @@
             return;
         }
         render(r[0], r[1], r[2], r[3], r[4], r[5]);
-    }).catch(function (e) {
-        document.getElementById('sub').textContent = 'Ошибка: ' + e.message;
-    });
+        }).catch(function (e) {
+            document.getElementById('sub').textContent = 'Ошибка: ' + e.message;
+        });
+    }
 })();
 </script>
 </body>
