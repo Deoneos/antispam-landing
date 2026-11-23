@@ -2768,7 +2768,9 @@ async function sendFeedback() {
             }
             list.innerHTML = items.map(function (m) {
                 const age = msAge(m.date);
-                const thumb = m.photo ? '<img class="ms-thumb" src="' + m.photo + '" alt="">' : '';
+                const thumb = m.photo
+                    ? '<img class="ms-thumb" src="' + m.photo + '" alt="" onclick="event.stopPropagation();viewPhoto(this.src)">'
+                    : '';
                 return '<div class="ms-row" onclick="openMilestoneModal(\'' + esc(m.title).replace(/'/g, '') + '\',' + m.id + ')">' +
                     thumb +
                     '<div><b>' + esc(m.title) + '</b><div class="d" style="color:var(--muted);font-size:12px">' +
@@ -2842,6 +2844,20 @@ async function sendFeedback() {
             } finally {
                 input.value = '';
             }
+        }
+
+
+        function viewPhoto(src) {
+            const el = document.getElementById('photo-view');
+            const img = document.getElementById('photo-view-img');
+            if (!el || !img || !src) return;
+            img.src = src;
+            el.classList.add('show');
+        }
+
+        function closePhotoView() {
+            const el = document.getElementById('photo-view');
+            if (el) el.classList.remove('show');
         }
 
         function openMilestoneModal(title, id) {
