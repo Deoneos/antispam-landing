@@ -3378,6 +3378,76 @@ async function sendFeedback() {
             } catch (e) { toast('Не удалось сохранить', true); }
         }
 
+
+        // ===== НАПОМИНАНИЯ О ЛЕКАРСТВАХ =====
+        let medReminders = [];
+
+        async function loadMedReminders() {
+            try {
+                const res = await fetch(`${API_URL}/med-reminders`, { headers: apiHeaders() });
+                if (handleAuthError(res) || !res.ok) return;
+                medReminders = await res.json();
+                if (!Array.isArray(medReminders)) medReminders = [];
+                renderMedReminders();
+            } catch (e) {}
+        }
+
+        function renderMedReminders() {
+            const list = document.getElementById('med-rem-list');
+            if (!list) return;
+            if (!medReminders.length) { list.innerHTML = ''; return; }
+            const now = Date.now();
+            list.innerHTML = medReminders.map(function (m) {
+                const t = new Date(m.next_at).getTime();
+                let left = Math.max(0, Math.round((t - now) / 60000));
+                const when = left >= 60
+                    ? Math.floor(left / 60) + ' ч ' + (left % 60) + ' мин'
+                    : left + ' мин';
+                const dose = m.dose ? ' · ' + esc(m.dose) : '';
+                return '<div class="measure-row">' +
+                    '<div><b>💊 ' + esc(m.name) + dose + '</b>' +
+                    '<div class="d">следующий приём через ' + when + '</div></div>' +
+                    '<button class="del" style="font-size:13px;color:#F29B93;font-weight:700" ' +
+                    'onclick="takeMedReminder(' + m.id + ')">Принял</button>' +
+                    '<button class="del" onclick="deleteMedReminder(' + m.id + ')">✕</button></div>';
+            }).join('');
+        }
+
+        async function addMedReminder() {
+            const name = (document.getElementById('mr-name').value || '').trim();
+            const dose = (document.getElementById('mr-dose').value || '').trim();
+            const interval = Number(document.getElementById('mr-interval').value || 6);
+            if (!name) { toast('Укажите лекарство', true); return; }
+            try {
+                const res = await fetch(`${API_URL}/med-reminders`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ name: name, dose: dose, interval_hours: interval })
+                });
+                if (!res.ok) throw new Error();
+                document.getElementById('mr-name').value = '';
+                document.getElementById('mr-dose').value = '';
+                toast('Напомню через ' + interval + ' ч');
+                loadMedReminders();
+            } catch (e) { toast('Не удалось сохранить', true); }
+        }
+
+        async function takeMedReminder(id) {
+            try {
+                const res = await fetch(`${API_URL}/med-reminders/${id}/take`, { method: 'POST', headers: apiHeaders() });
+                if (!res.ok) throw new Error();
+                toast('Записано');
+                loadMedReminders();
+            } catch (e) { toast('Не удалось', true); }
+        }
+
+        async function deleteMedReminder(id) {
+            try {
+                const res = await fetch(`${API_URL}/med-reminders/${id}`, { method: 'DELETE', headers: apiHeaders() });
+                if (!res.ok) throw new Error();
+                loadMedReminders();
+            } catch (e) { toast('Не удалось удалить', true); }
+        }
+
         async function loadHealthLog() {
             try {
                 const res = await fetch(`${API_URL}/health?days=30`, { headers: apiHeaders() });

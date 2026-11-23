@@ -389,6 +389,21 @@
                     <input id="med-dose" placeholder="Доза" maxlength="20">
                     <button class="pbtn primary" style="width:54px;flex:none" onclick="addMed()">＋</button>
                 </div>
+                <div class="med-rem">
+                    <div class="med-rem-title">Напоминать о лекарстве</div>
+                    <div class="med-row">
+                        <input id="mr-name" placeholder="Название" maxlength="40">
+                        <input id="mr-dose" placeholder="Доза" maxlength="20">
+                        <select id="mr-interval">
+                            <option value="4">4 ч</option>
+                            <option value="6" selected>6 ч</option>
+                            <option value="8">8 ч</option>
+                            <option value="12">12 ч</option>
+                        </select>
+                        <button class="pbtn primary" style="width:54px;flex:none" onclick="addMedReminder()">＋</button>
+                    </div>
+                    <div id="med-rem-list" class="measure-list"></div>
+                </div>
                 <div id="health-list" class="measure-list"></div>
             </div>
 

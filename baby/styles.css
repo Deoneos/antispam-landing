@@ -179,6 +179,12 @@
         .m-label input { padding: 11px 12px; border-radius: 12px; border: 1px solid var(--border);
             background: var(--bg); color: var(--text); font: inherit; font-size: 15px; }
 
+        .med-rem { margin: 0 16px 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .med-rem-title { font-size: 12px; font-weight: 700; letter-spacing: .04em;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        .med-rem .med-row { margin: 0 0 8px; }
+        .med-rem select { padding: 10px 8px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); font: inherit; font-size: 14px; }
         .temp-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 4px 16px 12px; }
         .temp-btn { padding: 13px 4px; border-radius: 12px; border: 1px solid var(--border);
             background: var(--card); color: var(--text); font: inherit; font-size: 15px;
