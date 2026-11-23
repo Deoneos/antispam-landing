@@ -3536,3 +3536,16 @@ async function sendFeedback() {
                 st.textContent = e.message;
             }
         }
+
+        // Загружаем профиль ребёнка при старте: нужен возраст и пол
+        // для кривых ВОЗ и подсказки по возрасту.
+        (function initChildInfo() {
+            try {
+                if (typeof ladToken !== 'function' || !ladToken()) return;
+                loadProfile().then(function () {
+                    if (typeof renderAgeHint === 'function') renderAgeHint();
+                    var gv = document.getElementById('view-growth');
+                    if (gv && gv.classList.contains('active') && typeof loadGrowth === 'function') loadGrowth();
+                }).catch(function () {});
+            } catch (e) {}
+        })();
