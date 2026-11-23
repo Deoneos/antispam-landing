@@ -2737,6 +2737,11 @@ async function sendFeedback() {
         async function onMilestonePhoto(input) {
             const file = (input.files && input.files[0]) || null;
             if (!file) return;
+            if (!(await ensurePremium())) {
+                toast('Фото к вехам — в Премиуме 🔒', true);
+                input.value = '';
+                return;
+            }
             try {
                 const img = await loadImageFile(file);
                 const max = 1200;
@@ -2891,7 +2896,7 @@ async function sendFeedback() {
             } catch (e) {}
         }
 
-        function renderGrowth() {
+        async function renderGrowth() {
             const items = healthMeasurements || [];
             const lastW = items.slice().reverse().find(function (m) { return m.weight_g; });
             const lastH = items.slice().reverse().find(function (m) { return m.height_cm; });
@@ -2915,7 +2920,11 @@ async function sendFeedback() {
                     const ph = whoPercentile(sex, 'height', ageH, lastH.height_cm);
                     if (ph !== null) parts.push('Рост — ' + ph + '-й перцентиль (' + percWord(ph) + ')');
                 }
-                percEl.textContent = parts.join(' · ') || 'Кривые — нормы ВОЗ для ' + (sex === 'boys' ? 'мальчиков' : 'девочек');
+                if (!(await ensurePremium())) {
+                    percEl.innerHTML = 'Кривые ВОЗ и перцентили — в Премиуме 🔒';
+                } else {
+                    percEl.textContent = parts.join(' · ') || 'Кривые — нормы ВОЗ для ' + (sex === 'boys' ? 'мальчиков' : 'девочек');
+                }
             }
 
             const list = document.getElementById('measure-list');
@@ -3075,7 +3084,8 @@ async function sendFeedback() {
             const child = childInfo();
             const sex = child && child.gender === 'boy' ? 'boys' : 'girls';
             const ages = items.map(function (m) { return ageMonthsOf(m.date); });
-            const useAge = child && child.birth_date && ages.every(function (a) { return a !== null; });
+            const premium = await ensurePremium();
+            const useAge = premium && child && child.birth_date && ages.every(function (a) { return a !== null; });
 
             if (growthChart) { growthChart.destroy(); growthChart = null; }
 
