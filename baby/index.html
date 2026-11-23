@@ -284,6 +284,7 @@
                 <div class="profile-members" id="profile-members"></div>
                 <div class="invite-box" id="invite-box" style="display:none"></div>
                 <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
+                <button class="pbtn" onclick="openRefModal()">🎁 Пригласить друга — 7 дней Премиума</button>
                 <button class="pbtn" onclick="openDoctorReport()">🖨 Отчёт для врача</button>
                 <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
                 <div class="profile-settings" id="children-box">
@@ -535,6 +536,22 @@
             </div>
             <button class="pbtn primary" onclick="saveMilestone()">Сохранить</button>
             <button class="pbtn ghost" onclick="document.getElementById('milestone-modal').style.display='none'">Отмена</button>
+        </div>
+    </div>
+
+    <!-- РЕФЕРАЛ -->
+    <div class="modal-overlay" id="ref-modal" onclick="closeRefModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>Пригласить друга</h2>
+            <p style="color:var(--muted);font-size:13px;margin:6px 0 12px">
+                Поделитесь ссылкой. Когда друг зарегистрируется — вы получите 7 дней Премиума.
+            </p>
+            <div class="ref-link" id="ref-link">…</div>
+            <button class="pbtn primary" onclick="copyRefLink()">Скопировать ссылку</button>
+            <button class="pbtn ghost" onclick="shareRefLink()">Поделиться</button>
+            <p class="login-status" id="ref-status"></p>
+            <div class="ref-stats" id="ref-stats"></div>
+            <button class="pbtn ghost" onclick="closeRefModal()">Закрыть</button>
         </div>
     </div>
 

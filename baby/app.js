@@ -135,6 +135,59 @@
         };
 
 
+        async function openRefModal() {
+            const modal = document.getElementById('ref-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            const linkEl = document.getElementById('ref-link');
+            const statsEl = document.getElementById('ref-stats');
+            const statusEl = document.getElementById('ref-status');
+            if (statusEl) statusEl.textContent = '';
+            try {
+                const res = await fetch(`${API_URL}/referral`, { headers: apiHeaders() });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const d = await res.json();
+                if (linkEl) linkEl.textContent = d.link;
+                if (statsEl) {
+                    statsEl.textContent = d.invited
+                        ? 'Приглашено: ' + d.invited + ' · получено ' + d.days_earned + ' дн. Премиума'
+                        : 'Пока никого не пригласили. За каждого друга — ' + d.bonus_days + ' дней Премиума.';
+                }
+            } catch (e) {
+                if (linkEl) linkEl.textContent = 'Не удалось загрузить ссылку';
+            }
+        }
+
+        function closeRefModal(e) {
+            if (!e || e.target.id === 'ref-modal') {
+                const m = document.getElementById('ref-modal');
+                if (m) m.style.display = 'none';
+            }
+        }
+
+        async function copyRefLink() {
+            const text = (document.getElementById('ref-link') || {}).textContent || '';
+            const statusEl = document.getElementById('ref-status');
+            try {
+                await navigator.clipboard.writeText(text);
+                if (statusEl) statusEl.textContent = 'Ссылка скопирована';
+            } catch (e) {
+                if (statusEl) statusEl.textContent = 'Скопируйте вручную: ' + text;
+            }
+        }
+
+        async function shareRefLink() {
+            const text = (document.getElementById('ref-link') || {}).textContent || '';
+            const statusEl = document.getElementById('ref-status');
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Лад', text: 'Дневник малыша «Лад»', url: text });
+                } catch (e) {}
+                return;
+            }
+            copyRefLink();
+        }
+
         async function testPush() {
             const status = document.getElementById('notify-status');
             if (status) { status.style.color = ''; status.textContent = 'Отправляю…'; }
@@ -1792,6 +1845,21 @@
             window.open('/baby/report.html', '_blank');
         }
 
+
+        // Реферальная ссылка: ?ref=CODE
+        (function captureRef() {
+            try {
+                const params = new URLSearchParams(location.search);
+                const ref = params.get('ref');
+                if (ref) {
+                    localStorage.setItem('lad_ref', ref);
+                    params.delete('ref');
+                    const q = params.toString();
+                    history.replaceState(null, '', location.pathname + (q ? '?' + q : ''));
+                }
+            } catch (e) {}
+        })();
+
         const LAD_TOKEN_KEY = 'lad_token';
 
         function ladToken() {
@@ -1906,7 +1974,8 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        login: login, password: pass, name: name, consent_version: '2026-11'
+                        login: login, password: pass, name: name, consent_version: '2026-11',
+                        ref: (function () { try { return localStorage.getItem('lad_ref') || ''; } catch (e) { return ''; } })()
                     })
                 });
                 const d = await res.json().catch(function () { return {}; });
