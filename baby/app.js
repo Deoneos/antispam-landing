@@ -1793,7 +1793,6 @@
         }
 
         const LAD_TOKEN_KEY = 'lad_token';
-        const API_TOKEN_KEY = 'api_token';
 
         function ladToken() {
             try { return localStorage.getItem(LAD_TOKEN_KEY) || ''; } catch (e) { return ''; }
