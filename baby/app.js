@@ -136,25 +136,112 @@
         };
 
 
-        async function openRefModal() {
-            const modal = document.getElementById('ref-modal');
-            if (!modal) return;
-            modal.style.display = 'flex';
+        let ladReferral = null;
+
+        function refDateLabel(iso) {
+            try {
+                const d = new Date(iso);
+                if (isNaN(d.getTime())) return '';
+                return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+            } catch (e) { return ''; }
+        }
+
+        function renderRefFriends(box, items, limit) {
+            if (!box) return;
+            box.innerHTML = '';
+            const list = (items || []).slice(0, limit);
+            list.forEach(function (it) {
+                const row = document.createElement('div');
+                row.className = 'ref-friend';
+                const name = document.createElement('span');
+                name.className = 'rf-name';
+                name.textContent = it.name || 'Друг';
+                const date = document.createElement('span');
+                date.className = 'rf-date';
+                date.textContent = refDateLabel(it.date);
+                const bonus = document.createElement('span');
+                bonus.className = 'rf-bonus';
+                bonus.textContent = '+' + (it.days || 7) + ' дн.';
+                row.appendChild(name);
+                row.appendChild(date);
+                row.appendChild(bonus);
+                box.appendChild(row);
+            });
+            if ((items || []).length > limit) {
+                const more = document.createElement('div');
+                more.className = 'ref-more';
+                more.textContent = 'и ещё ' + (items.length - limit);
+                box.appendChild(more);
+            }
+        }
+
+        function renderRefModal(d) {
             const linkEl = document.getElementById('ref-link');
-            const statsEl = document.getElementById('ref-stats');
-            const statusEl = document.getElementById('ref-status');
-            if (statusEl) statusEl.textContent = '';
+            const invitedEl = document.getElementById('ref-modal-invited');
+            const daysEl = document.getElementById('ref-modal-days');
+            const listEl = document.getElementById('ref-modal-friends');
+            const noteEl = document.getElementById('ref-modal-note');
+            if (linkEl) linkEl.textContent = d.link || '';
+            if (invitedEl) invitedEl.textContent = d.invited || 0;
+            if (daysEl) daysEl.textContent = d.days_earned || 0;
+            renderRefFriends(listEl, d.items || [], 20);
+            if (listEl) listEl.style.display = (d.items && d.items.length) ? 'block' : 'none';
+            if (noteEl) {
+                noteEl.textContent = d.invited
+                    ? 'Вы получили ' + d.days_earned + ' дн. Премиума. Друг получает ' + (d.friend_bonus_days || d.bonus_days) + ' дн.'
+                    : 'Пока никого не пригласили. За каждого друга — ' + d.bonus_days + ' дней Премиума.';
+            }
+        }
+
+        function renderReferralStats(d) {
+            ladReferral = d;
+            const invitedEl = document.getElementById('ref-invited');
+            const daysEl = document.getElementById('ref-days');
+            const monthEl = document.getElementById('ref-month');
+            const noteEl = document.getElementById('ref-note');
+            const friendsEl = document.getElementById('ref-friends');
+            if (invitedEl) invitedEl.textContent = d.invited || 0;
+            if (daysEl) daysEl.textContent = d.days_earned || 0;
+            if (monthEl) monthEl.textContent = d.this_month || 0;
+            if (noteEl) {
+                noteEl.textContent = d.invited
+                    ? 'Вы пригласили ' + d.invited + ' · получили ' + d.days_earned + ' дн. Премиума'
+                    : 'Пока никого не пригласили. За каждого друга — ' + d.bonus_days + ' дней Премиума.';
+            }
+            if (friendsEl) {
+                renderRefFriends(friendsEl, d.items || [], 3);
+                friendsEl.style.display = (d.items && d.items.length) ? 'block' : 'none';
+            }
+        }
+
+        async function loadReferralStats() {
+            if (!ladToken() && !apiToken()) return null;
             try {
                 const res = await fetch(`${API_URL}/referral`, { headers: apiHeaders() });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const d = await res.json();
-                if (linkEl) linkEl.textContent = d.link;
-                if (statsEl) {
-                    statsEl.textContent = d.invited
-                        ? 'Приглашено: ' + d.invited + ' · получено ' + d.days_earned + ' дн. Премиума'
-                        : 'Пока никого не пригласили. За каждого друга — ' + d.bonus_days + ' дней Премиума.';
-                }
+                renderReferralStats(d);
+                return d;
             } catch (e) {
+                if (!ladReferral) {
+                    const noteEl = document.getElementById('ref-note');
+                    if (noteEl) noteEl.textContent = 'Статистика временно недоступна';
+                }
+                return ladReferral;
+            }
+        }
+
+        async function openRefModal() {
+            const modal = document.getElementById('ref-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            const statusEl = document.getElementById('ref-status');
+            if (statusEl) statusEl.textContent = '';
+            const d = await loadReferralStats();
+            if (d) {
+                renderRefModal(d);
+            } else {
+                const linkEl = document.getElementById('ref-link');
                 if (linkEl) linkEl.textContent = 'Не удалось загрузить ссылку';
             }
         }
@@ -2404,6 +2491,7 @@
             } else {
                 ava.textContent = (u.name || '👤').trim().charAt(0).toUpperCase();
             }
+            loadReferralStats();
         }
 
         function pickAvatar() {

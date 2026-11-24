@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=1">
     
-    <link rel="stylesheet" href="styles.css?v=119">
+    <link rel="stylesheet" href="styles.css?v=120">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -285,7 +285,24 @@
                     </div>
                     <p class="login-status" id="plan-status"></p>
                 </div>
-                <button class="row" onclick="openRefModal()"><span class="ri">🎁</span> Пригласить друга <span class="chev">›</span></button>
+                <div class="p-section">Приглашения</div>
+                <div class="ref-card" id="ref-card">
+                    <div class="ref-head">
+                        <div class="ref-icon">🎁</div>
+                        <div>
+                            <div class="ref-title">Приглашайте друзей</div>
+                            <div class="ref-sub">7 дней Премиума вам и другу — за каждого, кто зарегистрируется по ссылке</div>
+                        </div>
+                    </div>
+                    <div class="ref-grid">
+                        <div class="ref-stat"><b id="ref-invited">—</b><span>приглашено</span></div>
+                        <div class="ref-stat"><b id="ref-days">—</b><span>дней Премиума</span></div>
+                        <div class="ref-stat"><b id="ref-month">—</b><span>в этом месяце</span></div>
+                    </div>
+                    <div class="ref-friends" id="ref-friends" style="display:none"></div>
+                    <p class="ref-note" id="ref-note">Загружаем статистику…</p>
+                    <button class="pbtn primary" onclick="openRefModal()">Пригласить друга</button>
+                </div>
                 <button class="row" onclick="openPromo()">
                     <span class="ri">🎟</span> Промокод <span class="chev">›</span></button>
                 <button class="row" onclick="openDoctorReport()"><span class="ri">🖨</span> Отчёт для врача <span class="chev">›</span></button>
@@ -588,13 +605,18 @@
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2>Пригласить друга</h2>
             <p style="color:var(--muted);font-size:13px;margin:6px 0 12px">
-                Поделитесь ссылкой. Когда друг зарегистрируется — вы получите 7 дней Премиума.
+                Поделитесь ссылкой. Когда друг зарегистрируется — вы и друг получите по 7 дней Премиума.
             </p>
             <div class="ref-link" id="ref-link">…</div>
             <button class="pbtn primary" onclick="copyRefLink()">Скопировать ссылку</button>
             <button class="pbtn ghost" onclick="shareRefLink()">Поделиться</button>
             <p class="login-status" id="ref-status"></p>
-            <div class="ref-stats" id="ref-stats"></div>
+            <div class="ref-modal-summary">
+                <div class="ref-modal-stat"><b id="ref-modal-invited">—</b><span>приглашено</span></div>
+                <div class="ref-modal-stat"><b id="ref-modal-days">—</b><span>дней Премиума</span></div>
+            </div>
+            <div class="ref-friends" id="ref-modal-friends" style="display:none"></div>
+            <p class="ref-modal-note" id="ref-modal-note"></p>
             <button class="pbtn ghost" onclick="closeRefModal()">Закрыть</button>
         </div>
     </div>
@@ -799,7 +821,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=166" defer></script>
+    <script src="app.js?v=167" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
