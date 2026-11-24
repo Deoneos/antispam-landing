@@ -1,3 +1,17 @@
+.ai-modal-content { display: flex; flex-direction: column; max-height: 84vh; }
+.ai-hint { color: var(--muted); font-size: 12.5px; margin: 2px 0 10px; }
+.ai-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    min-height: 140px; max-height: 46vh; margin-bottom: 10px; }
+.ai-msg { max-width: 86%; padding: 10px 12px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; }
+.ai-msg.user { align-self: flex-end; background: #F29B93; color: #2b1b18; }
+.ai-msg.assistant { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
+.ai-msg.error { align-self: flex-start; background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.4); color: #F87171; }
+.ai-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.ai-input-row input { flex: 1; min-width: 0; padding: 12px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; font-size: 14px; }
+.ai-send { width: 46px; border: none; border-radius: 12px; background: #F29B93; color: #2b1b18;
+    font-size: 18px; font-weight: 800; cursor: pointer; flex: none; }
+
 .insights-card { margin: 0 16px 14px; padding: 14px 16px; border-radius: 18px;
     background: var(--card); border: 1px solid var(--border); }
 .insights-title { font-size: 11.5px; font-weight: 700; letter-spacing: .05em;

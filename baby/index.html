@@ -617,6 +617,21 @@
         <button class="ub-go" onclick="applyUpdate()">Обновить</button>
     </div>
 
+    <!-- ИИ-ПОМОЩНИК -->
+    <div class="modal-overlay" id="ai-modal" onclick="closeAi(event)">
+        <div class="modal-content ai-modal-content" onclick="event.stopPropagation()">
+            <h2>🤖 Помощник</h2>
+            <div class="ai-hint" id="ai-hint">Спросите про сон, кормления, вес и прививки</div>
+            <div class="ai-messages" id="ai-messages"></div>
+            <div class="ai-input-row">
+                <input id="ai-input" placeholder="Например: сколько спал за неделю?" maxlength="300"
+                       onkeydown="if (event.key === 'Enter') sendAi()">
+                <button class="ai-send" onclick="sendAi()" aria-label="Отправить">➤</button>
+            </div>
+            <button class="pbtn ghost" onclick="closeAi()">Закрыть</button>
+        </div>
+    </div>
+
     <!-- ОБРАТНАЯ СВЯЗЬ -->
     <div class="modal-overlay" id="feedback-modal" onclick="closeFeedback(event)">
         <div class="modal-content" onclick="event.stopPropagation()">

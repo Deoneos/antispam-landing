@@ -3211,6 +3211,83 @@ async function sendFeedback() {
         }
 
 
+
+        // ===== ИИ-ПОМОЩНИК =====
+        function aiBubble(text, cls) {
+            const box = document.getElementById('ai-messages');
+            if (!box) return null;
+            const el = document.createElement('div');
+            el.className = 'ai-msg ' + (cls || 'assistant');
+            el.textContent = text;
+            box.appendChild(el);
+            box.scrollTop = box.scrollHeight;
+            return el;
+        }
+
+        function updateAiHint(used, limit) {
+            const el = document.getElementById('ai-hint');
+            if (!el) return;
+            if (typeof limit === 'number') {
+                el.textContent = 'Осталось сегодня: ' + Math.max(0, limit - used);
+            } else if (typeof used === 'number') {
+                el.textContent = 'Сегодня задано вопросов: ' + used;
+            }
+        }
+
+        async function openAiChat() {
+            const m = document.getElementById('ai-modal');
+            if (!m) return;
+            m.style.display = 'flex';
+            const box = document.getElementById('ai-messages');
+            box.innerHTML = '';
+            try {
+                const res = await fetch(`${API_URL}/ai/history`, { headers: apiHeaders() });
+                const d = await res.json();
+                (d.messages || []).forEach(function (x) {
+                    aiBubble(x.content, x.role === 'user' ? 'user' : 'assistant');
+                });
+                updateAiHint(d.used);
+                if (!(d.messages || []).length) {
+                    aiBubble('Привет! Я вижу записи о сне, кормлениях, весе и прививках. Спросите что угодно.', 'assistant');
+                }
+            } catch (e) {
+                aiBubble('Не удалось загрузить историю', 'error');
+            }
+        }
+
+        function closeAi(e) {
+            if (!e || e.target.id === 'ai-modal') {
+                const m = document.getElementById('ai-modal');
+                if (m) m.style.display = 'none';
+            }
+        }
+
+        async function sendAi() {
+            const input = document.getElementById('ai-input');
+            const q = (input.value || '').trim();
+            if (!q) return;
+            input.value = '';
+            aiBubble(q, 'user');
+            const wait = aiBubble('Печатаю…', 'assistant');
+            try {
+                const res = await fetch(`${API_URL}/ai/ask`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ question: q })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (wait) wait.remove();
+                if (!res.ok) {
+                    aiBubble(d.detail || 'Не получилось ответить', 'error');
+                    return;
+                }
+                aiBubble(d.answer, 'assistant');
+                updateAiHint(d.used, d.limit);
+            } catch (e) {
+                if (wait) wait.remove();
+                aiBubble('Нет связи с помощником', 'error');
+            }
+        }
+
         async function loadInsights() {
             const card = document.getElementById('insights-card');
             const box = document.getElementById('insights-lines');
@@ -3271,6 +3348,7 @@ async function sendFeedback() {
             if (action === 'profile') { openProfile(); return; }
             if (action === 'premium') { location.href = 'premium.html'; return; }
             if (action === 'report') { openDoctorReport(); return; }
+            if (action === 'ai') { openAiChat(); return; }
             const map = { growth: 'growth', tracker: 'tracker', calendar: 'calendar' };
             const view = map[action];
             if (view) {
