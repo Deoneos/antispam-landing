@@ -1,4 +1,4 @@
-.bell-btn { position: absolute; right: 62px; top: 50%; transform: translateY(-50%);
+.bell-btn { position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
     width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
     background: var(--card); color: var(--text); font-size: 17px;
     display: flex; align-items: center; justify-content: center; cursor: pointer; }
