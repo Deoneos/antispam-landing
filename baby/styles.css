@@ -1,3 +1,16 @@
+.feeding-head { margin: 6px 16px 10px; font-size: 11.5px; font-weight: 800;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.prod-group { margin: 0 16px 12px; padding: 12px 14px; border-radius: 16px;
+    background: var(--card); border: 1px solid var(--border); }
+.prod-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.prod-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0;
+    border-top: 1px solid var(--border); }
+.prod-item:first-of-type { border-top: none; }
+.prod-name { font-size: 13.5px; font-weight: 600; }
+.prod-note { font-size: 11.5px; color: var(--muted); line-height: 1.35; margin-top: 1px; }
+.prod-age { margin-left: auto; font-size: 11px; color: #F29B93; white-space: nowrap;
+    border: 1px solid rgba(242,155,147,.4); border-radius: 999px; padding: 2px 8px; align-self: center; }
+
 .feed-stage { margin: 0 16px 14px; padding: 14px 16px; border-radius: 18px;
     background: var(--card); border: 1px solid var(--border); }
 .feed-stage.current { border-color: #F29B93; box-shadow: 0 0 0 1px #F29B93 inset; }

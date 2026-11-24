@@ -3021,6 +3021,20 @@ async function sendFeedback() {
                         '<div class="feed-age">' + esc(st.age) + '</div>' +
                         '<div class="feed-title">' + esc(st.title) + '</div>' + items + '</div>';
                 }).join('');
+                const pbox = document.getElementById('feeding-products');
+                if (pbox) {
+                    pbox.innerHTML = (d.products || []).map(function (g) {
+                        const rows = (g.items || []).map(function (it) {
+                            return '<div class="prod-item"><div>' +
+                                '<div class="prod-name">' + esc(it.name) +
+                                (it.careful ? ' ⚠️' : '') + '</div>' +
+                                (it.note ? '<div class="prod-note">' + esc(it.note) + '</div>' : '') +
+                                '</div><div class="prod-age">' + esc(it.from) + '</div></div>';
+                        }).join('');
+                        return '<div class="prod-group"><div class="prod-title">' +
+                            g.icon + ' ' + esc(g.group) + '</div>' + rows + '</div>';
+                    }).join('');
+                }
                 if (rules) {
                     rules.innerHTML = '<b>Важно</b>' + (d.rules || []).map(function (t) {
                         return '<div>• ' + esc(t) + '</div>';
