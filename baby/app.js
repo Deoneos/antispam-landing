@@ -188,7 +188,7 @@
             if (listEl) listEl.style.display = (d.items && d.items.length) ? 'block' : 'none';
             if (noteEl) {
                 noteEl.textContent = d.invited
-                    ? 'Вы получили ' + d.days_earned + ' дн. Премиума. Друг получает ' + (d.friend_bonus_days || d.bonus_days) + ' дн.'
+                    ? 'Вы получили ' + d.days_earned + ' дн. Премиума. Друг тоже получает ' + (d.friend_bonus_days || d.bonus_days) + ' дн.'
                     : 'Пока никого не пригласили. За каждого друга — ' + d.bonus_days + ' дней Премиума.';
             }
         }
@@ -205,7 +205,7 @@
             if (monthEl) monthEl.textContent = d.this_month || 0;
             if (noteEl) {
                 noteEl.textContent = d.invited
-                    ? 'Вы пригласили ' + d.invited + ' · получили ' + d.days_earned + ' дн. Премиума'
+                    ? 'Дни Премиума суммируются с текущей подпиской'
                     : 'Пока никого не пригласили. За каждого друга — ' + d.bonus_days + ' дней Премиума.';
             }
             if (friendsEl) {
