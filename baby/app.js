@@ -71,7 +71,7 @@
             document.getElementById(`view-${viewName}`).classList.add('active');
             if (btn) btn.classList.add('active');
             if (viewName === 'growth') { loadGrowth(); return; }
-            if (viewName === 'stats') loadStats();
+            if (viewName === 'stats') { loadStats(); if (typeof loadInsights === 'function') loadInsights(); }
             if (viewName === 'calendar') loadAppointments();
             if (viewName === 'analytics') {
                 if (!familyPremium) {
@@ -3208,6 +3208,22 @@ async function sendFeedback() {
             const read = readTipIds();
             const unread = (appTips || []).filter(function (t) { return read.indexOf(t.id) < 0; });
             dot.style.display = unread.length ? 'block' : 'none';
+        }
+
+
+        async function loadInsights() {
+            const card = document.getElementById('insights-card');
+            const box = document.getElementById('insights-lines');
+            if (!card || !box) return;
+            try {
+                const res = await fetch(`${API_URL}/insights`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+                const lines = (d && Array.isArray(d.lines)) ? d.lines : [];
+                if (!lines.length) { card.style.display = 'none'; return; }
+                box.innerHTML = lines.map(function (t) { return '<div>' + esc(t) + '</div>'; }).join('');
+                card.style.display = '';
+            } catch (e) {}
         }
 
         async function loadTips() {
