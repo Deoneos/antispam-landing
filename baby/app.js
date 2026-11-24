@@ -127,6 +127,7 @@
         // ===== НАСТРОЙКИ УВЕДОМЛЕНИЙ =====
         const NOTIFY_LABELS = {
             push: 'Push-уведомления',
+            whatsnew: 'Что нового',
             reminders: 'Кормление и подгузник',
             appointments: 'Приёмы у врача',
             vaccines: 'Прививки',
@@ -2539,10 +2540,11 @@
 
         function openProfile() {
             document.getElementById('profile-modal').style.display = 'flex';
-            loadProfile().then(function () {
+            const done = loadProfile().then(function () {
                 if (typeof updateAppTitle === 'function') updateAppTitle();
             });
             loadNotifyPrefs();
+            return done;
         }
 
         function closeProfileModal(e) {
@@ -3993,7 +3995,9 @@ async function sendFeedback() {
             { sel: '#btn-feed', title: 'Покормить', text: 'Одно нажатие — и кормление записано. Можно указать объём смеси.' },
             { sel: '#awake-btn', title: 'Сон и бодрствование', text: 'Нажми «Уложить спать» — таймер запустится сам. Потом «Разбудить».' },
             { sel: '#row-walk', title: 'Прогулка', text: 'Свой таймер: нажал — гуляем, нажал ещё раз — закончили.' },
+            { sel: '#voice-btn', title: 'Сказать голосом', text: 'Скажите «покормила 120 миллилитров» — запись появится сама. Голосом можно отметить подгузник, сон и прогулку.' },
             { sel: '#btn-poop', title: 'Подгузник', text: 'Покакала или пописала — один тап, без лишних окон.' },
+            { sel: '#checklist-card', title: 'Начните с этого', text: 'Если чего-то не хватает — приложение подскажет, что заполнить. Пункты ведут сразу в нужное место.' },
             { sel: '.btn-sos', title: 'Помоги!', text: 'Экстренный сигнал второму родителю: придёт push «Нужна помощь».' },
             { sel: '#today-card', title: 'Итоги дня', text: 'Кормления, сон, подгузники и прогулки за сегодня — одним взглядом.' },
             { sel: '.nav-item[onclick*="stats"]', title: 'Статистика', text: 'Сколько кормлений, сна и смеси за день и за неделю.' },
@@ -4001,14 +4005,20 @@ async function sendFeedback() {
             { sel: '.nav-item[onclick*="openAiChat"]', title: 'Помощник', text: 'Спросите про сон, кормления и вес — ответит по вашим записям. Бесплатно 3 вопроса в день.' },
             { sel: '.nav-item[onclick*="openDoctorReport"]', title: 'Отчёт для врача', text: 'Печатная сводка за 30 дней. Доступна в Премиуме.' },
             { sel: '.nav-item[onclick*="analytics"]', title: 'Аналитика', text: 'Графики и сравнение дней. Полностью доступна в Премиуме.' },
-            { sel: '#health-tabs', view: 'growth', title: 'Разделы здоровья', text: 'Вес и рост, прививки, температура и вехи — четыре вкладки.' },
+            { sel: '#health-tabs', view: 'growth', title: 'Разделы здоровья', text: 'Вес и рост, прививки, температура, вехи, прикорм и зубы — шесть вкладок.' },
+            { sel: '[data-tab="feeding"]', view: 'growth', title: 'Прикорм', text: 'Таблица по возрасту и каталог продуктов: что и когда вводить, с порциями.' },
+            { sel: '[data-tab="teeth"]', view: 'growth', title: 'Зубы', text: 'Календарь зубов: отмечайте, какие уже вылезли, — счётчик обновится сам.' },
             { sel: '[data-tab="milestones"]', view: 'growth', title: 'Вехи развития', text: 'Первый зуб, улыбка, шаг — сохраняйте с фотографией.' },
             { sel: '.cal-primary', view: 'calendar', title: 'Приём у врача', text: 'Добавьте приём — приложение напомнит заранее.' },
             { sel: '.insights-card', view: 'stats', title: 'Итоги недели', text: 'Сон, кормления и вес — со сравнением с прошлой неделей.' },
             { sel: '#bell-btn', view: 'tracker', title: 'Колокольчик', text: 'Что нового и что стоит заполнить — коротко и по делу.' },
             { sel: '.nav-item[onclick*="calendar"]', title: 'Календарь', text: 'Приёмы у врача и напоминания о них.' },
             { sel: '.nav-item[onclick*="openNoiseModal"]', title: 'Звуки для сна', text: 'Белый шум, дождь, океан — с таймером и фоновым воспроизведением.' },
-            { sel: '.profile-btn', view: 'tracker', title: 'Профиль', text: 'Ребёнок, семья, уведомления, премиум и отчёт для врача.' }
+            { sel: '.profile-btn', view: 'tracker', title: 'Профиль', text: 'Ребёнок, семья, уведомления, премиум и отчёт для врача.' },
+            { sel: '#ref-card', profile: true, title: 'Приглашения', text: 'Приглашайте друзей: за каждого — 7 дней Премиума вам и другу. Статистика видна сразу.' },
+            { sel: '.row[onclick*="openPromo"]', profile: true, title: 'Промокод', text: 'Если дали код — введите его здесь, дни Премиума добавятся сами.' },
+            { sel: '#np-whatsnew', profile: true, title: 'Что нового', text: 'Включите — и приложение сообщит, когда появится новая функция.' },
+            { sel: '#np-daily', profile: true, title: 'Итоги дня', text: 'Короткая сводка за день приходит в 21:00. Можно выключить в один тап.' }
         ];
         let tourIndex = 0;
 
@@ -4037,6 +4047,24 @@ async function sendFeedback() {
             if (!t) return;
             if (tourIndex >= TOUR_STEPS.length) { endTour(); return; }
             const step = TOUR_STEPS[tourIndex];
+
+            // шаги в профиле — открываем окно, вне профиля — закрываем
+            if (step.profile) {
+                const pm = document.getElementById('profile-modal');
+                if (!pm || pm.style.display !== 'flex') {
+                    Promise.resolve(openProfile()).then(function () {
+                        setTimeout(showTourStep, 250);
+                    });
+                    return;
+                }
+            } else {
+                const pm = document.getElementById('profile-modal');
+                if (pm && pm.style.display === 'flex') {
+                    pm.style.display = 'none';
+                    setTimeout(showTourStep, 250);
+                    return;
+                }
+            }
 
             // шаг про другой раздел — сначала переключаем экран
             if (step.view) {
@@ -4094,6 +4122,8 @@ async function sendFeedback() {
         function endTour() {
             const t = document.getElementById('tour');
             if (t) t.style.display = 'none';
+            const pm = document.getElementById('profile-modal');
+            if (pm) pm.style.display = 'none';
             try { localStorage.setItem('lad_tour_done', '1'); } catch (e) {}
             try {
                 const nav = document.querySelector('.nav-item[onclick*="tracker"]');

@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=1">
     
-    <link rel="stylesheet" href="styles.css?v=126">
+    <link rel="stylesheet" href="styles.css?v=119">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -365,6 +365,9 @@
                     <div class="settings-title">Уведомления</div>
                     <div class="toggle-row"><span>Push-уведомления</span>
                         <label class="sw"><input type="checkbox" id="np-push" onchange="setNotifyPref('push', this.checked)"><span class="sl"></span></label>
+                    </div>
+                    <div class="toggle-row"><span>Что нового</span>
+                        <label class="sw"><input type="checkbox" id="np-whatsnew" onchange="setNotifyPref('whatsnew', this.checked)"><span class="sl"></span></label>
                     </div>
                     <div class="toggle-row"><span>Кормление и подгузник</span>
                         <label class="sw"><input type="checkbox" id="np-reminders" onchange="setNotifyPref('reminders', this.checked)"><span class="sl"></span></label>
@@ -850,7 +853,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=169" defer></script>
+    <script src="app.js?v=170" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
