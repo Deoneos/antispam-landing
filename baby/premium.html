@@ -31,6 +31,10 @@
   .plan-sub { font-size: 12px; color: #9AA0AE; }
   .plan-badge { position: absolute; top: -9px; right: 10px; padding: 2px 8px; border-radius: 999px;
                 background: #F29B93; color: #2B1B18; font-size: 10px; font-weight: 800; }
+  .auto-row { display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    font-size: 14px; color: #C9CED8; cursor: pointer; }
+  .auto-row input { width: 20px; height: 20px; accent-color: #F29B93; }
+  .auto-row.disabled { opacity: .5; cursor: default; }
   .btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 54px;
          border: none; border-radius: 16px; background: #F29B93; color: #2B1B18;
          font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 16px; }
@@ -103,6 +107,12 @@
     </table>
   </div>
 
+  <label class="auto-row" id="auto-row">
+    <input type="checkbox" id="autorenew" onchange="toggleAuto(this.checked)">
+    <span>Продлевать автоматически</span>
+  </label>
+  <p class="hint" id="auto-hint" style="margin:6px 0 0">Появится после первой оплаты картой</p>
+
   <button class="btn" id="buy" onclick="buy()">Оформить за 299 руб.</button>
   <p class="status" id="status"></p>
 
@@ -135,7 +145,41 @@
         st.textContent = 'Премиум уже активен' + (until ? ' до ' + until : '');
         document.getElementById('buy').textContent = 'Продлить за ' + d.price_rub + ' руб.';
       }
+      const box = document.getElementById('autorenew');
+      const row = document.getElementById('auto-row');
+      const hint = document.getElementById('auto-hint');
+      if (box) {
+        box.checked = !!d.autorenew;
+        if (!d.has_method) {
+          box.disabled = true;
+          if (row) row.classList.add('disabled');
+          if (hint) hint.textContent = 'Включится после оплаты картой — запомним её для продления';
+        } else if (hint) {
+          hint.textContent = 'Спишем автоматически за 2 дня до окончания. Отключить можно в любой момент.';
+        }
+      }
     } catch (e) {}
+  }
+
+  async function toggleAuto(enabled) {
+    const t = token();
+    const hint = document.getElementById('auto-hint');
+    try {
+      const res = await fetch(API + '/billing/autorenew', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !!enabled })
+      });
+      const d = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(d.detail || 'Не удалось');
+      if (hint) hint.textContent = enabled
+        ? 'Включено: спишем автоматически перед окончанием.'
+        : 'Автопродление выключено.';
+    } catch (e) {
+      const box = document.getElementById('autorenew');
+      if (box) box.checked = !enabled;
+      if (hint) hint.textContent = e.message;
+    }
   }
 
   let currentPlan = 'month';
