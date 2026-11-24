@@ -27,6 +27,9 @@
     <div id="view-tracker" class="view active">
         <div class="header">
             <h1 id="app-title">🌗 Лад</h1>
+            <button class="bell-btn" id="bell-btn" onclick="openTips()" aria-label="Уведомления">
+                🔔<span class="bell-dot" id="bell-dot" style="display:none"></span>
+            </button>
             <button class="profile-btn" onclick="openProfile()" aria-label="Профиль">👤</button>
             <div class="net-status" id="net-status" style="display: none;"></div>
             <div class="last-feed-badge" id="last-feed-badge">🍼 Последнее: давно</div>
@@ -585,6 +588,16 @@
         <div class="ib-actions">
             <button class="ib-later" onclick="dismissInstallBanner()">Позже</button>
             <button class="ib-go" onclick="goInstall()">Установить</button>
+        </div>
+    </div>
+
+    <!-- ПОДСКАЗКИ -->
+    <div class="modal-overlay" id="tips-modal" onclick="closeTips(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>Что можно сделать</h2>
+            <p class="tips-lead" id="tips-lead">Подсказки по вашим данным</p>
+            <div id="tips-list" class="tips-list"></div>
+            <button class="pbtn ghost" onclick="closeTips()">Закрыть</button>
         </div>
     </div>
 

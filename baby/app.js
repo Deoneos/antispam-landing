@@ -3121,6 +3121,84 @@ async function sendFeedback() {
 
 
 
+
+        // ===== КОЛОКОЛЬЧИК С ПОДСКАЗКАМИ =====
+        let appTips = [];
+
+        function tipsKey() {
+            let uid = '';
+            try {
+                const p = (typeof ladProfile !== 'undefined' && ladProfile) ? ladProfile : null;
+                uid = (p && (p.id || (p.user && p.user.id))) ? String(p.id || p.user.id) : '';
+            } catch (e) {}
+            return 'lad_tips_read' + (uid ? '_' + uid : '');
+        }
+
+        function readTipIds() {
+            try { return JSON.parse(localStorage.getItem(tipsKey()) || '[]') || []; } catch (e) { return []; }
+        }
+
+        function updateBellDot() {
+            const dot = document.getElementById('bell-dot');
+            if (!dot) return;
+            const read = readTipIds();
+            const unread = (appTips || []).filter(function (t) { return read.indexOf(t.id) < 0; });
+            dot.style.display = unread.length ? 'block' : 'none';
+        }
+
+        async function loadTips() {
+            try {
+                const res = await fetch(`${API_URL}/tips`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+                appTips = (d && Array.isArray(d.tips)) ? d.tips : [];
+                updateBellDot();
+            } catch (e) {}
+        }
+
+        function renderTips() {
+            const list = document.getElementById('tips-list');
+            const lead = document.getElementById('tips-lead');
+            if (!list) return;
+            if (lead) lead.textContent = appTips.length ? 'Подсказки по вашим данным' : 'Пока всё заполнено — новых подсказок нет';
+            list.innerHTML = (appTips || []).map(function (t) {
+                return '<div class="tip-item" onclick="tipAction(\'' + t.action + '\')">' +
+                    '<div class="tip-icon">' + t.icon + '</div>' +
+                    '<div class="tip-body"><b>' + t.title + '</b><span>' + t.text + '</span></div>' +
+                    '<div class="tip-go">›</div></div>';
+            }).join('') || '<p class="tips-lead">Ничего не осталось — вы молодец.</p>';
+        }
+
+        function openTips() {
+            renderTips();
+            document.getElementById('tips-modal').style.display = 'flex';
+            try {
+                localStorage.setItem(tipsKey(), JSON.stringify(appTips.map(function (t) { return t.id; })));
+            } catch (e) {}
+            updateBellDot();
+        }
+
+        function closeTips(e) {
+            if (!e || e.target.id === 'tips-modal') {
+                const m = document.getElementById('tips-modal');
+                if (m) m.style.display = 'none';
+            }
+        }
+
+        function tipAction(action) {
+            const m = document.getElementById('tips-modal');
+            if (m) m.style.display = 'none';
+            if (action === 'profile') { openProfile(); return; }
+            if (action === 'premium') { location.href = 'premium.html'; return; }
+            if (action === 'report') { openDoctorReport(); return; }
+            const map = { growth: 'growth', tracker: 'tracker', calendar: 'calendar' };
+            const view = map[action];
+            if (view) {
+                const btn = document.querySelector('.nav-item[onclick*="' + view + '"]');
+                switchView(view, btn);
+            }
+        }
+
         // ===== ПОДСКАЗКА ОБ УСТАНОВКЕ =====
         function installSeenKey() {
             let uid = '';
@@ -4002,6 +4080,9 @@ async function sendFeedback() {
         setTimeout(function () {
             if (typeof startTour === 'function' && typeof ladToken === 'function' && ladToken()) startTour(false);
         }, 2200);
+        setTimeout(function () {
+            if (typeof loadTips === 'function' && typeof ladToken === 'function' && ladToken()) loadTips();
+        }, 2600);
         setTimeout(function () {
             if (typeof maybeShowInstallBanner === 'function') maybeShowInstallBanner();
         }, 5200);
