@@ -1,3 +1,4 @@
+html { -webkit-text-size-adjust: 100%; }
 .checklist-card { margin: 4px 16px 12px; padding: 12px 14px; border-radius: 16px;
     background: var(--card); border: 1px solid var(--border); }
 .chk-head { display: flex; align-items: center; justify-content: space-between;
@@ -184,7 +185,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
         .header { position: sticky; top: 0; z-index: 10; padding: 20px; text-align: center; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 8px; transition: background 0.3s; }
-        .header h1 { font-size: 24px; font-weight: 800; }
+        .header h1 { font-size: 24px; font-weight: 800; max-width: 100%; overflow-wrap: anywhere; }
         .last-feed-badge { background: var(--feed); color: var(--btn-text); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; display: none; box-shadow: 0 4px 10px var(--shadow); }
         
         /* ТАЙМЕРЫ */
@@ -287,8 +288,9 @@
         .chart-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--text); text-align: center; }
 
         /* МОДАЛКИ */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; }
-        .modal-content { background: var(--card); width: 100%; border-radius: 32px 32px 0 0; padding: 24px; animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(24px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; padding-top: env(safe-area-inset-top); }
+        .modal-content { background: var(--card); width: 100%; border-radius: 32px 32px 0 0; padding: 24px; animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(24px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border);
+            max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
         @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .modal-header h2 { font-size: 22px; font-weight: 800; }
@@ -603,7 +605,7 @@ a.row { text-decoration: none; color: inherit; }
     font-size: 12px; font-family: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
 .child-edit .pbtn { margin-top: 4px; }
 
-.modal-content { max-height: 92vh; overflow-y: auto; }
+.modal-content { max-height: 88vh; max-height: 88dvh; overflow-y: auto; }
 #profile-child { margin-left: auto; margin-right: 8px; }
 .row { display: flex; align-items: center; gap: 10px; padding: 13px 14px; margin-top: 8px;
     width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--card);
