@@ -1,3 +1,22 @@
+.install-banner { position: fixed; left: 12px; right: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 120;
+    display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid #F29B93; border-radius: 18px;
+    padding: 14px; box-shadow: 0 14px 34px rgba(0,0,0,.55);
+    animation: ibUp .3s ease; }
+@keyframes ibUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ib-icon { font-size: 24px; line-height: 1; }
+.ib-text { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 3px; }
+.ib-text b { font-size: 14px; }
+.ib-text span { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.ib-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.ib-later { background: none; border: none; color: var(--muted); font: inherit;
+    font-size: 13px; font-weight: 600; padding: 8px 6px; cursor: pointer; }
+.ib-go { background: #F29B93; color: #2b1b18; border: none; border-radius: 12px;
+    padding: 10px 16px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.row.flash { animation: rowFlash 1s ease 2; }
+@keyframes rowFlash { 0%, 100% { background: transparent; } 50% { background: rgba(242,155,147,.22); } }
+
 .tour { position: fixed; inset: 0; z-index: 600; }
 .tour-hole { position: fixed; border-radius: 18px; pointer-events: none;
     box-shadow: 0 0 0 9999px rgba(6, 8, 12, .78), 0 0 0 2px rgba(242,155,147,.9);

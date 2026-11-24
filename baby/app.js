@@ -3120,6 +3120,49 @@ async function sendFeedback() {
 
 
 
+
+        // ===== ПОДСКАЗКА ОБ УСТАНОВКЕ =====
+        function installSeenKey() {
+            let uid = '';
+            try {
+                const p = (typeof ladProfile !== 'undefined' && ladProfile) ? ladProfile : null;
+                uid = (p && (p.id || (p.user && p.user.id))) ? String(p.id || p.user.id) : '';
+            } catch (e) {}
+            return 'lad_install_seen' + (uid ? '_' + uid : '');
+        }
+
+        function maybeShowInstallBanner() {
+            const banner = document.getElementById('install-banner');
+            if (!banner) return;
+            try {
+                if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+                if (navigator.standalone === true) return;
+                if (localStorage.getItem(installSeenKey())) return;
+                if (document.getElementById('tour') && document.getElementById('tour').style.display === 'block') return;
+            } catch (e) { return; }
+            banner.style.display = 'flex';
+        }
+
+        function dismissInstallBanner() {
+            const banner = document.getElementById('install-banner');
+            if (banner) banner.style.display = 'none';
+            try { localStorage.setItem(installSeenKey(), '1'); } catch (e) {}
+        }
+
+        function goInstall() {
+            const banner = document.getElementById('install-banner');
+            if (banner) banner.style.display = 'none';
+            try { localStorage.setItem(installSeenKey(), '1'); } catch (e) {}
+            try { openProfile(); } catch (e) {}
+            setTimeout(function () {
+                const row = document.getElementById('install-row');
+                if (!row) return;
+                try { row.scrollIntoView({ block: 'center' }); } catch (e) {}
+                row.classList.add('flash');
+                setTimeout(function () { row.classList.remove('flash'); }, 2200);
+            }, 450);
+        }
+
         // ===== ОБУЧЕНИЕ ПРИ ПЕРВОМ ЗАПУСКЕ =====
         const TOUR_STEPS = [
             { sel: '#last-feed-badge', title: 'Последнее кормление', text: 'Сколько прошло с последнего кормления — видно сразу, даже если руки заняты.' },
@@ -3209,6 +3252,9 @@ async function sendFeedback() {
             const t = document.getElementById('tour');
             if (t) t.style.display = 'none';
             try { localStorage.setItem('lad_tour_done', '1'); } catch (e) {}
+            setTimeout(function () {
+                if (typeof maybeShowInstallBanner === 'function') maybeShowInstallBanner();
+            }, 1200);
         }
 
         // ===== ЗАГОЛОВОК С ИМЕНЕМ РЕБЁНКА =====
@@ -3956,6 +4002,9 @@ async function sendFeedback() {
         setTimeout(function () {
             if (typeof startTour === 'function' && typeof ladToken === 'function' && ladToken()) startTour(false);
         }, 2200);
+        setTimeout(function () {
+            if (typeof maybeShowInstallBanner === 'function') maybeShowInstallBanner();
+        }, 5200);
         document.addEventListener('visibilitychange', function () {
             if (document.visibilityState === 'visible' && typeof initPushState === 'function') {
                 initPushState();

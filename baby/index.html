@@ -350,7 +350,7 @@
                 </div>
                 <button class="row" onclick="showMyCode()">
                     <span class="ri">🔑</span> Мой код для входа <span class="chev">›</span></button>
-                <a class="row" href="install.html" target="_blank" rel="noopener">
+                <a class="row" id="install-row" href="install.html" target="_blank" rel="noopener">
                     <span class="ri">📲</span> Установить на телефон <span class="chev">›</span></a>
                 <a class="row" href="payment.html" target="_blank" rel="noopener">
                     <span class="ri">💳</span> Оплата и возврат <span class="chev">›</span></a>
@@ -572,6 +572,19 @@
                 <button class="tour-skip" onclick="endTour()">Пропустить</button>
                 <button class="tour-next" id="tour-next" onclick="nextTourStep()">Далее</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ПОДСКАЗКА ОБ УСТАНОВКЕ -->
+    <div class="install-banner" id="install-banner" style="display:none">
+        <div class="ib-icon">📲</div>
+        <div class="ib-text">
+            <b>Установите «Лад» на телефон</b>
+            <span>Открывается как обычное приложение, с иконкой и уведомлениями.</span>
+        </div>
+        <div class="ib-actions">
+            <button class="ib-later" onclick="dismissInstallBanner()">Позже</button>
+            <button class="ib-go" onclick="goInstall()">Установить</button>
         </div>
     </div>
 
