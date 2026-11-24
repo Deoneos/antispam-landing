@@ -3482,9 +3482,14 @@ async function sendFeedback() {
             { sel: '.nav-item[onclick*="openAiChat"]', title: 'Помощник', text: 'Спросите про сон, кормления и вес — ответит по вашим записям. Бесплатно 3 вопроса в день.' },
             { sel: '.nav-item[onclick*="openDoctorReport"]', title: 'Отчёт для врача', text: 'Печатная сводка за 30 дней. Доступна в Премиуме.' },
             { sel: '.nav-item[onclick*="analytics"]', title: 'Аналитика', text: 'Графики и сравнение дней. Полностью доступна в Премиуме.' },
+            { sel: '#health-tabs', view: 'growth', title: 'Разделы здоровья', text: 'Вес и рост, прививки, температура и вехи — четыре вкладки.' },
+            { sel: '[data-tab="milestones"]', view: 'growth', title: 'Вехи развития', text: 'Первый зуб, улыбка, шаг — сохраняйте с фотографией.' },
+            { sel: '.cal-primary', view: 'calendar', title: 'Приём у врача', text: 'Добавьте приём — приложение напомнит заранее.' },
+            { sel: '.insights-card', view: 'stats', title: 'Итоги недели', text: 'Сон, кормления и вес — со сравнением с прошлой неделей.' },
+            { sel: '#bell-btn', view: 'tracker', title: 'Колокольчик', text: 'Что нового и что стоит заполнить — коротко и по делу.' },
             { sel: '.nav-item[onclick*="calendar"]', title: 'Календарь', text: 'Приёмы у врача и напоминания о них.' },
             { sel: '.nav-item[onclick*="openNoiseModal"]', title: 'Звуки для сна', text: 'Белый шум, дождь, океан — с таймером и фоновым воспроизведением.' },
-            { sel: '.profile-btn', title: 'Профиль', text: 'Ребёнок, семья, уведомления, премиум и отчёт для врача.' }
+            { sel: '.profile-btn', view: 'tracker', title: 'Профиль', text: 'Ребёнок, семья, уведомления, премиум и отчёт для врача.' }
         ];
         let tourIndex = 0;
 
@@ -3513,6 +3518,19 @@ async function sendFeedback() {
             if (!t) return;
             if (tourIndex >= TOUR_STEPS.length) { endTour(); return; }
             const step = TOUR_STEPS[tourIndex];
+
+            // шаг про другой раздел — сначала переключаем экран
+            if (step.view) {
+                const active = document.querySelector('.view.active');
+                const activeId = active ? active.id : '';
+                if (activeId !== 'view-' + step.view) {
+                    const navBtn = document.querySelector('.nav-item[onclick*="' + step.view + '"]');
+                    switchView(step.view, navBtn);
+                    setTimeout(showTourStep, 450);
+                    return;
+                }
+            }
+
             const el = document.querySelector(step.sel);
             if (!el || !el.offsetParent) { tourIndex += 1; showTourStep(); return; }
 
@@ -3558,6 +3576,10 @@ async function sendFeedback() {
             const t = document.getElementById('tour');
             if (t) t.style.display = 'none';
             try { localStorage.setItem('lad_tour_done', '1'); } catch (e) {}
+            try {
+                const nav = document.querySelector('.nav-item[onclick*="tracker"]');
+                switchView('tracker', nav);
+            } catch (e) {}
             setTimeout(function () {
                 if (typeof maybeShowInstallBanner === 'function') maybeShowInstallBanner();
             }, 1200);
