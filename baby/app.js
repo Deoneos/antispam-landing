@@ -4109,6 +4109,23 @@ async function sendFeedback() {
             }
         }
 
+
+        // Один запрос на старте: профиль, подсказки и тариф
+        async function loadBootstrap() {
+            const res = await fetch(`${API_URL}/bootstrap`, { headers: apiHeaders() });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const d = await res.json();
+            if (d.me) {
+                ladProfile = d.me;
+                try { renderProfile(d.me); } catch (e) {}
+            }
+            if (d.tips && Array.isArray(d.tips.tips)) {
+                appTips = d.tips.tips;
+                updateBellDot();
+            }
+            if (d.billing) familyPremium = !!d.billing.active;
+        }
+
         // Загружаем профиль ребёнка при старте: нужен возраст и пол
         // для кривых ВОЗ и подсказки по возрасту.
         setTimeout(function () {
@@ -4117,9 +4134,6 @@ async function sendFeedback() {
         setTimeout(function () {
             if (typeof startTour === 'function' && typeof ladToken === 'function' && ladToken()) startTour(false);
         }, 2200);
-        setTimeout(function () {
-            if (typeof loadTips === 'function' && typeof ladToken === 'function' && ladToken()) loadTips();
-        }, 2600);
         setTimeout(function () {
             if (typeof checkUpdate === 'function') checkUpdate();
         }, 4000);
@@ -4141,7 +4155,7 @@ async function sendFeedback() {
         (function initChildInfo() {
             try {
                 if (typeof ladToken !== 'function' || !ladToken()) return;
-                loadProfile().then(function () {
+                loadBootstrap().then(function () {
                     if (typeof updateAppTitle === 'function') updateAppTitle();
                     if (typeof renderAgeHint === 'function') renderAgeHint();
                     var gv = document.getElementById('view-growth');
