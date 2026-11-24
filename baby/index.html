@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=1">
     
-    <link rel="stylesheet" href="styles.css?v=124">
+    <link rel="stylesheet" href="styles.css?v=125">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -85,6 +85,10 @@
             </button>
             <button class="action-btn" id="walk-btn" onclick="toggleWalk()" style="grid-column: span 2; padding: 22px; font-size: 18px; font-weight: 700;">
                 <span class="icon" id="walk-icon">🚶‍♀️</span> <span id="walk-text">Погулять</span>
+            </button>
+
+            <button class="action-btn btn-voice" id="voice-btn" onclick="openVoiceModal()">
+                <span class="icon">🎤</span> Сказать голосом
             </button>
 
             <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
@@ -724,6 +728,31 @@
         </div>
     </div>
 
+    <!-- ГОЛОСОВОЙ ВВОД -->
+    <div class="modal-overlay" id="voice-modal" onclick="closeVoiceModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Голосом</h2>
+                <button class="btn-close" onclick="closeVoiceModal()">✕</button>
+            </div>
+            <div class="voice-stage">
+                <div class="voice-orb" id="voice-orb">🎤</div>
+                <div class="voice-status" id="voice-status">Говорите…</div>
+                <div class="voice-heard" id="voice-heard"></div>
+            </div>
+            <div class="voice-preview" id="voice-preview" style="display:none">
+                <div class="voice-preview-icon" id="voice-preview-icon">🍼</div>
+                <div>
+                    <div class="voice-preview-title" id="voice-preview-title"></div>
+                    <div class="voice-preview-sub" id="voice-preview-sub"></div>
+                </div>
+            </div>
+            <p class="voice-hint" id="voice-hint">Скажите: «покормила 120 миллилитров», «покакала», «уснула», «проснулась», «пошли гулять» или «пришли с прогулки».</p>
+            <button class="btn-save-ml" id="voice-confirm" onclick="confirmVoiceAction()" style="display:none">Записать</button>
+            <button class="pbtn ghost" id="voice-retry" onclick="startVoiceRecognition()" style="display:none">Сказать ещё раз</button>
+        </div>
+    </div>
+
     <!-- МОДАЛКА КОРМЛЕНИЯ -->
     <div class="modal-overlay" id="feed-modal" onclick="closeFeedModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -821,7 +850,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=168" defer></script>
+    <script src="app.js?v=169" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

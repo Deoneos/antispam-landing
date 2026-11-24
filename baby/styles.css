@@ -181,7 +181,28 @@ html { -webkit-text-size-adjust: 100%; }
 .ref-modal-stat b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; }
 .ref-modal-stat span { display: block; margin-top: 3px; font-size: 10.5px; color: var(--muted); }
 .ref-modal-note { margin: 2px 0 8px; font-size: 12px; line-height: 1.45; color: var(--muted); text-align: center; }
-#profile-modal, #ref-modal { z-index: 130; }
+#profile-modal, #ref-modal, #voice-modal { z-index: 130; }
+
+.voice-stage { text-align: center; padding: 2px 0 4px; }
+.voice-orb { width: 92px; height: 92px; margin: 2px auto 12px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 38px;
+    background: radial-gradient(circle at 35% 30%, rgba(242,155,147,.34), rgba(242,155,147,.07));
+    border: 1px solid rgba(242,155,147,.45); transition: transform .2s ease, box-shadow .2s ease; }
+.voice-orb.listening { animation: voicePulse 1.3s ease-out infinite; }
+@keyframes voicePulse {
+    0% { box-shadow: 0 0 0 0 rgba(242,155,147,.45); }
+    70% { box-shadow: 0 0 0 20px rgba(242,155,147,0); }
+    100% { box-shadow: 0 0 0 0 rgba(242,155,147,0); }
+}
+.voice-status { font-size: 14px; font-weight: 800; }
+.voice-heard { min-height: 20px; margin-top: 6px; font-size: 14.5px; line-height: 1.4; color: var(--muted); }
+.voice-preview { display: flex; align-items: center; gap: 12px; margin: 14px 0 2px;
+    padding: 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg); }
+.voice-preview-icon { font-size: 28px; line-height: 1; }
+.voice-preview-title { font-size: 15px; font-weight: 800; }
+.voice-preview-sub { margin-top: 2px; font-size: 12px; color: var(--muted); }
+.voice-hint { margin: 10px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); text-align: center; }
+#voice-modal .btn-save-ml { margin-top: 12px; }
 
 /* СЕГОДНЯ */
 .today-card { margin: 14px 16px 0; padding: 12px 14px; border-radius: 16px;
@@ -236,6 +257,10 @@ html { -webkit-text-size-adjust: 100%; }
         .btn-noise { grid-column: span 2; background: var(--noise); color: #111827; border: none; }
         .btn-sos { grid-column: span 2; background: var(--sos); color: white; border: none; font-size: 18px; padding: 16px; }
         .btn-diaper { background: var(--card); font-size: 14px; }
+        .btn-voice { grid-column: span 2; padding: 16px; font-size: 16px;
+            background: linear-gradient(135deg, rgba(242,155,147,.18), rgba(147,197,253,.10));
+            border: 1px solid rgba(242,155,147,.45); }
+        .btn-voice .icon { font-size: 26px; }
 
         /* ЛЕНТА */
         .log-section { padding: 20px; }

@@ -762,6 +762,330 @@
             openTimerModal('feed', 'edit');
         }
 
+        // --- ГОЛОСОВОЙ ВВОД ---
+        let voiceRec = null;
+        let voiceTimer = null;
+        let voiceAction = null;
+        let voiceListening = false;
+        let voiceFailed = false;
+
+        function voiceRecognitionCtor() {
+            return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+        }
+
+        function voiceNorm(text) {
+            return String(text || '').toLowerCase().replace(/ё/g, 'е')
+                .replace(/[.,!?;:]/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function voiceNumberWords(text) {
+            const hundreds = { 'сто': 100, 'двести': 200, 'триста': 300 };
+            const tens = {
+                'десять': 10, 'двадцать': 20, 'тридцать': 30, 'сорок': 40,
+                'пятьдесят': 50, 'шестьдесят': 60, 'семьдесят': 70,
+                'восемьдесят': 80, 'девяносто': 90
+            };
+            const units = {
+                'один': 1, 'одна': 1, 'два': 2, 'две': 2, 'три': 3,
+                'четыре': 4, 'пять': 5, 'шесть': 6, 'семь': 7,
+                'восемь': 8, 'девять': 9
+            };
+            let total = 0;
+            let found = false;
+            voiceNorm(text).split(' ').forEach(function (word) {
+                if (hundreds[word]) { total += hundreds[word]; found = true; }
+                else if (tens[word]) { total += tens[word]; found = true; }
+                else if (units[word] && total < 10) { total += units[word]; found = true; }
+            });
+            return found ? total : null;
+        }
+
+        function parseVoiceCommand(text) {
+            const raw = voiceNorm(text);
+            if (!raw) return null;
+
+            if (/покакал|покак/.test(raw)) {
+                return { kind: 'diaper', value: 'poop', icon: '💩', title: 'Покакала', sub: 'Подгузник' };
+            }
+            if (/пописал|попис/.test(raw)) {
+                return { kind: 'diaper', value: 'pee', icon: '💦', title: 'Пописала', sub: 'Подгузник' };
+            }
+
+            const feedIntent = /покорм|кормлен|съел|съела|бутылоч|смесь|молок|мл|миллилитр/.test(raw);
+            if (feedIntent) {
+                let ml = null;
+                const withUnit = raw.match(/(\d{2,3})\s*(?:мл|миллилитр|ml|грамм|г\b)/);
+                if (withUnit) ml = parseInt(withUnit[1], 10);
+                if (ml === null) {
+                    const anyNumber = raw.match(/\b(\d{2,3})\b/);
+                    if (anyNumber) ml = parseInt(anyNumber[1], 10);
+                }
+                if (ml === null) ml = voiceNumberWords(raw);
+                if (ml !== null) {
+                    if (ml < 10 || ml > 300) ml = null;
+                    else ml = Math.round(ml / 10) * 10;
+                }
+                return {
+                    kind: 'feed',
+                    value: ml,
+                    icon: '🍼',
+                    title: 'Покормить',
+                    sub: ml ? ml + ' мл' : 'Без объёма — откроем форму',
+                    confirmLabel: ml ? 'Записать' : 'Указать объём'
+                };
+            }
+
+            if (/проснул|встал|разбудил/.test(raw)) {
+                return { kind: 'wake', icon: '👀', title: 'Проснулась', sub: 'Сейчас' };
+            }
+            if (/уснул|заснул|уложил|спать|спит/.test(raw)) {
+                return { kind: 'sleep', icon: '😴', title: 'Уложить спать', sub: 'Сейчас' };
+            }
+            if (/пришл|вернул|с прогулк|закончил.*прогул/.test(raw)) {
+                return { kind: 'walk_stop', icon: '🏠', title: 'Закончить прогулку', sub: 'Сейчас' };
+            }
+            if (/погулял|пошли гулять|вышли|гуляем|прогулк/.test(raw)) {
+                return { kind: 'walk', icon: '🚶', title: 'Погулять', sub: 'Сейчас' };
+            }
+            return null;
+        }
+
+        function voiceSetStatus(text, listening) {
+            const status = document.getElementById('voice-status');
+            if (status) status.textContent = text;
+            const orb = document.getElementById('voice-orb');
+            if (orb) orb.classList.toggle('listening', !!listening);
+        }
+
+        function voiceShowPreview(action) {
+            voiceAction = action;
+            const box = document.getElementById('voice-preview');
+            const icon = document.getElementById('voice-preview-icon');
+            const title = document.getElementById('voice-preview-title');
+            const sub = document.getElementById('voice-preview-sub');
+            const confirm = document.getElementById('voice-confirm');
+            const retry = document.getElementById('voice-retry');
+            const hint = document.getElementById('voice-hint');
+            if (box) box.style.display = 'flex';
+            if (icon) icon.textContent = action.icon || '🎤';
+            if (title) title.textContent = action.title || '';
+            if (sub) sub.textContent = action.sub || '';
+            if (confirm) {
+                confirm.textContent = action.confirmLabel || 'Записать';
+                confirm.style.display = 'block';
+            }
+            if (retry) retry.style.display = 'block';
+            if (hint) hint.style.display = 'none';
+            voiceSetStatus('Понял', false);
+        }
+
+        function voiceFail(message) {
+            voiceAction = null;
+            voiceListening = false;
+            voiceSetStatus(message || 'Не расслышал. Скажите ещё раз.', false);
+            const confirm = document.getElementById('voice-confirm');
+            const retry = document.getElementById('voice-retry');
+            const hint = document.getElementById('voice-hint');
+            if (confirm) confirm.style.display = 'none';
+            if (retry) retry.style.display = 'block';
+            if (hint) hint.style.display = '';
+        }
+
+        function startVoiceRecognition() {
+            const Ctor = voiceRecognitionCtor();
+            if (!Ctor) {
+                toast('Голосовой ввод не поддерживается этим браузером', true);
+                return;
+            }
+            if (voiceRec) {
+                try { voiceRec.abort(); } catch (e) {}
+                voiceRec = null;
+            }
+            clearTimeout(voiceTimer);
+            voiceAction = null;
+            voiceListening = true;
+            voiceFailed = false;
+
+            const modal = document.getElementById('voice-modal');
+            if (modal) modal.style.display = 'flex';
+            const heard = document.getElementById('voice-heard');
+            if (heard) heard.textContent = '';
+            const preview = document.getElementById('voice-preview');
+            if (preview) preview.style.display = 'none';
+            const confirm = document.getElementById('voice-confirm');
+            if (confirm) { confirm.style.display = 'none'; confirm.disabled = false; }
+            const retry = document.getElementById('voice-retry');
+            if (retry) retry.style.display = 'none';
+            const hint = document.getElementById('voice-hint');
+            if (hint) hint.style.display = '';
+            voiceSetStatus('Говорите…', true);
+
+            const rec = new Ctor();
+            voiceRec = rec;
+            rec.lang = 'ru-RU';
+            rec.interimResults = true;
+            rec.continuous = false;
+            rec.maxAlternatives = 3;
+
+            rec.onresult = function (event) {
+                let interim = '';
+                const finals = [];
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    for (let j = 0; j < result.length; j++) {
+                        const text = (result[j].transcript || '').trim();
+                        if (!text) continue;
+                        if (result.isFinal) finals.push(text);
+                        else interim = text;
+                    }
+                }
+                const heardEl = document.getElementById('voice-heard');
+                if (interim && heardEl) heardEl.textContent = interim;
+                if (!finals.length) return;
+
+                let found = null;
+                let best = finals[0];
+                for (let i = 0; i < finals.length; i++) {
+                    const parsed = parseVoiceCommand(finals[i]);
+                    if (parsed) { found = parsed; best = finals[i]; break; }
+                }
+                if (heardEl) heardEl.textContent = best;
+                voiceListening = false;
+                clearTimeout(voiceTimer);
+                try { rec.stop(); } catch (e) {}
+                if (found) {
+                    voiceShowPreview(found);
+                } else {
+                    voiceFailed = true;
+                    voiceFail('Не понял. Скажите, например: «покормила 120 миллилитров».');
+                }
+            };
+
+            rec.onerror = function (event) {
+                const err = event && event.error;
+                let message = 'Не получилось распознать. Попробуйте ещё раз.';
+                if (err === 'not-allowed' || err === 'service-not-allowed') {
+                    message = 'Разрешите доступ к микрофону в настройках браузера.';
+                } else if (err === 'no-speech') {
+                    message = 'Ничего не услышал. Скажите ещё раз.';
+                } else if (err === 'network') {
+                    message = 'Нет связи с сервисом распознавания.';
+                } else if (err === 'audio-capture') {
+                    message = 'Микрофон не найден.';
+                }
+                voiceFailed = true;
+                voiceListening = false;
+                clearTimeout(voiceTimer);
+                voiceFail(message);
+            };
+
+            rec.onend = function () {
+                clearTimeout(voiceTimer);
+                if (voiceAction || voiceFailed) return;
+                if (!voiceListening) return;
+                voiceListening = false;
+                const modalEl = document.getElementById('voice-modal');
+                if (!modalEl || modalEl.style.display !== 'flex') return;
+                const heardEl = document.getElementById('voice-heard');
+                const heardText = heardEl ? heardEl.textContent : '';
+                const parsed = heardText ? parseVoiceCommand(heardText) : null;
+                if (parsed) {
+                    voiceShowPreview(parsed);
+                    return;
+                }
+                voiceFail('Не расслышал. Скажите ещё раз.');
+            };
+
+            try {
+                rec.start();
+            } catch (e) {
+                voiceFailed = true;
+                voiceListening = false;
+                voiceFail('Не удалось включить микрофон. Попробуйте ещё раз.');
+                return;
+            }
+            voiceTimer = setTimeout(function () {
+                try { rec.stop(); } catch (e) {}
+            }, 12000);
+        }
+
+        function openVoiceModal() {
+            if (!voiceRecognitionCtor()) {
+                toast('Голосовой ввод не поддерживается этим браузером', true);
+                return;
+            }
+            const modal = document.getElementById('voice-modal');
+            if (modal) modal.style.display = 'flex';
+            startVoiceRecognition();
+        }
+
+        function closeVoiceModal(e) {
+            if (e && e.target.id !== 'voice-modal') return;
+            if (voiceRec) {
+                try { voiceRec.abort(); } catch (err) {}
+                voiceRec = null;
+            }
+            clearTimeout(voiceTimer);
+            voiceListening = false;
+            const modal = document.getElementById('voice-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function executeVoiceAction(action) {
+            if (!action) return;
+            const confirm = document.getElementById('voice-confirm');
+            if (confirm) confirm.disabled = true;
+            try {
+                if (action.kind === 'feed') {
+                    if (!action.value) {
+                        closeVoiceModal();
+                        openFeedModal();
+                        return;
+                    }
+                    await quickEvent('feed', action.value + ' мл');
+                    toast('Записано: ' + action.value + ' мл');
+                } else if (action.kind === 'diaper') {
+                    await quickEvent('diaper', action.value);
+                    toast(action.value === 'poop' ? 'Записано: покакала' : 'Записано: пописала');
+                } else if (action.kind === 'sleep') {
+                    if (activeSleepId) { toast('Уже спит', true); return; }
+                    await quickStart('sleep');
+                    toast('Записано: сон начался');
+                } else if (action.kind === 'wake') {
+                    if (!activeSleepId) { toast('Сейчас не спит', true); return; }
+                    await quickStart('awake');
+                    toast('Записано: проснулась');
+                } else if (action.kind === 'walk') {
+                    if (activeWalkId) { toast('Уже гуляет', true); return; }
+                    await quickStart('walk');
+                    toast('Записано: прогулка началась');
+                } else if (action.kind === 'walk_stop') {
+                    if (!activeWalkId) { toast('Прогулка не начата', true); return; }
+                    await fetch(`${API_URL}/events/${activeWalkId}/stop`, {
+                        method: 'POST', headers: apiHeaders(true)
+                    });
+                    loadEvents();
+                    toast('Прогулка завершена');
+                }
+            } catch (e) {
+                toast('Не удалось записать', true);
+            } finally {
+                if (confirm) confirm.disabled = false;
+                closeVoiceModal();
+            }
+        }
+
+        function confirmVoiceAction() {
+            executeVoiceAction(voiceAction);
+        }
+
+        (function initVoiceButton() {
+            if (!voiceRecognitionCtor()) {
+                const btn = document.getElementById('voice-btn');
+                if (btn) btn.style.display = 'none';
+            }
+        })();
+
         // --- АУДИО ---
         let audioCtx = null, gainNode = null, currentSource = null;
         let audioBuffers = {}, isPlaying = false, currentSound = 'white', isAudioLoading = false;
