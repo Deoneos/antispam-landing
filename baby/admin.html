@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лад — админка</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b21; --border:#272b33; --text:#e8eaed; --muted:#8b93a1; --accent:#F29B93; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:20px; background:var(--bg); color:var(--text);
+    font-family:-apple-system,Segoe UI,Roboto,sans-serif; }
+  h1 { font-size:22px; margin:0 0 16px; }
+  h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+    margin:22px 0 10px; }
+  .row { display:flex; gap:8px; margin-bottom:16px; }
+  input { flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+    background:var(--card); color:var(--text); font-size:14px; }
+  button { padding:10px 16px; border-radius:10px; border:none; background:var(--accent);
+    color:#2b1b18; font-weight:700; cursor:pointer; font-size:14px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; }
+  .card b { display:block; font-size:20px; }
+  .card span { font-size:12px; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; font-size:13px; background:var(--card);
+    border-radius:12px; overflow:hidden; }
+  th, td { padding:9px 10px; text-align:left; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-weight:600; font-size:11.5px; text-transform:uppercase; }
+  tr:last-child td { border-bottom:none; }
+  .ok { color:#7ee2a8; } .free { color:var(--muted); } .warn { color:#F29B93; }
+  #status { color:var(--muted); font-size:13px; margin-bottom:6px; }
+</style>
+</head>
+<body>
+<h1>🌗 Лад — админка</h1>
+<div class="row">
+  <input id="token" placeholder="BABY_API_TOKEN" autocomplete="off">
+  <button onclick="load()">Показать</button>
+</div>
+<div id="status"></div>
+<div id="app"></div>
+
+<script>
+const API = '/api/baby/admin/dashboard';
+const tok = document.getElementById('token');
+tok.value = localStorage.getItem('lad_admin_token') || '';
+
+function esc(t) { return String(t == null ? '' : t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function money(v) { return Number(v || 0).toFixed(0) + ' ₽'; }
+function dt(s) { return s ? new Date(s).toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'; }
+
+async function load() {
+  const token = tok.value.trim();
+  localStorage.setItem('lad_admin_token', token);
+  const st = document.getElementById('status');
+  st.textContent = 'Загружаю…';
+  try {
+    const res = await fetch(API + '?token=' + encodeURIComponent(token));
+    if (!res.ok) throw new Error('код ' + res.status);
+    const d = await res.json();
+    st.textContent = '';
+    render(d);
+  } catch (e) {
+    st.textContent = 'Ошибка: ' + e.message;
+  }
+}
+
+function render(d) {
+  const t = d.totals || {};
+  const fams = d.families || [];
+  const pays = d.payments || [];
+  const promos = d.promos || [];
+  let h = '<div class="cards">' +
+    card(t.families, 'семей') + card(t.users, 'пользователей') +
+    card(t.premium, 'премиум') + card(t.events_today, 'событий сегодня') +
+    card(t.events_total, 'событий всего') + card(t.push_subs, 'push-подписок') +
+    card(t.ai_today, 'вопросов ИИ сегодня') + '</div>';
+
+  h += '<h2>Семьи</h2><table><tr><th>ID</th><th>Пользователи</th><th>Дети</th><th>Тариф</th>' +
+       '<th>Событий</th><th>Последняя запись</th></tr>';
+  fams.forEach(f => {
+    const prem = f.plan === 'premium' && f.plan_until > d.now;
+    h += '<tr><td>' + f.id + '</td><td>' + esc(f.users) + '</td><td>' + esc(f.kids) + '</td>' +
+      '<td class="' + (prem ? 'ok' : 'free') + '">' + (prem ? 'премиум' : 'бесплатно') +
+      (prem ? '<br><span style="color:var(--muted);font-size:11px">до ' + String(f.plan_until).slice(0,10) + '</span>' : '') + '</td>' +
+      '<td>' + f.events + '</td><td>' + dt(f.last_event) + '</td></tr>';
+  });
+  h += '</table>';
+
+  h += '<h2>Платежи</h2><table><tr><th>Когда</th><th>Семья</th><th>Сумма</th><th>Статус</th></tr>';
+  pays.forEach(p => {
+    h += '<tr><td>' + dt(p.created_at) + '</td><td>' + p.family_id + '</td><td>' + money(p.amount) +
+      '</td><td class="' + (p.status === 'succeeded' ? 'ok' : 'warn') + '">' + esc(p.status) + '</td></tr>';
+  });
+  h += '</table>';
+
+  h += '<h2>Промокоды</h2><table><tr><th>Код</th><th>Дней</th><th>Использован</th><th>Активен</th></tr>';
+  promos.forEach(p => {
+    h += '<tr><td>' + esc(p.code) + '</td><td>' + p.days + '</td><td>' + p.used + ' / ' + p.max_uses +
+      '</td><td class="' + (p.active ? 'ok' : 'free') + '">' + (p.active ? 'да' : 'нет') + '</td></tr>';
+  });
+  h += '</table>';
+
+  document.getElementById('app').innerHTML = h;
+}
+
+function card(v, label) {
+  return '<div class="card"><b>' + (v == null ? '—' : v) + '</b><span>' + label + '</span></div>';
+}
+
+if (tok.value) load();
+</script>
+</body>
+</html>
