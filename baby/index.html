@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=1">
     
-    <link rel="stylesheet" href="styles.css?v=134">
+    <link rel="stylesheet" href="styles.css?v=135">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -750,7 +750,11 @@
                     <div class="voice-preview-sub" id="voice-preview-sub"></div>
                 </div>
             </div>
-            <p class="voice-hint" id="voice-hint">Скажите: «покормила 120 миллилитров», «покакала», «уснула», «проснулась», «пошли гулять» или «пришли с прогулки».</p>
+            <div class="voice-choices" id="voice-choices" style="display:none">
+                <button class="pbtn" onclick="chooseVoiceDiaper('poop')">💩 Покакала</button>
+                <button class="pbtn" onclick="chooseVoiceDiaper('pee')">💦 Пописала</button>
+            </div>
+            <p class="voice-hint" id="voice-hint">Например: «покормила 120 миллилитров», «покакала», «уснула», «вес 5,2 кг», «рост 58 см», «температура 36,6», «пошли гулять».</p>
             <button class="btn-save-ml" id="voice-confirm" onclick="confirmVoiceAction()" style="display:none">Записать</button>
             <button class="pbtn ghost" id="voice-retry" onclick="startVoiceRecognition()" style="display:none">Сказать ещё раз</button>
         </div>
@@ -853,7 +857,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=173" defer></script>
+    <script src="app.js?v=174" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

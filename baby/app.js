@@ -801,6 +801,62 @@
             return found ? total : null;
         }
 
+        function voiceNumNorm(text) {
+            return String(text || '').toLowerCase().replace(/ё/g, 'е')
+                .replace(/,/g, '.').replace(/[!?;:]/g, ' ')
+                .replace(/\s+/g, ' ').trim();
+        }
+
+        function voiceWeightLabel(grams) {
+            const kg = grams / 1000;
+            return (kg % 1 ? kg.toFixed(1) : String(kg)).replace('.', ',') + ' кг';
+        }
+
+        function parseVoiceWeight(text) {
+            const t = voiceNumNorm(text);
+            let m = t.match(/(\d{1,2}(?:\.\d{1,3})?)\s*(?:кг|килограмм)\s*(\d{1,3})?\s*(?:г|грамм)?/);
+            if (m) {
+                let grams = Math.round(parseFloat(m[1]) * 1000);
+                if (m[2]) grams += parseInt(m[2], 10);
+                if (grams >= 500 && grams <= 30000) return grams;
+            }
+            m = t.match(/(\d{3,5})\s*(?:г|грамм)/);
+            if (m) {
+                const grams = parseInt(m[1], 10);
+                if (grams >= 500 && grams <= 30000) return grams;
+            }
+            if (/вес|масса/.test(t)) {
+                m = t.match(/(\d{1,2}[.,]\d{1,3})/);
+                if (m) {
+                    const grams = Math.round(parseFloat(m[1]) * 1000);
+                    if (grams >= 500 && grams <= 30000) return grams;
+                }
+                m = t.match(/(\d{3,5})/);
+                if (m) {
+                    const grams = parseInt(m[1], 10);
+                    if (grams >= 500 && grams <= 30000) return grams;
+                }
+            }
+            return null;
+        }
+
+        function parseVoiceHeight(text) {
+            const t = voiceNumNorm(text);
+            let m = t.match(/(\d{2,3}(?:\.\d)?)\s*(?:см|сантиметр)/);
+            if (!m && /рост/.test(t)) m = t.match(/(\d{2,3}(?:\.\d)?)/);
+            if (!m) return null;
+            const cm = parseFloat(m[1]);
+            return (cm >= 30 && cm <= 150) ? cm : null;
+        }
+
+        function parseVoiceTemp(text) {
+            const t = voiceNumNorm(text);
+            let m = t.match(/(3[4-9]|4[0-2])\s*(?:и|\.)\s*(\d)/);
+            if (m) return parseFloat(m[1] + '.' + m[2]);
+            m = t.match(/(3[4-9](?:\.\d)?|4[0-2](?:\.\d)?)/);
+            return m ? parseFloat(m[1]) : null;
+        }
+
         function parseVoiceCommand(text) {
             const raw = voiceNorm(text);
             if (!raw) return null;
@@ -810,6 +866,25 @@
             }
             if (/пописал|попис/.test(raw)) {
                 return { kind: 'diaper', value: 'pee', icon: '💦', title: 'Пописала', sub: 'Подгузник' };
+            }
+
+            if (/температур|градус/.test(raw)) {
+                const temp = parseVoiceTemp(text);
+                if (temp !== null) {
+                    return { kind: 'temp', value: temp, icon: '🌡', title: 'Температура', sub: String(temp).replace('.', ',') + ' °C' };
+                }
+            }
+            if (/(^|\s)(вес|масса)/.test(raw)) {
+                const grams = parseVoiceWeight(text);
+                if (grams !== null) {
+                    return { kind: 'weight', value: grams, icon: '⚖️', title: 'Записать вес', sub: voiceWeightLabel(grams) };
+                }
+            }
+            if (/(^|\s)рост/.test(raw)) {
+                const cm = parseVoiceHeight(text);
+                if (cm !== null) {
+                    return { kind: 'height', value: cm, icon: '📏', title: 'Записать рост', sub: String(cm).replace('.', ',') + ' см' };
+                }
             }
 
             const feedIntent = /покорм|кормлен|съел|съела|бутылоч|смесь|молок|мл|миллилитр/.test(raw);
@@ -834,6 +909,10 @@
                     sub: ml ? ml + ' мл' : 'Без объёма — откроем форму',
                     confirmLabel: ml ? 'Записать' : 'Указать объём'
                 };
+            }
+
+            if (/подгузник|памперс/.test(raw)) {
+                return { kind: 'diaper_ask', icon: '💧', title: 'Какой подгузник?', sub: 'Покакала или пописала?' };
             }
 
             if (/проснул|встал|разбудил/.test(raw)) {
@@ -867,17 +946,20 @@
             const confirm = document.getElementById('voice-confirm');
             const retry = document.getElementById('voice-retry');
             const hint = document.getElementById('voice-hint');
+            const choices = document.getElementById('voice-choices');
+            const ask = action.kind === 'diaper_ask';
             if (box) box.style.display = 'flex';
             if (icon) icon.textContent = action.icon || '🎤';
             if (title) title.textContent = action.title || '';
             if (sub) sub.textContent = action.sub || '';
             if (confirm) {
                 confirm.textContent = action.confirmLabel || 'Записать';
-                confirm.style.display = 'block';
+                confirm.style.display = ask ? 'none' : 'block';
             }
-            if (retry) retry.style.display = 'block';
+            if (choices) choices.style.display = ask ? 'flex' : 'none';
+            if (retry) retry.style.display = ask ? 'none' : 'block';
             if (hint) hint.style.display = 'none';
-            voiceSetStatus('Понял', false);
+            voiceSetStatus(ask ? 'Уточните' : 'Понял', false);
         }
 
         function voiceFail(message) {
@@ -887,7 +969,9 @@
             const confirm = document.getElementById('voice-confirm');
             const retry = document.getElementById('voice-retry');
             const hint = document.getElementById('voice-hint');
+            const choices = document.getElementById('voice-choices');
             if (confirm) confirm.style.display = 'none';
+            if (choices) choices.style.display = 'none';
             if (retry) retry.style.display = 'block';
             if (hint) hint.style.display = '';
         }
@@ -917,6 +1001,8 @@
             if (confirm) { confirm.style.display = 'none'; confirm.disabled = false; }
             const retry = document.getElementById('voice-retry');
             if (retry) retry.style.display = 'none';
+            const choices = document.getElementById('voice-choices');
+            if (choices) choices.style.display = 'none';
             const hint = document.getElementById('voice-hint');
             if (hint) hint.style.display = '';
             voiceSetStatus('Говорите…', true);
@@ -1048,6 +1134,26 @@
                 } else if (action.kind === 'diaper') {
                     await quickEvent('diaper', action.value);
                     toast(action.value === 'poop' ? 'Записано: покакала' : 'Записано: пописала');
+                } else if (action.kind === 'weight' || action.kind === 'height') {
+                    const body = { date: toLocalInputValue(new Date()).slice(0, 10) };
+                    if (action.kind === 'weight') body.weight_g = action.value;
+                    else body.height_cm = action.value;
+                    const res = await fetch(`${API_URL}/measurements`, {
+                        method: 'POST', headers: apiHeaders(true), body: JSON.stringify(body)
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    toast(action.kind === 'weight'
+                        ? 'Записан вес: ' + voiceWeightLabel(action.value)
+                        : 'Записан рост: ' + action.value + ' см');
+                    if (typeof loadGrowth === 'function') loadGrowth();
+                } else if (action.kind === 'temp') {
+                    const res = await fetch(`${API_URL}/health`, {
+                        method: 'POST', headers: apiHeaders(true),
+                        body: JSON.stringify({ kind: 'temp', value: action.value, unit: '°C' })
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    toast('Температура: ' + String(action.value).replace('.', ',') + ' °C');
+                    if (typeof loadHealthLog === 'function') loadHealthLog();
                 } else if (action.kind === 'sleep') {
                     if (activeSleepId) { toast('Уже спит', true); return; }
                     await quickStart('sleep');
@@ -1078,6 +1184,17 @@
 
         function confirmVoiceAction() {
             executeVoiceAction(voiceAction);
+        }
+
+        function chooseVoiceDiaper(kind) {
+            const poop = kind === 'poop';
+            executeVoiceAction({
+                kind: 'diaper',
+                value: kind,
+                icon: poop ? '💩' : '💦',
+                title: poop ? 'Покакала' : 'Пописала',
+                sub: 'Подгузник'
+            });
         }
 
         (function initVoiceButton() {
@@ -3995,7 +4112,7 @@ async function sendFeedback() {
             { sel: '#btn-feed', title: 'Покормить', text: 'Одно нажатие — и кормление записано. Можно указать объём смеси.' },
             { sel: '#awake-btn', title: 'Сон и бодрствование', text: 'Нажми «Уложить спать» — таймер запустится сам. Потом «Разбудить».' },
             { sel: '#row-walk', title: 'Прогулка', text: 'Свой таймер: нажал — гуляем, нажал ещё раз — закончили.' },
-            { sel: '#voice-btn', title: 'Сказать голосом', text: 'Скажите «покормила 120 миллилитров» — запись появится сама. Голосом можно отметить подгузник, сон и прогулку.' },
+            { sel: '#voice-btn', title: 'Сказать голосом', text: 'Скажите «покормила 120 миллилитров» — запись появится сама. Голосом можно отметить подгузник, сон, прогулку, вес, рост и температуру.' },
             { sel: '#btn-poop', title: 'Подгузник', text: 'Покакала или пописала — один тап, без лишних окон.' },
             { sel: '#checklist-card', title: 'Начните с этого', text: 'Если чего-то не хватает — приложение подскажет, что заполнить. Пункты ведут сразу в нужное место.' },
             { sel: '.btn-sos', title: 'Помоги!', text: 'Экстренный сигнал второму родителю: придёт push «Нужна помощь».' },
