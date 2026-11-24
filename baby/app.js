@@ -2990,6 +2990,57 @@ async function sendFeedback() {
             switchView('tracker', btn);
         }
 
+
+        async function loadFeeding() {
+            const box = document.getElementById('feeding-list');
+            const rules = document.getElementById('feeding-rules');
+            const lead = document.getElementById('feeding-lead');
+            if (!box) return;
+            try {
+                const res = await fetch(`${API_URL}/feeding`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+                const months = (typeof d.months === 'number') ? d.months : null;
+                if (lead) {
+                    lead.textContent = (months !== null && months < 4)
+                        ? 'Прикорм обычно начинают с 4–6 месяцев. Вот что будет дальше:'
+                        : 'Что и когда вводить — ориентир, а не строгое правило';
+                }
+                box.innerHTML = (d.stages || []).map(function (st) {
+                    const items = (st.items || []).map(function (it) {
+                        return '<div class="feed-item">' +
+                            '<div class="feed-check' + (it.tried ? ' on' : '') + '" ' +
+                            'onclick="toggleFeed(\'' + esc(it.name).replace(/'/g, "\\'") + '\', this)">' +
+                            (it.tried ? '✓' : '') + '</div>' +
+                            '<div><div class="feed-name">' + esc(it.name) + '</div>' +
+                            (it.note ? '<div class="feed-note">' + esc(it.note) + '</div>' : '') +
+                            (it.amount ? '<div class="feed-amount">' + esc(it.amount) + '</div>' : '') +
+                            '</div></div>';
+                    }).join('');
+                    return '<div class="feed-stage' + (st.current ? ' current' : '') + '">' +
+                        '<div class="feed-age">' + esc(st.age) + '</div>' +
+                        '<div class="feed-title">' + esc(st.title) + '</div>' + items + '</div>';
+                }).join('');
+                if (rules) {
+                    rules.innerHTML = '<b>Важно</b>' + (d.rules || []).map(function (t) {
+                        return '<div>• ' + esc(t) + '</div>';
+                    }).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function toggleFeed(name, el) {
+            const on = !el.classList.contains('on');
+            el.classList.toggle('on', on);
+            el.textContent = on ? '✓' : '';
+            try {
+                await fetch(`${API_URL}/feeding/tried`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ product: name, tried: on })
+                });
+            } catch (e) {}
+        }
+
         function switchHealthTab(tab) {
             document.querySelectorAll('.htab').forEach(function (b) {
                 b.classList.toggle('active', b.getAttribute('data-tab') === tab);

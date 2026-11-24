@@ -387,6 +387,7 @@
                 <button class="htab" data-tab="vaccines" onclick="switchHealthTab('vaccines')">Прививки</button>
                 <button class="htab" data-tab="health" onclick="switchHealthTab('health')">Температура</button>
                 <button class="htab" data-tab="milestones" onclick="switchHealthTab('milestones')">Вехи</button>
+                <button class="htab" data-tab="feeding" onclick="switchHealthTab('feeding')">Прикорм</button>
             </div>
 
             <div id="growth-pane">
@@ -444,6 +445,11 @@
                 <div id="health-list" class="measure-list"></div>
             </div>
 
+            <div id="feeding-pane" style="display:none">
+                <p class="tips-lead" id="feeding-lead">Таблица прикорма по возрасту</p>
+                <div id="feeding-list"></div>
+                <div class="feed-rules" id="feeding-rules"></div>
+            </div>
             <div id="milestones-pane" style="display:none">
                 <div class="ms-quick">
                     <button class="ms-chip" onclick="openMilestoneModal('Первый зуб')">🦷 Первый зуб</button>
