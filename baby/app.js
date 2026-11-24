@@ -1144,7 +1144,7 @@
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     toast(action.kind === 'weight'
                         ? 'Записан вес: ' + voiceWeightLabel(action.value)
-                        : 'Записан рост: ' + action.value + ' см');
+                        : 'Записан рост: ' + String(action.value).replace('.', ',') + ' см');
                     if (typeof loadGrowth === 'function') loadGrowth();
                 } else if (action.kind === 'temp') {
                     const res = await fetch(`${API_URL}/health`, {
