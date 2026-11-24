@@ -3122,6 +3122,43 @@ async function sendFeedback() {
 
 
 
+
+        // ===== ПРОВЕРКА ОБНОВЛЕНИЙ =====
+        const APP_VERSION = (function () {
+            try {
+                const sc = Array.prototype.slice.call(document.scripts).find(function (x) {
+                    return /app\.js\?v=\d+/.test(x.src || '');
+                });
+                const m = sc && sc.src.match(/v=(\d+)/);
+                return m ? m[1] : '';
+            } catch (e) { return ''; }
+        })();
+
+        async function checkUpdate() {
+            if (!APP_VERSION) return;
+            try {
+                const res = await fetch('version.txt?t=' + Date.now(), { cache: 'no-store' });
+                if (!res.ok) return;
+                const v = (await res.text()).trim();
+                if (v && /^\d+$/.test(v) && v !== APP_VERSION) {
+                    const b = document.getElementById('update-banner');
+                    if (b) b.style.display = 'flex';
+                }
+            } catch (e) {}
+        }
+
+        async function applyUpdate() {
+            try {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(regs.map(function (r) { return r.unregister(); }));
+            } catch (e) {}
+            try {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+            } catch (e) {}
+            location.reload();
+        }
+
         // ===== КОЛОКОЛЬЧИК С ПОДСКАЗКАМИ =====
         let appTips = [];
 
@@ -4083,6 +4120,15 @@ async function sendFeedback() {
         setTimeout(function () {
             if (typeof loadTips === 'function' && typeof ladToken === 'function' && ladToken()) loadTips();
         }, 2600);
+        setTimeout(function () {
+            if (typeof checkUpdate === 'function') checkUpdate();
+        }, 4000);
+        setInterval(function () {
+            if (typeof checkUpdate === 'function') checkUpdate();
+        }, 300000);
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && typeof checkUpdate === 'function') checkUpdate();
+        });
         setTimeout(function () {
             if (typeof maybeShowInstallBanner === 'function') maybeShowInstallBanner();
         }, 5200);
