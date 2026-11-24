@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=1">
     
-    <link rel="stylesheet" href="styles.css?v=128">
+    <link rel="stylesheet" href="styles.css?v=129">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -78,7 +78,7 @@
         </div>
 
         <div class="grid">
-            <button class="action-btn btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
+            <button class="action-btn btn-feed" id="btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
             
             <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="toggleSleepAwake()">
                 <span class="icon" id="state-icon">👀</span> <span id="state-text">Уложить спать</span>
@@ -415,7 +415,7 @@
     <div id="view-growth" class="view">
         <div class="header"><h1>📏 Здоровье</h1></div>
         <div class="stats-container">
-            <div class="health-tabs">
+            <div class="health-tabs" id="health-tabs">
                 <button class="htab active" data-tab="growth" onclick="switchHealthTab('growth')">Вес и рост</button>
                 <button class="htab" data-tab="vaccines" onclick="switchHealthTab('vaccines')">Прививки</button>
                 <button class="htab" data-tab="health" onclick="switchHealthTab('health')">Температура</button>
@@ -853,7 +853,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=170" defer></script>
+    <script src="app.js?v=171" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
