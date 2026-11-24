@@ -545,7 +545,7 @@
             el.textContent = `⏳ ждут отправки: ${pending}`;
         }
 
-        window.addEventListener('online', () => { renderStatus(); flushQueue(); });
+        window.addEventListener('online', () => { renderStatus(); flushQueue(); setTimeout(loadEvents, 800); });
         window.addEventListener('offline', renderStatus);
 
 
@@ -1142,11 +1142,43 @@
             document.getElementById('t-walk-min').textContent = walks ? ('· ' + fmt(walkMs)) : '';
         }
 
+
+
+        function fetchWithTimeout(url, opts, ms) {
+            return Promise.race([
+                fetch(url, opts),
+                new Promise(function (_, reject) {
+                    setTimeout(function () { reject(new Error('timeout')); }, ms);
+                })
+            ]);
+        }
+
+        function renderFeedBadge(events) {
+            const feedBadge = document.getElementById('last-feed-badge');
+            if (!feedBadge) return;
+            const lastFeed = (events || []).find(function (e) { return e.event_type === 'feed'; });
+            if (lastFeed) {
+                feedBadge.style.display = 'inline-block';
+                feedBadge.textContent = '🍼 Последнее: ' + formatDuration(new Date() - new Date(lastFeed.start_time)) + ' назад';
+            } else {
+                feedBadge.style.display = 'none';
+            }
+        }
+
         async function loadEvents() {
+            // Мгновенно показываем кэш: даже если сеть медленная или её нет
+            try {
+                const cachedNow = cachedEvents();
+                if (cachedNow.length) {
+                    renderToday(cachedNow);
+                    renderFeedBadge(cachedNow);
+                }
+            } catch (e) {}
+
             try {
                 let events = [];
                 try {
-                    const res = await fetch(`${API_URL}/events/history?days=14`, { headers: apiHeaders() });
+                    const res = await fetchWithTimeout(`${API_URL}/events/history?days=14`, { headers: apiHeaders() }, 4000);
                     if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
                     events = await res.json();
                     if (!Array.isArray(events)) events = [];
@@ -1233,12 +1265,7 @@
                 }
 
                 // Лента
-                const lastFeed = events.find(e => e.event_type === 'feed');
-                const feedBadge = document.getElementById('last-feed-badge');
-                if (lastFeed) {
-                    feedBadge.style.display = 'inline-block';
-                    feedBadge.textContent = `🍼 Последнее: ${formatDuration(new Date() - new Date(lastFeed.start_time))} назад`;
-                } else { feedBadge.style.display = 'none'; }
+                renderFeedBadge(events);
 
                 const list = document.getElementById('log-list');
 
