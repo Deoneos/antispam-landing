@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=1">
     
-    <link rel="stylesheet" href="styles.css?v=130">
+    <link rel="stylesheet" href="styles.css?v=131">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -366,7 +366,7 @@
                     <div class="toggle-row"><span>Push-уведомления</span>
                         <label class="sw"><input type="checkbox" id="np-push" onchange="setNotifyPref('push', this.checked)"><span class="sl"></span></label>
                     </div>
-                    <div class="toggle-row"><span>Что нового</span>
+                    <div class="toggle-row" id="row-whatsnew"><span>Что нового</span>
                         <label class="sw"><input type="checkbox" id="np-whatsnew" onchange="setNotifyPref('whatsnew', this.checked)"><span class="sl"></span></label>
                     </div>
                     <div class="toggle-row"><span>Кормление и подгузник</span>
@@ -381,7 +381,7 @@
                     <div class="toggle-row"><span>Пора спать</span>
                         <label class="sw"><input type="checkbox" id="np-sleepy" onchange="setNotifyPref('sleepy', this.checked)"><span class="sl"></span></label>
                     </div>
-                    <div class="toggle-row"><span>Итоги дня в 21:00</span>
+                    <div class="toggle-row" id="row-daily"><span>Итоги дня в 21:00</span>
                         <label class="sw"><input type="checkbox" id="np-daily" onchange="setNotifyPref('daily', this.checked)"><span class="sl"></span></label>
                     </div>
                     <div class="toggle-row"><span>Итоги недели</span>
@@ -853,7 +853,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=171" defer></script>
+    <script src="app.js?v=172" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
