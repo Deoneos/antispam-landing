@@ -1,4 +1,4 @@
-const VERSION = 'v20';
+const VERSION = 'v21';
 const CACHE = 'baby-' + VERSION;
 
 // Предзагружаем только оболочку приложения. Аудио (16 МБ!) грузится по требованию.
@@ -87,8 +87,24 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
-    // Статика того же origin: сначала сеть, кэш — только если сети нет.
-    // Так обновления кода прилетают сразу, без «застрявшей» старой версии.
+    // Версионированная статика (?v=N): cache-first — новый деплой даёт новый URL.
+    if (url.origin === self.location.origin && /[?&]v=\d+/.test(url.search)) {
+        e.respondWith((async () => {
+            const cache = await caches.open(CACHE);
+            const cached = await cache.match(req);
+            if (cached) return cached;
+            try {
+                const res = await fetch(req);
+                if (res && res.ok) cache.put(req, res.clone());
+                return res;
+            } catch (err) {
+                return new Response('', { status: 504 });
+            }
+        })());
+        return;
+    }
+
+    // Остальная статика: сначала сеть, кэш — только если сети нет.
     if (url.origin === self.location.origin) {
         e.respondWith((async () => {
             try {
