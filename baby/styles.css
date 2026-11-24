@@ -181,6 +181,7 @@ html { -webkit-text-size-adjust: 100%; }
 .ref-modal-stat b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; }
 .ref-modal-stat span { display: block; margin-top: 3px; font-size: 10.5px; color: var(--muted); }
 .ref-modal-note { margin: 2px 0 8px; font-size: 12px; line-height: 1.45; color: var(--muted); text-align: center; }
+#profile-modal, #ref-modal { z-index: 130; }
 
 /* СЕГОДНЯ */
 .today-card { margin: 14px 16px 0; padding: 12px 14px; border-radius: 16px;
