@@ -3053,6 +3053,9 @@ async function sendFeedback() {
             if (tab === 'vaccines') loadVaccines();
             if (tab === 'health') loadHealthLog();
             if (tab === 'milestones') loadMilestones();
+            const feedPane = document.getElementById('feeding-pane');
+            if (feedPane) feedPane.style.display = tab === 'feeding' ? '' : 'none';
+            if (tab === 'feeding') loadFeeding();
         }
 
         function gPad(n) { return n < 10 ? '0' + n : '' + n; }
