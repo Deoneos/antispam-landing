@@ -3056,6 +3056,41 @@ async function sendFeedback() {
             } catch (e) {}
         }
 
+
+        async function loadTeeth() {
+            const box = document.getElementById('teeth-list');
+            const lead = document.getElementById('teeth-lead');
+            if (!box) return;
+            try {
+                const res = await fetch(`${API_URL}/teeth`, { headers: apiHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+                if (lead) lead.textContent = 'Вылезло ' + d.count + ' из ' + d.total;
+                box.innerHTML = (d.items || []).map(function (it) {
+                    const on = !!it.date;
+                    return '<div class="feed-item">' +
+                        '<div class="feed-check' + (on ? ' on' : '') + '" ' +
+                        'onclick="toggleTooth(\'' + esc(it.name).replace(/'/g, "\\'") + '\', this)">' +
+                        (on ? '✓' : '') + '</div>' +
+                        '<div><div class="feed-name">' + esc(it.name) + '</div>' +
+                        '<div class="feed-amount">' + esc(it.age) + '</div></div></div>';
+                }).join('');
+            } catch (e) {}
+        }
+
+        async function toggleTooth(name, el) {
+            const on = !el.classList.contains('on');
+            el.classList.toggle('on', on);
+            el.textContent = on ? '✓' : '';
+            try {
+                await fetch(`${API_URL}/teeth`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ tooth: name, on: on })
+                });
+                loadTeeth();
+            } catch (e) {}
+        }
+
         function switchHealthTab(tab) {
             document.querySelectorAll('.htab').forEach(function (b) {
                 b.classList.toggle('active', b.getAttribute('data-tab') === tab);

@@ -397,6 +397,7 @@
                 <button class="htab" data-tab="health" onclick="switchHealthTab('health')">Температура</button>
                 <button class="htab" data-tab="milestones" onclick="switchHealthTab('milestones')">Вехи</button>
                 <button class="htab" data-tab="feeding" onclick="switchHealthTab('feeding')">Прикорм</button>
+                <button class="htab" data-tab="teeth" onclick="switchHealthTab('teeth')">Зубы</button>
             </div>
 
             <div id="growth-pane">
@@ -454,6 +455,10 @@
                 <div id="health-list" class="measure-list"></div>
             </div>
 
+            <div id="teeth-pane" style="display:none">
+                <p class="tips-lead" id="teeth-lead">Когда ждать зубки</p>
+                <div id="teeth-list"></div>
+            </div>
             <div id="feeding-pane" style="display:none">
                 <p class="tips-lead" id="feeding-lead">Таблица прикорма по возрасту</p>
                 <div id="feeding-list"></div>
