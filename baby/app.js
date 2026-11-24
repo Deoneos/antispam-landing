@@ -4160,6 +4160,9 @@ async function sendFeedback() {
                     if (typeof renderAgeHint === 'function') renderAgeHint();
                     var gv = document.getElementById('view-growth');
                     if (gv && gv.classList.contains('active') && typeof loadGrowth === 'function') loadGrowth();
-                }).catch(function () {});
+                }).catch(function () {
+                    // bootstrap не ответил — обычный путь (он умеет обрабатывать 401)
+                    try { loadProfile().catch(function () {}); } catch (e) {}
+                });
             } catch (e) {}
         })();
