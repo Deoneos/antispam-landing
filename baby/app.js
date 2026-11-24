@@ -131,7 +131,8 @@
             appointments: 'Приёмы у врача',
             vaccines: 'Прививки',
             weekly: 'Итоги недели',
-            sleepy: 'Пора спать'
+            sleepy: 'Пора спать',
+            daily: 'Итоги дня'
         };
 
 
@@ -4391,6 +4392,43 @@ async function sendFeedback() {
         }
 
 
+
+        // ===== ЧЕК-ЛИСТ ПЕРВЫХ ШАГОВ =====
+        function renderChecklist(c) {
+            const card = document.getElementById('checklist-card');
+            const box = document.getElementById('checklist-items');
+            if (!card || !box || !c) return;
+            try { if (localStorage.getItem('lad_checklist_hidden')) { card.style.display = 'none'; return; } } catch (e) {}
+            const items = [
+                { k: 'birth', icon: '🎂', text: 'Указать дату рождения', action: 'profile' },
+                { k: 'weight', icon: '📏', text: 'Добавить вес и рост', action: 'growth' },
+                { k: 'vaccines', icon: '💉', text: 'Отметить прививки', action: 'growth' },
+                { k: 'invite', icon: '👨‍👩‍👧', text: 'Пригласить второго родителя', action: 'invite' }
+            ];
+            const left = items.filter(function (i) { return !c[i.k]; });
+            if (!left.length) { card.style.display = 'none'; return; }
+            box.innerHTML = left.map(function (i) {
+                return '<div class="chk-item" onclick="chkGo(\'' + i.action + '\')">' +
+                    '<span class="chk-box"></span><span>' + i.icon + ' ' + i.text + '</span></div>';
+            }).join('');
+            card.style.display = '';
+        }
+
+        function chkGo(action) {
+            if (action === 'profile') { openProfile(); return; }
+            if (action === 'invite') { openProfile(); setTimeout(function () { inviteParent(); }, 500); return; }
+            if (action === 'growth') {
+                const b = document.querySelector('.nav-item[onclick*="growth"]');
+                switchView('growth', b);
+            }
+        }
+
+        function hideChecklist() {
+            try { localStorage.setItem('lad_checklist_hidden', '1'); } catch (e) {}
+            const card = document.getElementById('checklist-card');
+            if (card) card.style.display = 'none';
+        }
+
         // Один запрос на старте: профиль, подсказки и тариф
         async function loadBootstrap() {
             const res = await fetch(`${API_URL}/bootstrap`, { headers: apiHeaders() });
@@ -4405,6 +4443,7 @@ async function sendFeedback() {
                 updateBellDot();
             }
             if (d.billing) familyPremium = !!d.billing.active;
+            if (d.checklist) renderChecklist(d.checklist);
         }
 
         // Загружаем профиль ребёнка при старте: нужен возраст и пол
