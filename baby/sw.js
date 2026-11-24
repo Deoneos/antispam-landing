@@ -1,4 +1,4 @@
-const VERSION = 'v21';
+const VERSION = 'v22';
 const CACHE = 'baby-' + VERSION;
 
 // Предзагружаем только оболочку приложения. Аудио (16 МБ!) грузится по требованию.
@@ -94,11 +94,13 @@ self.addEventListener('fetch', (e) => {
             const cached = await cache.match(req);
             if (cached) return cached;
             try {
-                const res = await fetch(req);
+                const res = await fetchWithTimeout(req, 5000);
                 if (res && res.ok) cache.put(req, res.clone());
                 return res;
             } catch (err) {
-                return new Response('', { status: 504 });
+                return (await cache.match(url.pathname))
+                    || (await caches.match(url.pathname))
+                    || new Response('', { status: 504 });
             }
         })());
         return;

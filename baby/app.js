@@ -418,12 +418,30 @@
         const API_FALLBACK = 'https://api.kustos.ru/api/baby';
         (function () {
             const nativeFetch = window.fetch.bind(window);
+
+            // Без таймаута зависший через VPN запрос держит экран до минуты.
+            function fetchWithTimeout(input, init, ms) {
+                if (typeof AbortController === 'undefined') return nativeFetch(input, init);
+                const ctrl = new AbortController();
+                const timer = setTimeout(function () {
+                    try { ctrl.abort(); } catch (e) {}
+                }, ms);
+                const opts = Object.assign({}, init || {});
+                opts.signal = ctrl.signal;
+                return nativeFetch(input, opts).then(
+                    function (res) { clearTimeout(timer); return res; },
+                    function (err) { clearTimeout(timer); throw err; }
+                );
+            }
+
             window.fetch = function (input, init) {
                 const url = (typeof input === 'string') ? input : ((input && input.url) || '');
                 if (url.indexOf(API_URL) === 0) {
                     const alt = url.replace(API_URL, API_FALLBACK);
-                    return nativeFetch(input, init).catch(function (err) {
-                        return nativeFetch(alt, init);
+                    const long = /\/ai\/|\/export|\/report|\/admin\//.test(url);
+                    const ms = long ? 60000 : 12000;
+                    return fetchWithTimeout(input, init, ms).catch(function (err) {
+                        return fetchWithTimeout(alt, init, ms);
                     });
                 }
                 return nativeFetch(input, init);
