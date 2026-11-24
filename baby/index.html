@@ -229,12 +229,12 @@
                 <p class="profile-hint">Логин и пароль работают всегда, Telegram — быстрее, но требует VPN.</p>
             </div>
 
-            <div id="profile-me" style="display:none">
-                <div class="profile-ava" id="profile-ava" onclick="pickAvatar()" title="Сменить фото">👤</div>
+            <div id="profile-me" style="display:none"><div class="profile-ava" id="profile-ava" onclick="pickAvatar()" title="Сменить фото">👤</div>
                 <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="onAvatarPicked(this)">
                 <div class="profile-name" id="profile-name">—</div>
                 <div class="profile-sub" id="profile-sub">—</div>
-                <div class="profile-rows">
+                                <div class="p-section">Семья</div>
+<div class="profile-rows">
                     <div class="profile-row"><span>Семья</span><b id="profile-family">—</b></div>
                     <div class="profile-row"><span>Ребёнок</span><b id="profile-child">—</b><button class="link-btn" onclick="toggleChildEdit()">Изменить</button></div>
                     <div id="child-edit" class="child-edit" style="display:none">
@@ -249,7 +249,42 @@
                     </div>
                     <div class="profile-row"><span>Записей</span><b id="profile-events">0</b></div>
                 </div>
-                <div class="profile-settings" id="profile-settings">
+                <div class="profile-members" id="profile-members"></div>
+                <div class="invite-box" id="invite-box" style="display:none"></div>
+                <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
+                <div class="profile-settings" id="children-box">
+                    <div class="settings-title">Дети</div>
+                    <div id="children-list" class="children-list"></div>
+                    <button class="pbtn" onclick="addChild()">＋ Добавить ребёнка</button>
+                    <p class="login-status" id="child-add-status"></p>
+                </div>
+                                <div class="p-section">Премиум</div>
+<div class="plan-card" id="plan-card">
+                    <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
+                    <div class="plan-until" id="plan-until"></div>
+                    <div id="premium-promo">
+                        <div class="premium-title">⭐ Премиум открывает</div>
+                        <ul class="premium-list">
+                            <li>📏 Кривые ВОЗ и перцентили веса и роста</li>
+                            <li>🖼 Фото к вехам развития</li>
+                            <li>📊 Недельная сводка в уведомлениях</li>
+                            <li>📈 Аналитика и графики сна, кормлений и объёма</li>
+                            <li>📄 PDF-отчёт для врача</li>
+                            <li>🎵 12 звуков для сна: дождь, океан, сердце, «шшш»</li>
+                            <li>👶 Несколько детей в одной семье</li>
+                            <li>📊 Экспорт в Excel</li>
+                            <li>🔔 Свои интервалы напоминаний</li>
+                        </ul>
+                        <button class="pbtn primary" id="plan-btn" onclick="location.href='premium.html'">Оформить за 299 руб.</button>
+                    </div>
+                    <p class="login-status" id="plan-status"></p>
+                </div>
+                <button class="pbtn" onclick="openRefModal()">🎁 Пригласить друга — 7 дней Премиума</button>
+                <a class="row" href="#" onclick="openPromo(); return false;">
+                    <span class="ri">🎟</span> Промокод <span class="chev">›</span></a>
+                <button class="pbtn" onclick="openDoctorReport()">🖨 Отчёт для врача</button>
+                                <div class="p-section">Настройки</div>
+<div class="profile-settings" id="profile-settings">
                     <div class="settings-title">Оформление</div>
                     <div class="seg" id="theme-seg">
                         <button type="button" data-theme-pref="auto" onclick="setThemePref('auto')">Авто</button>
@@ -288,23 +323,6 @@
                         <li>Если ты не в Москве — выбери свой часовой пояс выше.</li>
                     </ul>
                 </div>
-                <div class="profile-members" id="profile-members"></div>
-                <div class="invite-box" id="invite-box" style="display:none"></div>
-                <button class="pbtn" id="invite-btn" onclick="inviteParent()">Пригласить в семью</button>
-                <button class="pbtn" onclick="startTour(true)">💡 Показать подсказки</button>
-                <button class="pbtn" onclick="openRefModal()">🎁 Пригласить друга — 7 дней Премиума</button>
-                <button class="pbtn" onclick="openDoctorReport()">🖨 Отчёт для врача</button>
-                <a class="row" href="#" onclick="openPromo(); return false;">
-                    <span class="ri">🎟</span> Промокод <span class="chev">›</span></a>
-                <a class="row" href="https://t.me/budny_vibecode_bot" target="_blank" rel="noopener">
-                    <span class="ri">📣</span> Наш канал <span class="chev">›</span></a>
-                <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
-                <div class="profile-settings" id="children-box">
-                    <div class="settings-title">Дети</div>
-                    <div id="children-list" class="children-list"></div>
-                    <button class="pbtn" onclick="addChild()">＋ Добавить ребёнка</button>
-                    <p class="login-status" id="child-add-status"></p>
-                </div>
                 <div class="profile-settings" id="reminders-box">
                     <div class="settings-title">Напоминания</div>
                     <div class="profile-row"><span>Кормление, ч</span>
@@ -339,27 +357,13 @@
                     <button class="pbtn" style="margin-top:8px" onclick="testPush()">Проверить уведомления</button>
                     <p class="login-status" id="notify-status"></p>
                 </div>
-                <div class="plan-card" id="plan-card">
-                    <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
-                    <div class="plan-until" id="plan-until"></div>
-                    <div id="premium-promo">
-                        <div class="premium-title">⭐ Премиум открывает</div>
-                        <ul class="premium-list">
-                            <li>📏 Кривые ВОЗ и перцентили веса и роста</li>
-                            <li>🖼 Фото к вехам развития</li>
-                            <li>📊 Недельная сводка в уведомлениях</li>
-                            <li>📈 Аналитика и графики сна, кормлений и объёма</li>
-                            <li>📄 PDF-отчёт для врача</li>
-                            <li>🎵 12 звуков для сна: дождь, океан, сердце, «шшш»</li>
-                            <li>👶 Несколько детей в одной семье</li>
-                            <li>📊 Экспорт в Excel</li>
-                            <li>🔔 Свои интервалы напоминаний</li>
-                        </ul>
-                        <button class="pbtn primary" id="plan-btn" onclick="location.href='premium.html'">Оформить за 299 руб.</button>
-                    </div>
-                    <p class="login-status" id="plan-status"></p>
-                </div>
-                <button class="row" onclick="showMyCode()">
+                                <div class="p-section">Помощь</div>
+<button class="pbtn" onclick="startTour(true)">💡 Показать подсказки</button>
+                <a class="row" href="https://t.me/budny_vibecode_bot" target="_blank" rel="noopener">
+                    <span class="ri">📣</span> Наш канал <span class="chev">›</span></a>
+                <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
+                                <div class="p-section">Приложение</div>
+<button class="row" onclick="showMyCode()">
                     <span class="ri">🔑</span> Мой код для входа <span class="chev">›</span></button>
                 <a class="row" id="install-row" href="install.html" target="_blank" rel="noopener">
                     <span class="ri">📲</span> Установить на телефон <span class="chev">›</span></a>
