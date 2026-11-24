@@ -3106,6 +3106,9 @@ async function sendFeedback() {
             const feedPane = document.getElementById('feeding-pane');
             if (feedPane) feedPane.style.display = tab === 'feeding' ? '' : 'none';
             if (tab === 'feeding') loadFeeding();
+            const teethPane = document.getElementById('teeth-pane');
+            if (teethPane) teethPane.style.display = tab === 'teeth' ? '' : 'none';
+            if (tab === 'teeth') loadTeeth();
         }
 
         function gPad(n) { return n < 10 ? '0' + n : '' + n; }
