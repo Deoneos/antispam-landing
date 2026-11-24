@@ -3234,6 +3234,37 @@ async function sendFeedback() {
             }
         }
 
+
+        // ===== ЧТО НОВОГО =====
+        async function openWhatsNew() {
+            const m = document.getElementById('whatsnew-modal');
+            const box = document.getElementById('whatsnew-list');
+            if (!m || !box) return;
+            m.style.display = 'flex';
+            box.innerHTML = '<div class="tips-lead">Загружаю…</div>';
+            try {
+                const res = await fetch(`${API_URL}/whatsnew`, { headers: apiHeaders() });
+                const d = await res.json();
+                const items = (d && Array.isArray(d.items)) ? d.items : [];
+                if (!items.length) { box.innerHTML = '<div class="tips-lead">Пока ничего нового</div>'; return; }
+                box.innerHTML = items.map(function (it) {
+                    const lines = (it.lines || []).map(function (t) {
+                        return '<div class="wn-line"><span>•</span><span>' + esc(t) + '</span></div>';
+                    }).join('');
+                    return '<div class="wn-item"><div class="wn-date">' + esc(it.date || '') + '</div>' + lines + '</div>';
+                }).join('');
+            } catch (e) {
+                box.innerHTML = '<div class="tips-lead">Не удалось загрузить</div>';
+            }
+        }
+
+        function closeWhatsNew(e) {
+            if (!e || e.target.id === 'whatsnew-modal') {
+                const m = document.getElementById('whatsnew-modal');
+                if (m) m.style.display = 'none';
+            }
+        }
+
         async function openAiChat() {
             const m = document.getElementById('ai-modal');
             if (!m) return;
@@ -3349,6 +3380,7 @@ async function sendFeedback() {
             if (action === 'premium') { location.href = 'premium.html'; return; }
             if (action === 'report') { openDoctorReport(); return; }
             if (action === 'ai') { openAiChat(); return; }
+            if (action === 'whatsnew') { openWhatsNew(); return; }
             const map = { growth: 'growth', tracker: 'tracker', calendar: 'calendar' };
             const view = map[action];
             if (view) {

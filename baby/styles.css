@@ -1,3 +1,10 @@
+.whatsnew-list { margin: 6px 0 10px; }
+.wn-item { margin-bottom: 14px; }
+.wn-date { font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: #F29B93; margin-bottom: 6px; }
+.wn-line { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.45; margin-bottom: 6px; }
+.wn-line span:first-child { flex: none; }
+
 .ai-modal-content { display: flex; flex-direction: column; max-height: 84vh; }
 .ai-hint { color: var(--muted); font-size: 12.5px; margin: 2px 0 10px; }
 .ai-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;

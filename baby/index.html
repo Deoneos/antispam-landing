@@ -638,6 +638,15 @@
         </div>
     </div>
 
+    <!-- ЧТО НОВОГО -->
+    <div class="modal-overlay" id="whatsnew-modal" onclick="closeWhatsNew(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>✨ Что нового</h2>
+            <div id="whatsnew-list" class="whatsnew-list"></div>
+            <button class="pbtn ghost" onclick="closeWhatsNew()">Закрыть</button>
+        </div>
+    </div>
+
     <!-- ОБРАТНАЯ СВЯЗЬ -->
     <div class="modal-overlay" id="feedback-modal" onclick="closeFeedback(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
