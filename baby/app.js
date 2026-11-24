@@ -3411,6 +3411,8 @@ async function sendFeedback() {
             { sel: '#today-card', title: 'Итоги дня', text: 'Кормления, сон, подгузники и прогулки за сегодня — одним взглядом.' },
             { sel: '.nav-item[onclick*="stats"]', title: 'Статистика', text: 'Сколько кормлений, сна и смеси за день и за неделю.' },
             { sel: '.nav-item[onclick*="growth"]', title: 'Здоровье', text: 'Вес, рост, прививки, температура, лекарства и вехи развития.' },
+            { sel: '.nav-item[onclick*="openAiChat"]', title: 'Помощник', text: 'Спросите про сон, кормления и вес — ответит по вашим записям. Бесплатно 3 вопроса в день.' },
+            { sel: '.nav-item[onclick*="openDoctorReport"]', title: 'Отчёт для врача', text: 'Печатная сводка за 30 дней. Доступна в Премиуме.' },
             { sel: '.nav-item[onclick*="analytics"]', title: 'Аналитика', text: 'Графики и сравнение дней. Полностью доступна в Премиуме.' },
             { sel: '.nav-item[onclick*="calendar"]', title: 'Календарь', text: 'Приёмы у врача и напоминания о них.' },
             { sel: '.nav-item[onclick*="openNoiseModal"]', title: 'Звуки для сна', text: 'Белый шум, дождь, океан — с таймером и фоновым воспроизведением.' },
