@@ -294,6 +294,8 @@
                 <button class="pbtn" onclick="startTour(true)">💡 Показать подсказки</button>
                 <button class="pbtn" onclick="openRefModal()">🎁 Пригласить друга — 7 дней Премиума</button>
                 <button class="pbtn" onclick="openDoctorReport()">🖨 Отчёт для врача</button>
+                <a class="row" href="#" onclick="openPromo(); return false;">
+                    <span class="ri">🎟</span> Промокод <span class="chev">›</span></a>
                 <a class="row" href="https://t.me/budny_vibecode_bot" target="_blank" rel="noopener">
                     <span class="ri">📣</span> Наш канал <span class="chev">›</span></a>
                 <button class="pbtn" onclick="openFeedback()">📮 Обратная связь</button>
@@ -644,6 +646,18 @@
             <h2>✨ Что нового</h2>
             <div id="whatsnew-list" class="whatsnew-list"></div>
             <button class="pbtn ghost" onclick="closeWhatsNew()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ПРОМОКОД -->
+    <div class="modal-overlay" id="promo-modal" onclick="closePromo(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>🎟 Промокод</h2>
+            <p class="tips-lead">Введите код — дни добавятся к подписке</p>
+            <input id="promo-input" class="promo-input" placeholder="НАПРИМЕР ЛАД-2026"
+                   maxlength="24" autocapitalize="characters">
+            <button class="pbtn" onclick="redeemPromo()">Активировать</button>
+            <button class="pbtn ghost" onclick="closePromo()">Закрыть</button>
         </div>
     </div>
 

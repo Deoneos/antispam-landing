@@ -3235,6 +3235,42 @@ async function sendFeedback() {
         }
 
 
+
+        // ===== ПРОМОКОД =====
+        function openPromo() {
+            const m = document.getElementById('promo-modal');
+            if (!m) return;
+            m.style.display = 'flex';
+            const input = document.getElementById('promo-input');
+            if (input) { input.value = ''; setTimeout(function () { input.focus(); }, 150); }
+        }
+
+        function closePromo(e) {
+            if (!e || e.target.id === 'promo-modal') {
+                const m = document.getElementById('promo-modal');
+                if (m) m.style.display = 'none';
+            }
+        }
+
+        async function redeemPromo() {
+            const input = document.getElementById('promo-input');
+            const code = (input.value || '').trim();
+            if (!code) { toast('Введите код', true); return; }
+            try {
+                const res = await fetch(`${API_URL}/promo`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ code: code })
+                });
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) { toast(d.detail || 'Не получилось', true); return; }
+                closePromo();
+                toast('Готово! Добавлено дней: ' + d.days);
+                if (typeof loadProfile === 'function') loadProfile();
+            } catch (e) {
+                toast('Нет связи', true);
+            }
+        }
+
         // ===== ЧТО НОВОГО =====
         async function openWhatsNew() {
             const m = document.getElementById('whatsnew-modal');

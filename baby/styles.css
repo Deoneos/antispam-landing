@@ -1,3 +1,8 @@
+.promo-input { width: 100%; box-sizing: border-box; padding: 14px; margin: 4px 0 12px;
+    border-radius: 14px; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); font: inherit; font-size: 16px; letter-spacing: .08em;
+    text-transform: uppercase; text-align: center; }
+
 .whatsnew-list { margin: 6px 0 10px; }
 .wn-item { margin-bottom: 14px; }
 .wn-date { font-size: 12px; font-weight: 700; letter-spacing: .04em;
