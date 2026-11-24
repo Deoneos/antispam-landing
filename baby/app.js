@@ -4018,7 +4018,7 @@ async function sendFeedback() {
             { sel: '#ref-card', profile: true, title: 'Приглашения', text: 'Приглашайте друзей: за каждого — 7 дней Премиума вам и другу. Статистика видна сразу.' },
             { sel: '.row[onclick*="openPromo"]', profile: true, title: 'Промокод', text: 'Если дали код — введите его здесь, дни Премиума добавятся сами.' },
             { sel: '#row-whatsnew', profile: true, title: 'Что нового', text: 'Включите — и приложение сообщит, когда появится новая функция.' },
-            { sel: '#row-daily', profile: true, title: 'Итоги дня', text: 'Короткая сводка за день приходит в 21:00. Можно выключить в один тап.' }
+            { sel: '#row-daily', profile: true, title: 'Итоги дня в 21:00', text: 'Короткая сводка за день приходит в 21:00. Можно выключить в один тап.' }
         ];
         let tourIndex = 0;
 
