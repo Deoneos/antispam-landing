@@ -42,6 +42,19 @@
         // На baby.kustos.ru API проксируется тем же доменом, на GitHub Pages — на RU.
         const API_URL = (location.hostname === 'baby.kustos.ru') ? '/api/baby' : 'https://baby.kustos.ru/api/baby';
 
+        // Превью минималистичного профиля: ?min=1 включает, ?min=0 выключает.
+        (function initMinUi() {
+            try {
+                const params = new URLSearchParams(location.search);
+                const flag = params.get('min');
+                if (flag === '1') localStorage.setItem('lad_min_ui', '1');
+                if (flag === '0') localStorage.removeItem('lad_min_ui');
+                if (localStorage.getItem('lad_min_ui') === '1') {
+                    document.documentElement.classList.add('min-ui');
+                }
+            } catch (e) {}
+        })();
+
         // Токен доступа: один раз приходит в ссылке ?token=..., дальше живёт в localStorage
         (function bootToken() {
             try {
@@ -2822,6 +2835,26 @@
             }
         }
 
+        function toggleProfileSection(name) {
+            const target = document.querySelector('#profile-me .p-acc[data-pacc="' + name + '"]');
+            if (!target) return;
+            const willOpen = !target.classList.contains('open');
+            document.querySelectorAll('#profile-me .p-acc').forEach(function (acc) {
+                acc.classList.remove('open');
+            });
+            if (willOpen) target.classList.add('open');
+        }
+
+        function openProfileSectionFor(el) {
+            if (!el || !el.closest) return;
+            const acc = el.closest('.p-acc');
+            if (!acc) return;
+            document.querySelectorAll('#profile-me .p-acc').forEach(function (item) {
+                item.classList.remove('open');
+            });
+            acc.classList.add('open');
+        }
+
 
         async function showMyCode() {
             try {
@@ -3080,6 +3113,13 @@
                     return m.id === u.id && m.role === 'owner';
                 });
                 if (btn) btn.style.display = isOwner ? '' : 'none';
+            }
+            const accFamilySub = document.getElementById('p-acc-family-sub');
+            if (accFamilySub) {
+                const names = (data.members || []).map(function (m) { return m.first_name; }).filter(Boolean);
+                accFamilySub.textContent = names.length
+                    ? names.slice(0, 2).join(' и ')
+                    : ((data.family && data.family.name) || 'Семья');
             }
 
             const ava = document.getElementById('profile-ava');
@@ -4341,6 +4381,10 @@ async function sendFeedback() {
                 }
             }
 
+            if (step.profile) {
+                openProfileSectionFor(document.querySelector(step.sel));
+            }
+
             // шаг про другой раздел — сначала переключаем экран
             if (step.view) {
                 const active = document.querySelector('.view.active');
@@ -5060,6 +5104,10 @@ async function sendFeedback() {
                     try { untilText = 'до ' + new Date(d.plan_until).toLocaleDateString('ru-RU'); } catch (e) {}
                 }
                 until.textContent = untilText;
+                const accPremiumSub = document.getElementById('p-acc-premium-sub');
+                if (accPremiumSub) {
+                    accPremiumSub.textContent = d.active ? (untilText || 'Премиум') : 'Бесплатный тариф';
+                }
                 if (st) st.textContent = '';
 
                 // Потом — необязательные элементы интерфейса.

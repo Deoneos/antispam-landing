@@ -622,6 +622,47 @@ html { -webkit-text-size-adjust: 100%; }
 .profile-name { text-align: center; font-size: 22px; font-weight: 800; }
 .profile-sub { text-align: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
 .profile-rows { margin: 18px 0; }
+
+/* Профиль: обычный вид и превью минимализма (?min=1) */
+.profile-sections { display: block; }
+.p-acc { display: block; }
+.p-acc-head { display: none; }
+.p-acc-body { display: block; }
+.min-ui .profile-sections { display: flex; flex-direction: column; margin-top: 16px; }
+.min-ui .p-acc { background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; margin-bottom: 8px; overflow: hidden; }
+.min-ui .p-acc[data-pacc="family"] { order: 1; }
+.min-ui .p-acc[data-pacc="premium"] { order: 2; }
+.min-ui .p-acc[data-pacc="notifications"] { order: 3; }
+.min-ui .p-acc[data-pacc="settings"] { order: 4; }
+.min-ui .p-acc[data-pacc="help"] { order: 5; }
+.min-ui .p-acc-head { display: flex; width: 100%; align-items: center; gap: 10px;
+    padding: 14px; background: none; border: 0; color: var(--text);
+    font: inherit; text-align: left; cursor: pointer; }
+.min-ui .p-acc-icon { width: 24px; text-align: center; font-size: 19px; flex: none; }
+.min-ui .p-acc-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.min-ui .p-acc-title b { font-size: 15px; font-weight: 800; }
+.min-ui .p-acc-title span { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.min-ui .p-acc-chev { margin-left: auto; color: var(--muted); font-size: 18px;
+    line-height: 1; transition: transform .2s; }
+.min-ui .p-acc.open .p-acc-chev { transform: rotate(90deg); }
+.min-ui .p-acc-body { display: none; padding: 0 14px 12px; }
+.min-ui .p-acc.open .p-acc-body { display: block; }
+.min-ui .p-acc .p-section { display: none; }
+.min-ui .p-acc-body .profile-rows { margin: 0; }
+.min-ui .p-acc-body .profile-settings { margin: 0 0 10px; }
+.min-ui .p-acc-body .profile-settings:last-child { margin-bottom: 0; }
+.min-ui .p-acc-body .plan-card { margin: 0 0 8px; }
+.min-ui .p-acc-body .ref-card { margin: 0 0 8px; }
+.min-ui .p-acc-body .row { margin-top: 8px; }
+.min-ui #profile-me > .profile-sections { margin-top: 16px; }
+.min-ui #profile-ava { width: 68px; height: 68px; font-size: 28px; margin-bottom: 8px; }
+.min-ui .profile-name { font-size: 21px; }
+.min-ui .profile-sub { font-size: 12.5px; margin-top: 2px; }
+.min-ui #notify-box > .settings-title { display: none; }
+.min-ui #profile-me > .pbtn.danger { width: auto; height: auto; padding: 10px 14px;
+    margin: 14px auto 0; background: none; border: 0; color: var(--muted);
+    font-size: 13px; font-weight: 600; }
 .profile-row {
     display: flex; justify-content: space-between; padding: 12px 0;
     border-bottom: 1px solid var(--border); font-size: 14px; color: var(--muted);

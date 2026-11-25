@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=151">
+    <link rel="stylesheet" href="styles.css?v=152">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -243,6 +243,14 @@
                 <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="onAvatarPicked(this)">
                 <div class="profile-name" id="profile-name">—</div>
                 <div class="profile-sub" id="profile-sub">—</div>
+<div class="profile-sections">
+<section class="p-acc open" data-pacc="family">
+  <button type="button" class="p-acc-head" onclick="toggleProfileSection('family')">
+    <span class="p-acc-icon">👨‍👩‍👧</span>
+    <span class="p-acc-title"><b>Семья</b><span id="p-acc-family-sub">Семья и дети</span></span>
+    <span class="p-acc-chev">›</span>
+  </button>
+  <div class="p-acc-body">
                                 <div class="p-section">Семья</div>
 <div class="profile-rows">
                     <div class="profile-row"><span>Семья</span><b id="profile-family">—</b></div>
@@ -268,7 +276,17 @@
                     <button class="pbtn" onclick="addChild()">＋ Добавить ребёнка <span class="pro-badge">PRO</span></button>
                     <p class="login-status" id="child-add-status"></p>
                 </div>
-                                <div class="p-section">Премиум <span class="pro-badge solid">PRO</span></div>
+                                  </div>
+</section>
+<section class="p-acc" data-pacc="premium">
+  <button type="button" class="p-acc-head" onclick="toggleProfileSection('premium')">
+    <span class="p-acc-icon">⭐</span>
+    <span class="p-acc-title"><b>Премиум</b><span id="p-acc-premium-sub">Бесплатный тариф</span></span>
+    <span class="pro-badge">PRO</span>
+    <span class="p-acc-chev">›</span>
+  </button>
+  <div class="p-acc-body">
+<div class="p-section">Премиум <span class="pro-badge solid">PRO</span></div>
 <div class="plan-card" id="plan-card">
                     <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
                     <div class="plan-until" id="plan-until"></div>
@@ -311,7 +329,16 @@
                 <button class="row" onclick="openPromo()">
                     <span class="ri">🎟</span> Промокод <span class="chev">›</span></button>
                 <button class="row" onclick="openDoctorReport()"><span class="ri">🖨</span> Отчёт для врача <span class="pro-badge">PRO</span> <span class="chev">›</span></button>
-                                <div class="p-section">Настройки</div>
+                                  </div>
+</section>
+<section class="p-acc" data-pacc="settings">
+  <button type="button" class="p-acc-head" onclick="toggleProfileSection('settings')">
+    <span class="p-acc-icon">⚙️</span>
+    <span class="p-acc-title"><b>Настройки</b><span>Тема · часовой пояс · напоминания</span></span>
+    <span class="p-acc-chev">›</span>
+  </button>
+  <div class="p-acc-body">
+<div class="p-section">Настройки</div>
 <div class="profile-settings" id="profile-settings">
                     <div class="settings-title">Оформление</div>
                     <div class="seg" id="theme-seg">
@@ -362,7 +389,16 @@
                     <button class="pbtn" onclick="saveReminders()">Сохранить</button>
                     <p class="login-status" id="rem-status"></p>
                 </div>
-                <div class="profile-settings" id="notify-box">
+                  </div>
+</section>
+<section class="p-acc" data-pacc="notifications">
+  <button type="button" class="p-acc-head" onclick="toggleProfileSection('notifications')">
+    <span class="p-acc-icon">🔔</span>
+    <span class="p-acc-title"><b>Уведомления</b><span>Push · итоги дня · что нового</span></span>
+    <span class="p-acc-chev">›</span>
+  </button>
+  <div class="p-acc-body">
+<div class="profile-settings" id="notify-box">
                     <div class="settings-title">Уведомления</div>
                     <div class="toggle-row"><span>Push-уведомления</span>
                         <label class="sw"><input type="checkbox" id="np-push" onchange="setNotifyPref('push', this.checked)"><span class="sl"></span></label>
@@ -391,7 +427,16 @@
                     <button class="pbtn" style="margin-top:8px" onclick="testPush()">Проверить уведомления</button>
                     <p class="login-status" id="notify-status"></p>
                 </div>
-                                <div class="p-section">Помощь</div>
+                                  </div>
+</section>
+<section class="p-acc" data-pacc="help">
+  <button type="button" class="p-acc-head" onclick="toggleProfileSection('help')">
+    <span class="p-acc-icon">💡</span>
+    <span class="p-acc-title"><b>Помощь</b><span>Подсказки · код входа · установка</span></span>
+    <span class="p-acc-chev">›</span>
+  </button>
+  <div class="p-acc-body">
+<div class="p-section">Помощь</div>
 <button class="row" onclick="startTour(true)"><span class="ri">💡</span> Показать подсказки <span class="chev">›</span></button>
                 <button class="row" onclick="window.open('https://t.me/budny_vibecode_bot', '_blank')">
                     <span class="ri">📣</span> Наш канал <span class="chev">›</span></button>
@@ -407,7 +452,10 @@
                     <span class="ri">📄</span> Политика данных <span class="chev">›</span></a>
                 <a class="row" href="terms.html" target="_blank" rel="noopener">
                     <span class="ri">📃</span> Соглашение <span class="chev">›</span></a>
-                <button class="pbtn danger" onclick="logoutProfile()">Выйти</button>
+                  </div>
+</section>
+</div>
+<button class="pbtn danger" onclick="logoutProfile()">Выйти</button>
             </div>
         </div>
     </div>
@@ -881,7 +929,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=181" defer></script>
+    <script src="app.js?v=182" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
