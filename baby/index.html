@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=144">
+    <link rel="stylesheet" href="styles.css?v=145">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -140,7 +140,7 @@
                 </div>
             </div>
 
-            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" id="report-btn" onclick="openDoctorReport()">🖨 Отчёт для врача</button>
+            <button class="btn-save-ml" style="margin-bottom: 20px; background: var(--card); color: var(--text); border: 1px solid var(--border);" id="report-btn" onclick="openDoctorReport()">🖨 Отчёт для врача <span class="pro-badge">PRO</span></button>
 
             <div class="chart-container">
                 <div class="chart-title">Кормления и подгузники</div>
@@ -168,7 +168,7 @@
 
             <div class="cal-grid one">
                 <button class="cal-card" onclick="exportCsv()">
-                    <span class="ci">📊</span><span class="cl">Экспорт в Excel</span>
+                    <span class="ci">📊</span><span class="cl">Экспорт в Excel <span class="pro-badge">PRO</span></span>
                     <span class="cs">все записи в CSV</span>
                 </button>
             </div>
@@ -185,7 +185,7 @@
     <div id="view-analytics" class="view">
         <div id="analytics-lock" class="premium-lock" style="display:none">
             <div class="premium-lock-icon">🔒</div>
-            <h2>Аналитика — в Премиуме</h2>
+            <h2>Аналитика <span class="pro-badge solid">PRO</span></h2>
             <p>Графики сна, кормлений и объёма, сравнение дней, отчёт для врача и звуки для сна.</p>
             <a class="pbtn primary" href="premium.html">Подробнее о подписке</a>
         </div>
@@ -265,15 +265,15 @@
                 <div class="profile-settings" id="children-box">
                     <div class="settings-title">Дети</div>
                     <div id="children-list" class="children-list"></div>
-                    <button class="pbtn" onclick="addChild()">＋ Добавить ребёнка</button>
+                    <button class="pbtn" onclick="addChild()">＋ Добавить ребёнка <span class="pro-badge">PRO</span></button>
                     <p class="login-status" id="child-add-status"></p>
                 </div>
-                                <div class="p-section">Премиум</div>
+                                <div class="p-section">Премиум <span class="pro-badge solid">PRO</span></div>
 <div class="plan-card" id="plan-card">
                     <div class="plan-row"><span>Подписка</span><b id="plan-name">Бесплатная</b></div>
                     <div class="plan-until" id="plan-until"></div>
                     <div id="premium-promo">
-                        <div class="premium-title">⭐ Премиум открывает</div>
+                        <div class="premium-title">⭐ Премиум открывает <span class="pro-badge">PRO</span></div>
                         <ul class="premium-list">
                             <li>🎤 Голосовой ввод: «покормила 120 мл», «вес 5,2 кг»</li>
                             <li>📏 Кривые ВОЗ и перцентили веса и роста</li>
@@ -310,7 +310,7 @@
                 </div>
                 <button class="row" onclick="openPromo()">
                     <span class="ri">🎟</span> Промокод <span class="chev">›</span></button>
-                <button class="row" onclick="openDoctorReport()"><span class="ri">🖨</span> Отчёт для врача <span class="chev">›</span></button>
+                <button class="row" onclick="openDoctorReport()"><span class="ri">🖨</span> Отчёт для врача <span class="pro-badge">PRO</span> <span class="chev">›</span></button>
                                 <div class="p-section">Настройки</div>
 <div class="profile-settings" id="profile-settings">
                     <div class="settings-title">Оформление</div>
@@ -352,7 +352,7 @@
                     </ul>
                 </div>
                 <div class="profile-settings" id="reminders-box">
-                    <div class="settings-title">Напоминания</div>
+                    <div class="settings-title">Напоминания <span class="pro-badge">PRO</span></div>
                     <div class="profile-row"><span>Кормление, ч</span>
                         <input id="rem-feed" class="login-input" type="number" min="1" max="12" step="0.5" value="3.5" style="max-width:90px">
                     </div>
@@ -385,7 +385,7 @@
                     <div class="toggle-row" id="row-daily"><span>Итоги дня в 21:00</span>
                         <label class="sw"><input type="checkbox" id="np-daily" onchange="setNotifyPref('daily', this.checked)"><span class="sl"></span></label>
                     </div>
-                    <div class="toggle-row"><span>Итоги недели</span>
+                    <div class="toggle-row"><span>Итоги недели <span class="pro-badge">PRO</span></span>
                         <label class="sw"><input type="checkbox" id="np-weekly" onchange="setNotifyPref('weekly', this.checked)"><span class="sl"></span></label>
                     </div>
                     <button class="pbtn" style="margin-top:8px" onclick="testPush()">Проверить уведомления</button>
@@ -430,6 +430,7 @@
                     <div class="stat-card"><div class="value" id="g-last-weight">—</div><div class="label">Вес</div></div>
                     <div class="stat-card"><div class="value" id="g-last-height">—</div><div class="label">Рост</div></div>
                 </div>
+                <div class="chart-title">Кривые ВОЗ <span class="pro-badge">PRO</span></div>
                 <div class="chart-wrap"><canvas id="growth-chart"></canvas></div>
                 <div class="range-chips" id="range-chips">
                     <button class="range-chip active" data-range="0" onclick="setGrowthRange(0)">авто</button>
@@ -520,7 +521,7 @@
             <span class="icon">📅</span> Календарь
         </button>
         <button class="nav-item" onclick="switchView('analytics', this)">
-            <span class="icon">📈</span> Аналитика
+            <span class="icon">📈</span> <span class="nav-label">Аналитика <span class="pro-badge">PRO</span></span>
         </button>
         <button class="nav-item" onclick="switchView('growth', this)">
             <span class="icon">❤️</span> Здоровье
@@ -529,10 +530,10 @@
             <span class="icon">🤖</span> Помощник
         </button>
         <button class="nav-item" onclick="openDoctorReport()">
-            <span class="icon">📄</span> Отчёт
+            <span class="icon">📄</span> <span class="nav-label">Отчёт <span class="pro-badge">PRO</span></span>
         </button>
         <button class="nav-item" onclick="openNoiseModal()">
-            <span class="icon">🎵</span> Звуки
+            <span class="icon">🎵</span> <span class="nav-label">Звуки <span class="pro-badge">PRO</span></span>
         </button>
     </div>
     <button class="nav-arrow left" id="nav-left" onclick="navScroll(-1)" aria-label="Назад">‹</button>
@@ -596,7 +597,7 @@
                 <input type="text" id="ms-note" maxlength="200" placeholder="необязательно">
             </label>
             <input type="file" id="ms-photo-input" accept="image/*" style="display:none" onchange="onMilestonePhoto(this)">
-            <button type="button" class="pbtn photo-add" onclick="document.getElementById('ms-photo-input').click()">📷 Добавить фото</button>
+            <button type="button" class="pbtn photo-add" onclick="document.getElementById('ms-photo-input').click()">📷 Добавить фото <span class="pro-badge">PRO</span></button>
             <div id="ms-photo-prev" style="display:none; margin:8px 0">
                 <div style="position:relative">
                     <img id="ms-photo-img" alt="" style="width:100%; max-height:300px; object-fit:contain; background:rgba(0,0,0,.25); border-radius:14px; display:block">
@@ -828,7 +829,7 @@
     <div class="modal-overlay" id="noise-modal" onclick="closeNoiseModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h2>Белый шум</h2>
+                <h2>Белый шум <span class="pro-badge">PRO</span></h2>
                 <button class="btn-close" onclick="closeNoiseModal()">✕</button>
             </div>
             <div class="noise-grid" id="noise-grid">
@@ -880,7 +881,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=178" defer></script>
+    <script src="app.js?v=179" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
