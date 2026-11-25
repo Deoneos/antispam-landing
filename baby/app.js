@@ -3499,14 +3499,91 @@ function closeFeedback(event) {
 }
 
 let feedbackSending = false;
+let feedbackImageData = '';
+
+function clearFeedbackImage() {
+    feedbackImageData = '';
+    const input = document.getElementById('feedback-image');
+    if (input) input.value = '';
+    const box = document.getElementById('feedback-image-preview');
+    if (box) box.style.display = 'none';
+    const img = document.getElementById('feedback-image-img');
+    if (img) img.removeAttribute('src');
+}
+
+function onFeedbackImage(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+        toast('Выберите изображение', true);
+        input.value = '';
+        return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+        toast('Файл слишком большой', true);
+        input.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function () {
+        const img = new Image();
+        img.onload = function () {
+            try {
+                let max = 1200;
+                const scale = Math.min(1, max / Math.max(img.width, img.height));
+                let w = Math.max(1, Math.round(img.width * scale));
+                let h = Math.max(1, Math.round(img.height * scale));
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                let quality = 0.82;
+                let data = canvas.toDataURL('image/jpeg', quality);
+                while (data.length > 380000 && quality > 0.4) {
+                    quality -= 0.1;
+                    data = canvas.toDataURL('image/jpeg', quality);
+                }
+                if (data.length > 500000) {
+                    const small = document.createElement('canvas');
+                    const s2 = Math.min(1, 800 / Math.max(w, h));
+                    small.width = Math.max(1, Math.round(w * s2));
+                    small.height = Math.max(1, Math.round(h * s2));
+                    const c2 = small.getContext('2d');
+                    c2.fillStyle = '#fff';
+                    c2.fillRect(0, 0, small.width, small.height);
+                    c2.drawImage(canvas, 0, 0, small.width, small.height);
+                    data = small.toDataURL('image/jpeg', 0.7);
+                }
+                if (data.length > 500000) {
+                    toast('Не удалось сжать изображение', true);
+                    return;
+                }
+                feedbackImageData = data;
+                const preview = document.getElementById('feedback-image-img');
+                const box = document.getElementById('feedback-image-preview');
+                if (preview) preview.src = data;
+                if (box) box.style.display = 'block';
+            } catch (e) {
+                toast('Не удалось обработать изображение', true);
+            }
+        };
+        img.onerror = function () { toast('Не удалось открыть изображение', true); };
+        img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+}
 
 async function sendFeedback() {
     if (feedbackSending) return;
     const st = document.getElementById('feedback-status');
     const text = (document.getElementById('feedback-text').value || '').trim();
     const contact = (document.getElementById('feedback-contact').value || '').trim();
-    if (text.length < 3) {
-        if (st) st.textContent = 'Напишите хотя бы пару слов';
+    if (text.length < 3 && !feedbackImageData) {
+        if (st) st.textContent = 'Напишите пару слов или приложите изображение';
         return;
     }
     const token = ladToken();
@@ -3522,7 +3599,11 @@ async function sendFeedback() {
         const res = await fetch(`${API_URL}/feedback`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ text: text, contact: contact })
+            body: JSON.stringify({
+                text: text.length >= 3 ? text : 'Изображение',
+                contact: contact,
+                image: feedbackImageData
+            })
         });
         const d = await res.json().catch(function () { return {}; });
         if (!res.ok) {
@@ -3530,6 +3611,7 @@ async function sendFeedback() {
         }
         document.getElementById('feedback-text').value = '';
         document.getElementById('feedback-contact').value = '';
+        clearFeedbackImage();
         if (st) st.textContent = 'Спасибо! Сообщение отправлено ✅';
         setTimeout(closeFeedback, 1400);
     } catch (e) {

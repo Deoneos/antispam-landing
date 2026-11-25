@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=173">
+    <link rel="stylesheet" href="styles.css?v=174">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -442,7 +442,6 @@
 <button class="row" onclick="startTour(true)"><span class="ri">💡</span> Показать подсказки <span class="chev">›</span></button>
                 <button class="row" onclick="window.open('https://t.me/budny_vibecode_bot', '_blank')">
                     <span class="ri">📣</span> Наш канал <span class="chev">›</span></button>
-                <button class="row" onclick="openFeedback()"><span class="ri">📮</span> Обратная связь <span class="chev">›</span></button>
                                 <div class="p-section">Приложение</div>
 <button class="row" onclick="showMyCode()">
                     <span class="ri">🔑</span> Мой код для входа <span class="chev">›</span></button>
@@ -457,6 +456,7 @@
                   </div>
 </section>
 </div>
+<button class="pbtn feedback-profile-btn" onclick="openFeedback()">📮 Обратная связь</button>
 <button class="pbtn danger" onclick="logoutProfile()">Выйти</button>
             </div>
         </div>
@@ -778,6 +778,12 @@
             <p class="profile-hint">Что не работает, чего не хватает или что улучшить? Напиши — ответим в Telegram.</p>
             <textarea id="feedback-text" class="login-input" rows="5" maxlength="2000" placeholder="Например: не сохраняется сон, если закрыть приложение…"></textarea>
             <input id="feedback-contact" class="login-input" maxlength="100" placeholder="Контакт для ответа (необязательно)">
+            <input type="file" id="feedback-image" accept="image/*" style="display:none" onchange="onFeedbackImage(this)">
+            <button type="button" class="pbtn ghost" style="margin-top:8px" onclick="document.getElementById('feedback-image').click()">📷 Прикрепить изображение</button>
+            <div class="feedback-image-preview" id="feedback-image-preview" style="display:none">
+                <img id="feedback-image-img" alt="Прикреплённое изображение">
+                <button type="button" class="feedback-image-remove" onclick="clearFeedbackImage()" aria-label="Удалить изображение">✕</button>
+            </div>
             <button class="pbtn primary" id="feedback-send" onclick="sendFeedback()">Отправить</button>
             <p class="login-status" id="feedback-status"></p>
         </div>
@@ -931,7 +937,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=192" defer></script>
+    <script src="app.js?v=193" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
