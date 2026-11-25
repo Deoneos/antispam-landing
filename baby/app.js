@@ -42,6 +42,72 @@
         // На baby.kustos.ru API проксируется тем же доменом, на GitHub Pages — на RU.
         const API_URL = (location.hostname === 'baby.kustos.ru') ? '/api/baby' : 'https://baby.kustos.ru/api/baby';
 
+        // ===== СКРЫТАЯ ДИАГНОСТИКА =====
+        const diagLog = [];
+
+        function diagCleanUrl(value) {
+            try {
+                const u = new URL(String(value || ''), location.href);
+                return (u.origin === location.origin ? u.pathname : u.origin + u.pathname);
+            } catch (e) {
+                return String(value || '').split('?')[0].slice(0, 160);
+            }
+        }
+
+        function diagPush(kind, text) {
+            try {
+                diagLog.push({
+                    at: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                    kind: kind,
+                    text: String(text || '').slice(0, 500)
+                });
+                if (diagLog.length > 60) diagLog.shift();
+            } catch (e) {}
+        }
+
+        window.addEventListener('error', function (e) {
+            diagPush('error', (e.message || 'error') + ' @ ' + (e.filename || '') + ':' + (e.lineno || 0));
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+            diagPush('promise', String((e.reason && (e.reason.message || e.reason)) || 'rejection'));
+        });
+        window.addEventListener('offline', function () { diagPush('net', 'offline'); });
+        window.addEventListener('online', function () { diagPush('net', 'online'); });
+        (function wrapFetch() {
+            if (!window.fetch || window.fetch.__ladWrapped) return;
+            const orig = window.fetch.bind(window);
+            const wrapped = function (input, init) {
+                const url = typeof input === 'string' ? input : ((input && input.url) || '');
+                const started = performance.now();
+                return orig(input, init).then(function (res) {
+                    const ms = Math.round(performance.now() - started);
+                    if (!res.ok || ms > 1500) {
+                        diagPush('fetch', res.status + ' ' + ms + 'ms ' + diagCleanUrl(url));
+                    }
+                    return res;
+                }).catch(function (err) {
+                    diagPush('fetch', 'ERR ' + diagCleanUrl(url) + ' · ' + ((err && err.message) || 'network'));
+                    throw err;
+                });
+            };
+            wrapped.__ladWrapped = true;
+            window.fetch = wrapped;
+        })();
+        (function wrapConsoleError() {
+            if (!console || !console.error || console.error.__ladWrapped) return;
+            const orig = console.error.bind(console);
+            const wrapped = function () {
+                try {
+                    diagPush('console', Array.prototype.map.call(arguments, function (x) {
+                        return (x && (x.message || x.stack)) || String(x);
+                    }).join(' '));
+                } catch (e) {}
+                return orig.apply(null, arguments);
+            };
+            wrapped.__ladWrapped = true;
+            console.error = wrapped;
+        })();
+
         // Минималистичный интерфейс включён по умолчанию.
         // ?min=0 — вернуть старый вид, ?min=1 — снова включить.
         (function initMinUi() {
@@ -610,6 +676,7 @@
         // ===== ЛОКАЛЬНЫЙ КЭШ, ОЧЕРЕДЬ И ЭКСПОРТ =====
         const CACHE_KEY = 'baby_events_cache_v1';
         const QUEUE_KEY = 'baby_queue_v1';
+        let lastSyncAt = 0;
 
         function readJSON(key, fallback) {
             try {
@@ -685,6 +752,161 @@
 
         window.addEventListener('online', () => { renderStatus(); flushQueue(); setTimeout(loadEvents, 800); });
         window.addEventListener('offline', renderStatus);
+
+        // ===== ДИАГНОСТИКА: СКРЫТЫЙ ЭКРАН =====
+        function diagAppVersion() {
+            try {
+                const src = Array.from(document.scripts).map(function (s) { return s.src || ''; })
+                    .find(function (s) { return s.indexOf('app.js') >= 0; });
+                const m = src && src.match(/v=(\d+)/);
+                return m ? m[1] : '?';
+            } catch (e) { return '?'; }
+        }
+
+        async function diagPing() {
+            if (!navigator.onLine) return 'offline';
+            const started = performance.now();
+            const ctrl = new AbortController();
+            const timer = setTimeout(function () { ctrl.abort(); }, 5000);
+            try {
+                const res = await fetch(`${API_URL}/me`, { headers: apiHeaders(), signal: ctrl.signal });
+                const ms = Math.round(performance.now() - started);
+                return res.status + ' · ' + ms + ' мс';
+            } catch (e) {
+                return 'ошибка · ' + ((e && e.name === 'AbortError') ? 'таймаут' : ((e && e.message) || 'сеть'));
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function buildDiag() {
+            const lines = [];
+            lines.push('Лад · диагностика');
+            lines.push('Время: ' + new Date().toLocaleString('ru-RU'));
+            lines.push('Онлайн: ' + (navigator.onLine ? 'да' : 'нет'));
+            const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            lines.push('Сеть: ' + (c ? [
+                c.effectiveType ? 'тип ' + c.effectiveType : '',
+                c.downlink ? 'скорость ' + c.downlink + ' Мбит/с' : '',
+                c.rtt ? 'RTT ' + c.rtt + ' мс' : '',
+                c.saveData ? 'экономия трафика' : ''
+            ].filter(Boolean).join(' · ') || 'есть' : 'н/д'));
+            lines.push('Приложение: v' + diagAppVersion() + ' · ' +
+                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ? 'PWA' : 'браузер'));
+            let swText = 'нет';
+            try {
+                if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    const active = regs.find(function (r) { return r.active; });
+                    swText = active ? 'активен (' + (active.scope || '') + ')' : 'не активен';
+                }
+            } catch (e) { swText = 'ошибка'; }
+            let cacheText = '';
+            try { cacheText = (await caches.keys()).join(', ') || 'пусто'; } catch (e) { cacheText = 'н/д'; }
+            lines.push('SW: ' + swText + ' · кэши: ' + cacheText);
+            let queueLen = 0;
+            let cacheLen = 0;
+            try { queueLen = readJSON(QUEUE_KEY, []).length; } catch (e) {}
+            try { cacheLen = cachedEvents().length; } catch (e) {}
+            lines.push('Очередь: ' + queueLen + ' · кэш событий: ' + cacheLen);
+            lines.push('Последняя синхронизация: ' + (lastSyncAt ? new Date(lastSyncAt).toLocaleString('ru-RU') : 'ещё не было'));
+            lines.push('Авторизация: ' + (ladToken() ? 'да' : 'нет'));
+            lines.push('API ping: ' + await diagPing());
+            lines.push('Экран: ' + screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1) +
+                ' · TZ: ' + (Intl.DateTimeFormat().resolvedOptions().timeZone || '?'));
+            lines.push('Язык: ' + (navigator.language || '?'));
+            lines.push('UA: ' + navigator.userAgent);
+            lines.push('');
+            lines.push('События (' + diagLog.length + '):');
+            if (diagLog.length) {
+                diagLog.slice().reverse().forEach(function (x) {
+                    lines.push(x.at + ' [' + x.kind + '] ' + x.text);
+                });
+            } else {
+                lines.push('нет');
+            }
+            return lines.join('\n');
+        }
+
+        async function runDiag() {
+            const out = document.getElementById('diag-output');
+            const st = document.getElementById('diag-status');
+            if (out) out.textContent = 'Собираю данные…';
+            if (st) st.textContent = '';
+            try {
+                const text = await buildDiag();
+                if (out) out.textContent = text;
+            } catch (e) {
+                if (out) out.textContent = 'Ошибка диагностики: ' + ((e && e.message) || e);
+            }
+        }
+
+        function openDiag() {
+            const modal = document.getElementById('diag-modal');
+            if (modal) modal.style.display = 'flex';
+            runDiag();
+        }
+
+        function closeDiag(e) {
+            if (e && e.target && e.target.id !== 'diag-modal') return;
+            const modal = document.getElementById('diag-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function copyDiag() {
+            const out = document.getElementById('diag-output');
+            const st = document.getElementById('diag-status');
+            const text = (out && out.textContent) || '';
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const range = document.createRange();
+                    range.selectNodeContents(out);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    document.execCommand('copy');
+                }
+                if (st) st.textContent = 'Скопировано ✅';
+            } catch (e) {
+                if (st) st.textContent = 'Не удалось скопировать';
+            }
+        }
+
+        function sendDiag() {
+            const out = document.getElementById('diag-output');
+            const text = (out && out.textContent) || '';
+            closeDiag();
+            openFeedback();
+            const area = document.getElementById('feedback-text');
+            if (area) {
+                area.value = ('Диагностика:\n' + text).slice(0, 1900);
+                area.focus();
+            }
+        }
+
+        (function initDiagEntry() {
+            try {
+                if (new URLSearchParams(location.search).get('diag') === '1') {
+                    setTimeout(openDiag, 900);
+                }
+                const title = document.getElementById('app-title');
+                if (title) {
+                    let taps = 0;
+                    let timer = null;
+                    title.addEventListener('click', function () {
+                        taps += 1;
+                        clearTimeout(timer);
+                        timer = setTimeout(function () { taps = 0; }, 1500);
+                        if (taps >= 7) {
+                            taps = 0;
+                            openDiag();
+                        }
+                    });
+                }
+            } catch (e) {}
+        })();
 
 
         const EVENT_NAMES = { feed: 'Кормление', sleep: 'Сон', awake: 'Бодрствование',
@@ -1900,6 +2122,7 @@
                     events = await res.json();
                     if (!Array.isArray(events)) events = [];
                     mergeIntoCache(events);
+                    lastSyncAt = Date.now();
                 } catch (netErr) {
                     events = cachedEvents();
                     const banner = document.getElementById('api-banner');
