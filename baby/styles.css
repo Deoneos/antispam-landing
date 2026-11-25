@@ -181,7 +181,7 @@ html { -webkit-text-size-adjust: 100%; }
 .ref-modal-stat b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; }
 .ref-modal-stat span { display: block; margin-top: 3px; font-size: 10.5px; color: var(--muted); }
 .ref-modal-note { margin: 2px 0 8px; font-size: 12px; line-height: 1.45; color: var(--muted); text-align: center; }
-#profile-modal, #ref-modal, #voice-modal { z-index: 130; }
+#profile-modal, #ref-modal, #voice-modal, #voice-premium-modal { z-index: 130; }
 
 .voice-stage { text-align: center; padding: 2px 0 4px; }
 .voice-orb { width: 92px; height: 92px; margin: 2px auto 12px; border-radius: 50%;
@@ -259,10 +259,15 @@ html { -webkit-text-size-adjust: 100%; }
         .btn-noise { grid-column: span 2; background: var(--noise); color: #111827; border: none; }
         .btn-sos { grid-column: span 2; background: var(--sos); color: white; border: none; font-size: 18px; padding: 16px; }
         .btn-diaper { background: var(--card); font-size: 14px; }
-        .btn-voice { grid-column: span 2; padding: 16px; font-size: 16px;
+        .btn-voice { grid-column: span 2; padding: 16px; font-size: 16px; position: relative;
             background: linear-gradient(135deg, rgba(242,155,147,.18), rgba(147,197,253,.10));
             border: 1px solid rgba(242,155,147,.45); }
         .btn-voice .icon { font-size: 26px; }
+        .voice-pro { position: absolute; top: 10px; right: 12px; padding: 3px 7px;
+            border-radius: 999px; background: #F29B93; color: #2b1b18;
+            font-size: 10px; font-weight: 800; letter-spacing: .04em; line-height: 1.2; }
+        .btn-voice.locked { opacity: .82; }
+        .btn-voice.locked .voice-pro { background: var(--border); color: var(--muted); }
 
         /* ЛЕНТА */
         .log-section { padding: 20px; }

@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=140">
+    <link rel="stylesheet" href="styles.css?v=141">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -88,7 +88,7 @@
             </button>
 
             <button class="action-btn btn-voice" id="voice-btn" onclick="openVoiceModal()">
-                <span class="icon">🎤</span> Сказать голосом
+                <span class="icon">🎤</span> Сказать голосом <span class="voice-pro" id="voice-pro">PRO</span>
             </button>
 
             <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
@@ -275,6 +275,7 @@
                     <div id="premium-promo">
                         <div class="premium-title">⭐ Премиум открывает</div>
                         <ul class="premium-list">
+                            <li>🎤 Голосовой ввод: «покормила 120 мл», «вес 5,2 кг»</li>
                             <li>📏 Кривые ВОЗ и перцентили веса и роста</li>
                             <li>🖼 Фото к вехам развития</li>
                             <li>📊 Недельная сводка в уведомлениях</li>
@@ -754,9 +755,31 @@
                 <button class="pbtn" onclick="chooseVoiceDiaper('poop')">💩 Покакала</button>
                 <button class="pbtn" onclick="chooseVoiceDiaper('pee')">💦 Пописала</button>
             </div>
-            <p class="voice-hint" id="voice-hint">Например: «покормила 120 миллилитров», «покакала», «уснула», «вес 5,2 кг», «рост 58 см», «температура 36,6», «пошли гулять».</p>
+            <p class="voice-hint" id="voice-hint">Например: «покормила 120 миллилитров», «покакала 20 минут назад», «уснула», «вес 5,2 кг», «рост 58 см», «температура 36,6», «пошли гулять».</p>
             <button class="btn-save-ml" id="voice-confirm" onclick="confirmVoiceAction()" style="display:none">Записать</button>
             <button class="pbtn ghost" id="voice-retry" onclick="startVoiceRecognition()" style="display:none">Сказать ещё раз</button>
+        </div>
+    </div>
+
+    <!-- ГОЛОСОВОЙ ВВОД: ПРЕМИУМ -->
+    <div class="modal-overlay" id="voice-premium-modal" onclick="closeVoicePremium(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>🎤 Голосовой ввод</h2>
+                <button class="btn-close" onclick="closeVoicePremium()">✕</button>
+            </div>
+            <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 10px">
+                Записывайте голосом кормления, подгузники, сон, прогулки, вес, рост и температуру. Это часть Премиума.
+            </p>
+            <ul class="premium-list">
+                <li>🍼 «Покормила 120 миллилитров»</li>
+                <li>💩 «Покакала» или «Пописала»</li>
+                <li>😴 «Уснула», «Проснулась»</li>
+                <li>⚖️ «Вес 5,2 кг», 📏 «Рост 58 см»</li>
+                <li>🌡 «Температура 36,6»</li>
+            </ul>
+            <button class="pbtn primary" onclick="location.href='premium.html'">Оформить Премиум</button>
+            <button class="pbtn ghost" onclick="closeVoicePremium()">Позже</button>
         </div>
     </div>
 
@@ -857,7 +880,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=176" defer></script>
+    <script src="app.js?v=177" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

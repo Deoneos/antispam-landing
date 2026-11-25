@@ -737,9 +737,10 @@
             toast('Файл выгружен');
         }
 
-        function openFeedModal() {
+        function openFeedModal(when) {
             const inp = document.getElementById('feed-time');
-            if (inp) inp.value = toLocalInputValue(new Date());
+            const base = (when instanceof Date && !isNaN(when.getTime())) ? when : new Date();
+            if (inp) inp.value = toLocalInputValue(base);
             document.getElementById('feed-modal').style.display = 'flex';
         }
         function closeFeedModal(e) { if (!e || e.target.id === 'feed-modal') document.getElementById('feed-modal').style.display = 'none'; }
@@ -798,23 +799,34 @@
         }
 
         function voiceNumberWords(text) {
-            const hundreds = { 'сто': 100, 'двести': 200, 'триста': 300 };
+            const hundreds = {
+                'сто': 100, 'двести': 200, 'триста': 300, 'четыреста': 400,
+                'пятьсот': 500, 'шестьсот': 600, 'семьсот': 700,
+                'восемьсот': 800, 'девятьсот': 900
+            };
             const tens = {
-                'десять': 10, 'двадцать': 20, 'тридцать': 30, 'сорок': 40,
+                'двадцать': 20, 'тридцать': 30, 'сорок': 40,
                 'пятьдесят': 50, 'шестьдесят': 60, 'семьдесят': 70,
                 'восемьдесят': 80, 'девяносто': 90
             };
+            const teens = {
+                'десять': 10, 'одиннадцать': 11, 'двенадцать': 12,
+                'тринадцать': 13, 'четырнадцать': 14, 'пятнадцать': 15,
+                'шестнадцать': 16, 'семнадцать': 17, 'восемнадцать': 18,
+                'девятнадцать': 19
+            };
             const units = {
-                'один': 1, 'одна': 1, 'два': 2, 'две': 2, 'три': 3,
-                'четыре': 4, 'пять': 5, 'шесть': 6, 'семь': 7,
-                'восемь': 8, 'девять': 9
+                'ноль': 0, 'один': 1, 'одна': 1, 'два': 2, 'две': 2,
+                'три': 3, 'четыре': 4, 'пять': 5, 'шесть': 6,
+                'семь': 7, 'восемь': 8, 'девять': 9
             };
             let total = 0;
             let found = false;
             voiceNorm(text).split(' ').forEach(function (word) {
-                if (hundreds[word]) { total += hundreds[word]; found = true; }
-                else if (tens[word]) { total += tens[word]; found = true; }
-                else if (units[word] && total < 10) { total += units[word]; found = true; }
+                if (hundreds[word] !== undefined) { total += hundreds[word]; found = true; }
+                else if (teens[word] !== undefined) { total += teens[word]; found = true; }
+                else if (tens[word] !== undefined) { total += tens[word]; found = true; }
+                else if (units[word] !== undefined) { total += units[word]; found = true; }
             });
             return found ? total : null;
         }
@@ -855,16 +867,18 @@
                     if (grams >= 500 && grams <= 30000) return grams;
                 }
             }
-            return null;
+            return parseVoiceWeightWords(text);
         }
 
         function parseVoiceHeight(text) {
             const t = voiceNumNorm(text);
             let m = t.match(/(\d{2,3}(?:\.\d)?)\s*(?:см|сантиметр)/);
             if (!m && /рост/.test(t)) m = t.match(/(\d{2,3}(?:\.\d)?)/);
-            if (!m) return null;
-            const cm = parseFloat(m[1]);
-            return (cm >= 30 && cm <= 150) ? cm : null;
+            if (m) {
+                const cm = parseFloat(m[1]);
+                if (cm >= 30 && cm <= 150) return cm;
+            }
+            return parseVoiceHeightWords(text);
         }
 
         function parseVoiceTemp(text) {
@@ -872,18 +886,106 @@
             let m = t.match(/(3[4-9]|4[0-2])\s*(?:и|\.)\s*(\d)/);
             if (m) return parseFloat(m[1] + '.' + m[2]);
             m = t.match(/(3[4-9](?:\.\d)?|4[0-2](?:\.\d)?)/);
-            return m ? parseFloat(m[1]) : null;
+            if (m) return parseFloat(m[1]);
+            return parseVoiceTempWords(text);
+        }
+
+        function parseVoiceWeightWords(text) {
+            const t = voiceNorm(text);
+            const m = t.match(/([а-я\s]+?)\s*(?:килограмм|кг)\s*(.*)/);
+            if (m) {
+                const kg = voiceNumberWords(m[1]);
+                const grams = m[2] ? (voiceNumberWords(m[2]) || 0) : 0;
+                if (kg !== null) {
+                    const total = Math.round(kg * 1000) + grams;
+                    if (total >= 500 && total <= 30000) return total;
+                }
+            }
+            if (/грамм|г\b/.test(t)) {
+                const grams = voiceNumberWords(t);
+                if (grams !== null && grams >= 500 && grams <= 30000) return grams;
+            }
+            return null;
+        }
+
+        function parseVoiceHeightWords(text) {
+            const t = voiceNorm(text);
+            const m = t.match(/([а-я\s]+?)\s*(?:см|сантиметр)/);
+            if (!m) return null;
+            const cm = voiceNumberWords(m[1]);
+            return (cm !== null && cm >= 30 && cm <= 150) ? cm : null;
+        }
+
+        function parseVoiceTempWords(text) {
+            const t = voiceNorm(text);
+            const m = t.match(/([а-я\s]+?)\s+и\s+([а-я]+)/);
+            if (m) {
+                const whole = voiceNumberWords(m[1]);
+                const frac = voiceNumberWords(m[2]);
+                if (whole !== null && whole >= 34 && whole <= 42 && frac !== null && frac >= 0 && frac <= 9) {
+                    return whole + frac / 10;
+                }
+            }
+            if (/\sи\s/.test(t)) return null;
+            const whole = voiceNumberWords(t);
+            return (whole !== null && whole >= 34 && whole <= 42) ? whole : null;
+        }
+
+        function voiceTimeAgo(text) {
+            const t = voiceNorm(text);
+            if (/только что|прямо сейчас|сейчас/.test(t)) {
+                return { date: new Date(), label: 'сейчас' };
+            }
+            let m = t.match(/(\d{1,3})\s*(?:мин|минут[аы]?|минуту)\s*назад/);
+            if (m) {
+                const n = parseInt(m[1], 10);
+                return { date: new Date(Date.now() - n * 60000), label: n + ' мин назад' };
+            }
+            if (/полчас|пол часа/.test(t)) {
+                return { date: new Date(Date.now() - 30 * 60000), label: '30 мин назад' };
+            }
+            if (/(?:^|\s)час\s*назад/.test(t)) {
+                return { date: new Date(Date.now() - 3600000), label: '1 ч назад' };
+            }
+            m = t.match(/(\d{1,2})\s*(?:час|часа|часов)\s*назад/);
+            if (m) {
+                const n = parseInt(m[1], 10);
+                return { date: new Date(Date.now() - n * 3600000), label: n + ' ч назад' };
+            }
+            m = t.match(/(?:^|\s)в\s*(\d{1,2})(?::|\.|\s)\s*(\d{2})(?:\s|$)/);
+            if (m) {
+                const h = parseInt(m[1], 10);
+                const min = parseInt(m[2], 10);
+                if (h <= 23 && min <= 59) {
+                    const d = new Date();
+                    d.setHours(h, min, 0, 0);
+                    if (d.getTime() > Date.now() + 60000) d.setDate(d.getDate() - 1);
+                    return {
+                        date: d,
+                        label: 'в ' + String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0')
+                    };
+                }
+            }
+            return null;
         }
 
         function parseVoiceCommand(text) {
             const raw = voiceNorm(text);
             if (!raw) return null;
+            const when = voiceTimeAgo(text);
+            const whenSuffix = when ? ' · ' + when.label : '';
 
-            if (/покакал|покак/.test(raw)) {
-                return { kind: 'diaper', value: 'poop', icon: '💩', title: 'Покакала', sub: 'Подгузник' };
+            if (/покакал|покак|по\s*-?\s*большому/.test(raw)) {
+                return {
+                    kind: 'diaper', value: 'poop', icon: '💩', title: 'Покакала',
+                    sub: 'Подгузник' + whenSuffix, when: when ? when.date : null
+                };
             }
-            if (/пописал|попис/.test(raw)) {
-                return { kind: 'diaper', value: 'pee', icon: '💦', title: 'Пописала', sub: 'Подгузник' };
+            if (/пописал|попис|по\s*-?\s*маленькому/.test(raw)) {
+                return {
+                    kind: 'diaper', value: 'pee', icon: '💦', title: 'Пописала',
+                    sub: 'Подгузник' + whenSuffix, when: when ? when.date : null
+                };
             }
 
             if (/температур|градус/.test(raw)) {
@@ -905,7 +1007,7 @@
                 }
             }
 
-            const feedIntent = /покорм|кормлен|съел|съела|бутылоч|смесь|молок|мл|миллилитр/.test(raw);
+            const feedIntent = /покорм|кормлен|съел|съела|поел|поела|выпил|выпила|бутылоч|смесь|молок|мл|миллилитр/.test(raw);
             if (feedIntent) {
                 let ml = null;
                 const withUnit = raw.match(/(\d{2,3})\s*(?:мл|миллилитр|ml|грамм|г\b)/);
@@ -924,13 +1026,18 @@
                     value: ml,
                     icon: '🍼',
                     title: 'Покормить',
-                    sub: ml ? ml + ' мл' : 'Без объёма — откроем форму',
-                    confirmLabel: ml ? 'Записать' : 'Указать объём'
+                    sub: (ml ? ml + ' мл' : 'Без объёма — откроем форму') + whenSuffix,
+                    confirmLabel: ml ? 'Записать' : 'Указать объём',
+                    when: when ? when.date : null
                 };
             }
 
             if (/подгузник|памперс/.test(raw)) {
-                return { kind: 'diaper_ask', icon: '💧', title: 'Какой подгузник?', sub: 'Покакала или пописала?' };
+                return {
+                    kind: 'diaper_ask', icon: '💧', title: 'Какой подгузник?',
+                    sub: 'Покакала или пописала?' + whenSuffix,
+                    when: when ? when.date : null
+                };
             }
 
             if (/проснул|встал|разбудил/.test(raw)) {
@@ -939,10 +1046,10 @@
             if (/уснул|заснул|уложил|спать|спит/.test(raw)) {
                 return { kind: 'sleep', icon: '😴', title: 'Уложить спать', sub: 'Сейчас' };
             }
-            if (/пришл|вернул|с прогулк|закончил.*прогул/.test(raw)) {
+            if (/пришл|вернул|с прогулк|закончил.*прогул|завершил.*прогул|закончил.*гулять/.test(raw)) {
                 return { kind: 'walk_stop', icon: '🏠', title: 'Закончить прогулку', sub: 'Сейчас' };
             }
-            if (/погулял|пошли гулять|вышли|гуляем|прогулк/.test(raw)) {
+            if (/погулял|пошли гулять|вышли|гуляем|прогулк|на улицу/.test(raw)) {
                 return { kind: 'walk', icon: '🚶', title: 'Погулять', sub: 'Сейчас' };
             }
             return null;
@@ -1030,7 +1137,7 @@
             rec.lang = 'ru-RU';
             rec.interimResults = true;
             rec.continuous = false;
-            rec.maxAlternatives = 3;
+            rec.maxAlternatives = 5;
 
             rec.onresult = function (event) {
                 let interim = '';
@@ -1114,9 +1221,32 @@
             }, 12000);
         }
 
-        function openVoiceModal() {
+        function updateVoicePremiumUi(premium) {
+            const btn = document.getElementById('voice-btn');
+            const pro = document.getElementById('voice-pro');
+            if (btn) btn.classList.toggle('locked', !premium);
+            if (pro) pro.textContent = premium ? 'PRO' : '🔒';
+        }
+
+        function openVoicePremium() {
+            const modal = document.getElementById('voice-premium-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeVoicePremium(e) {
+            if (e && e.target.id !== 'voice-premium-modal') return;
+            const modal = document.getElementById('voice-premium-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function openVoiceModal() {
             if (!voiceRecognitionCtor()) {
                 toast('Голосовой ввод не поддерживается этим браузером', true);
+                return;
+            }
+            const premium = await ensurePremium();
+            if (!premium) {
+                openVoicePremium();
                 return;
             }
             const modal = document.getElementById('voice-modal');
@@ -1144,13 +1274,13 @@
                 if (action.kind === 'feed') {
                     if (!action.value) {
                         closeVoiceModal();
-                        openFeedModal();
+                        openFeedModal(action.when);
                         return;
                     }
-                    await quickEvent('feed', action.value + ' мл');
+                    await quickEvent('feed', action.value + ' мл', action.when);
                     toast('Записано: ' + action.value + ' мл');
                 } else if (action.kind === 'diaper') {
-                    await quickEvent('diaper', action.value);
+                    await quickEvent('diaper', action.value, action.when);
                     toast(action.value === 'poop' ? 'Записано: покакала' : 'Записано: пописала');
                 } else if (action.kind === 'weight' || action.kind === 'height') {
                     const body = { date: toLocalInputValue(new Date()).slice(0, 10) };
@@ -1206,12 +1336,14 @@
 
         function chooseVoiceDiaper(kind) {
             const poop = kind === 'poop';
+            const when = voiceAction && voiceAction.when ? voiceAction.when : null;
             executeVoiceAction({
                 kind: 'diaper',
                 value: kind,
                 icon: poop ? '💩' : '💦',
                 title: poop ? 'Покакала' : 'Пописала',
-                sub: 'Подгузник'
+                sub: 'Подгузник',
+                when: when
             });
         }
 
@@ -1961,9 +2093,11 @@
             timerIntervals[type] = setInterval(update, 1000);
         }
 
-        async function quickEvent(type, details) {
+        async function quickEvent(type, details, when) {
             if (navigator.vibrate) navigator.vibrate(50);
-            const body = JSON.stringify({ event_type: type, details: details, client_uuid: newId() });
+            const payload = { event_type: type, details: details, client_uuid: newId() };
+            if (when instanceof Date && !isNaN(when.getTime())) payload.start_time = when.toISOString();
+            const body = JSON.stringify(payload);
             try {
                 const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
                 if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
@@ -4130,7 +4264,7 @@ async function sendFeedback() {
             { sel: '#btn-feed', title: 'Покормить', text: 'Одно нажатие — и кормление записано. Можно указать объём смеси.' },
             { sel: '#awake-btn', title: 'Сон и бодрствование', text: 'Нажми «Уложить спать» — таймер запустится сам. Потом «Разбудить».' },
             { sel: '#row-walk', title: 'Прогулка', text: 'Свой таймер: нажал — гуляем, нажал ещё раз — закончили.' },
-            { sel: '#voice-btn', title: 'Сказать голосом', text: 'Скажите «покормила 120 миллилитров» — запись появится сама. Голосом можно отметить подгузник, сон, прогулку, вес, рост и температуру.' },
+            { sel: '#voice-btn', title: 'Сказать голосом', text: 'Голосовой ввод — в Премиуме. Скажите «покормила 120 миллилитров» — запись появится сама. Голосом можно отметить подгузник, сон, прогулку, вес, рост и температуру, а ещё уточнить «20 минут назад».' },
             { sel: '#btn-poop', title: 'Подгузник', text: 'Покакала или пописала — один тап, без лишних окон.' },
             { sel: '#checklist-card', title: 'Начните с этого', text: 'Если чего-то не хватает — приложение подскажет, что заполнить. Пункты ведут сразу в нужное место.' },
             { sel: '.btn-sos', title: 'Помоги!', text: 'Экстренный сигнал второму родителю: придёт push «Нужна помощь».' },
@@ -4910,6 +5044,7 @@ async function sendFeedback() {
                 const st = document.getElementById('plan-status');
                 if (!name || !btn) return;
                 familyPremium = !!d.active;
+                if (typeof updateVoicePremiumUi === 'function') updateVoicePremiumUi(familyPremium);
 
                 // Сначала то, что видит человек: надпись и дата.
                 name.textContent = d.active ? 'Премиум' : 'Бесплатная';
@@ -5066,6 +5201,13 @@ async function sendFeedback() {
         setTimeout(function () {
             if (typeof initPushState === 'function') initPushState();
         }, 1500);
+        setTimeout(function () {
+            if (typeof ensurePremium === 'function') {
+                ensurePremium().then(function (premium) {
+                    if (typeof updateVoicePremiumUi === 'function') updateVoicePremiumUi(premium);
+                });
+            }
+        }, 1800);
         setTimeout(function () {
             if (typeof startTour === 'function' && typeof ladToken === 'function' && ladToken()) startTour(false);
         }, 2200);
