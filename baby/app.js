@@ -930,6 +930,7 @@
                 }
             }
             try { renderToday(cachedEvents()); } catch (e) {}
+            try { updateSleepNudge(); } catch (e) {}
         }
 
         async function flushQueue() {
@@ -2400,6 +2401,46 @@
 
 
 
+        function sleepNudgeKey() {
+            return 'lad_sleep_nudge_' + String(activeSleepId || '');
+        }
+
+        function updateSleepNudge() {
+            const box = document.getElementById('sleep-nudge');
+            if (!box) return;
+            if (!activeSleepId || !activeSleepStart) {
+                box.style.display = 'none';
+                return;
+            }
+            const start = new Date(activeSleepStart).getTime();
+            if (!isFinite(start)) { box.style.display = 'none'; return; }
+            const elapsed = Date.now() - start;
+            if (elapsed < 2 * 3600 * 1000) { box.style.display = 'none'; return; }
+            try {
+                if (localStorage.getItem(sleepNudgeKey()) === '1') {
+                    box.style.display = 'none';
+                    return;
+                }
+            } catch (e) {}
+            const mins = Math.floor(elapsed / 60000);
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            const title = document.getElementById('sleep-nudge-title');
+            if (title) title.textContent = 'Сон идёт ' + (h ? h + ' ч ' : '') + m + ' мин';
+            box.style.display = 'flex';
+        }
+
+        function dismissSleepNudge() {
+            try { localStorage.setItem(sleepNudgeKey(), '1'); } catch (e) {}
+            const box = document.getElementById('sleep-nudge');
+            if (box) box.style.display = 'none';
+        }
+
+        function nudgeWake() {
+            if (!activeSleepId) return;
+            openTimerModal('awake', 'wake');
+        }
+
         function fetchWithTimeout(url, opts, ms) {
             return Promise.race([
                 fetch(url, opts),
@@ -2704,6 +2745,7 @@
                     list.innerHTML = '<div class="log-empty">Нет записей за выбранный период</div>';
                 }
                 syncFilterUi();
+                updateSleepNudge();
             } catch(e) { console.error("Ошибка загрузки событий", e); }
         }
 
@@ -2959,6 +3001,8 @@
                 const { publicKey } = await res.json();
                 
                 const registration = await navigator.serviceWorker.ready;
+                const old = await registration.pushManager.getSubscription();
+                if (old) { try { await old.unsubscribe(); } catch (e) {} }
                 const subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(publicKey)
@@ -4219,6 +4263,7 @@ async function sendFeedback() {
             setTimeout(openTokenModal, 600);
         }
         setInterval(() => { if (document.visibilityState === 'visible') loadEvents(); }, 30000);
+        setInterval(updateSleepNudge, 60000);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadEvents(); });
 
 

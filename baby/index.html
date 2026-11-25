@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=195">
+    <link rel="stylesheet" href="styles.css?v=196">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -66,6 +66,16 @@
                 <div class="timer-label">🚶‍♀️ Гуляет</div>
                 <div class="timer-value" id="timer-walk">00:00:00</div>
             </div>
+        </div>
+
+        <div class="sleep-nudge" id="sleep-nudge" style="display:none">
+            <div class="sn-icon">🌙</div>
+            <div class="sn-text">
+                <b id="sleep-nudge-title">Сон идёт 2 ч</b>
+                <span>Разбудить малыша?</span>
+            </div>
+            <button class="sn-btn" onclick="nudgeWake()">Разбудить</button>
+            <button class="sn-close" onclick="dismissSleepNudge()" aria-label="Скрыть">✕</button>
         </div>
 
         <div class="today-card" id="today-card" style="display:none">
@@ -941,7 +951,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=203" defer></script>
+    <script src="app.js?v=204" defer></script>
 
     <!-- СКРЫТАЯ ДИАГНОСТИКА -->
     <div class="modal-overlay" id="diag-modal" onclick="closeDiag(event)">
