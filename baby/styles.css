@@ -361,7 +361,7 @@ html { -webkit-text-size-adjust: 100%; }
         .chart-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--text); text-align: center; }
 
         /* МОДАЛКИ */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; padding-top: env(safe-area-inset-top); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: flex-end; padding-top: env(safe-area-inset-top); }
         .modal-content { background: var(--card); width: 100%; border-radius: 32px 32px 0 0; padding: 24px; animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(24px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border);
             max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
         @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
