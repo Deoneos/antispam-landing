@@ -666,6 +666,7 @@ html { -webkit-text-size-adjust: 100%; }
 
 /* Трекер: обычный вид и минимализм */
 .min-actions-primary, .min-actions-secondary { display: contents; }
+.voice-label-min { display: none; }
 .timer-cap { display: none; }
 #walk-btn { grid-column: span 2; padding: 22px; font-size: 18px; font-weight: 700; }
 #push-btn { grid-column: span 2; background: var(--bg); }
@@ -674,7 +675,7 @@ html { -webkit-text-size-adjust: 100%; }
     justify-content: flex-start; text-align: left; padding: 10px 16px 8px; gap: 8px; }
 .min-ui .header h1 { order: 1; margin: 0 auto 0 0; max-width: calc(100% - 100px);
     font-size: 20px; line-height: 1.2; }
-.min-ui .bell-btn { position: static; transform: none; order: 2;
+.min-ui .bell-btn { position: relative; transform: none; order: 2;
     width: 36px; height: 36px; font-size: 16px; }
 .min-ui .profile-btn { position: static; transform: none; order: 3;
     width: 36px; height: 36px; font-size: 16px; }
@@ -697,6 +698,7 @@ html { -webkit-text-size-adjust: 100%; }
     border: 0; border-radius: 12px; }
 .min-ui .timer-row.timer-active .timer-label { color: var(--text); font-size: 13px; }
 .min-ui .timer-row.timer-active .timer-value { font-size: 23px; }
+.min-ui .timer-editable .timer-label::after { content: ''; }
 
 .min-ui .grid { display: block; padding: 0; }
 .min-ui .min-actions-primary { display: grid; grid-template-columns: 1.2fr 1fr 1fr;
@@ -722,6 +724,8 @@ html { -webkit-text-size-adjust: 100%; }
 .min-ui .min-actions-secondary .btn-voice .icon { font-size: 16px; }
 .min-ui .min-actions-secondary .voice-pro { position: static; margin-left: 2px;
     padding: 2px 5px; font-size: 8px; }
+.min-ui .voice-label-full { display: none; }
+.min-ui .voice-label-min { display: inline; }
 .min-ui .min-actions-secondary .btn-sos { background: var(--card); color: var(--text);
     border: 1px solid var(--border); padding: 8px; font-size: 12px; }
 .min-ui .min-actions-secondary #push-btn { grid-column: span 2; background: var(--bg);

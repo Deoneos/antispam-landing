@@ -54,6 +54,7 @@
                     document.documentElement.classList.add('min-ui');
                 }
                 moveChildrenToSettings();
+                moveTodayCard();
             } catch (e) {}
         })();
 
@@ -1830,7 +1831,8 @@
             }
 
             document.getElementById('t-feeds').textContent = feeds;
-            document.getElementById('t-ml').textContent = ml ? '· ' + ml + ' мл' : '';
+            const minUiToday = document.documentElement.classList.contains('min-ui');
+            document.getElementById('t-ml').textContent = ml ? (minUiToday ? ml + ' мл' : '· ' + ml + ' мл') : '';
             document.getElementById('t-sleep').textContent = fmt(sleepMs);
             document.getElementById('t-diapers').textContent = diapers;
             document.getElementById('t-walks').textContent = walks;
@@ -2875,6 +2877,15 @@
             const settingsBody = document.querySelector('#profile-me .p-acc[data-pacc="settings"] .p-acc-body');
             if (box && settingsBody && box.parentElement !== settingsBody) {
                 settingsBody.insertBefore(box, settingsBody.firstChild);
+            }
+        }
+
+        function moveTodayCard() {
+            if (!document.documentElement.classList.contains('min-ui')) return;
+            const card = document.getElementById('today-card');
+            const grid = document.querySelector('#view-tracker .grid');
+            if (card && grid && grid.nextElementSibling !== card) {
+                grid.parentNode.insertBefore(card, grid.nextSibling);
             }
         }
 

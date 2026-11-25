@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=157">
+    <link rel="stylesheet" href="styles.css?v=158">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -90,7 +90,7 @@
             </div>
             <div class="min-actions-secondary">
                 <button class="action-btn btn-voice" id="voice-btn" onclick="openVoiceModal()">
-                    <span class="icon">🎤</span> Сказать голосом <span class="voice-pro" id="voice-pro">PRO</span>
+                    <span class="icon">🎤</span> <span class="voice-label-full">Сказать голосом</span><span class="voice-label-min">Голос</span> <span class="voice-pro" id="voice-pro">PRO</span>
                 </button>
                 <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
                 <button class="action-btn btn-diaper" id="btn-pee" onclick="quickDiaper('pee')"><span class="icon">💦</span> <span id="label-pee">Пописала</span></button>
@@ -930,7 +930,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=184" defer></script>
+    <script src="app.js?v=185" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
