@@ -719,6 +719,88 @@
             renderStatus();
         }
 
+        function queueTimerRequest(url, body, label) {
+            const q = readJSON(QUEUE_KEY, []);
+            const bodyStr = body ? JSON.stringify(body) : undefined;
+            const key = url + '|' + (bodyStr || '');
+            const recent = q.some(function (x) {
+                return x.__key === key && Date.now() - (x.ts || 0) < 5000;
+            });
+            if (!recent) {
+                q.push({
+                    ts: Date.now(), url: url, method: 'POST', body: bodyStr,
+                    label: label || 'таймер', __key: key
+                });
+                writeJSON(QUEUE_KEY, q);
+            }
+            renderStatus();
+        }
+
+        async function postTimerRequest(url, body, label) {
+            const bodyStr = body ? JSON.stringify(body) : undefined;
+            if (!navigator.onLine) {
+                queueTimerRequest(url, body, label);
+                return 'queued';
+            }
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: apiHeaders(true),
+                    body: bodyStr
+                });
+                if (res.ok) return 'ok';
+                if (res.status >= 500) {
+                    queueTimerRequest(url, body, label);
+                    return 'queued';
+                }
+                return 'error';
+            } catch (e) {
+                queueTimerRequest(url, body, label);
+                return 'queued';
+            }
+        }
+
+        function closeCachedTimer(type, endIso) {
+            const cache = readJSON(CACHE_KEY, {});
+            let changed = false;
+            Object.keys(cache).forEach(function (k) {
+                const e = cache[k];
+                if (e && e.event_type === type && !e.end_time) {
+                    e.end_time = endIso || new Date().toISOString();
+                    changed = true;
+                }
+            });
+            if (changed) writeJSON(CACHE_KEY, cache);
+            const minUi = document.documentElement.classList.contains('min-ui');
+            if (type === 'sleep') {
+                activeSleepId = null;
+                activeSleepStart = null;
+                const row = document.getElementById('row-sleep');
+                if (row) { row.classList.remove('timer-active', 'timer-editable'); row.onclick = null; }
+                const tv = document.getElementById('timer-sleep');
+                if (tv) tv.textContent = '00:00:00';
+                const st = document.getElementById('state-text');
+                if (st) st.innerText = minUi ? 'Сон' : 'Уложить спать';
+                const ic = document.getElementById('state-icon');
+                if (ic) ic.innerText = '😴';
+            } else if (type === 'walk') {
+                activeWalkId = null;
+                activeWalkStart = null;
+                const row = document.getElementById('row-walk');
+                if (row) { row.classList.remove('timer-active', 'timer-editable'); row.onclick = null; }
+                const tv = document.getElementById('timer-walk');
+                if (tv) tv.textContent = '00:00:00';
+                const wt = document.getElementById('walk-text');
+                if (wt) wt.innerText = minUi ? 'Прогулка' : 'Погулять';
+                const wb = document.getElementById('walk-btn');
+                if (wb) {
+                    if (minUi) { wb.style.background = ''; wb.style.color = ''; }
+                    else { wb.style.background = 'var(--card)'; wb.style.color = 'var(--text)'; }
+                }
+            }
+            try { renderToday(cachedEvents()); } catch (e) {}
+        }
+
         async function flushQueue() {
             const q = readJSON(QUEUE_KEY, []);
             if (!q.length) { renderStatus(); return; }
@@ -1861,21 +1943,37 @@
             // кэш PWA на iOS) — стартуем таймер сразу, чтобы кнопка не «молчала».
             const iso = new Date().toISOString();
             if (type === 'awake') {
+                let queued = false;
                 if (activeSleepId) {
-                    await fetch(`${API_URL}/events/${activeSleepId}/stop`, {
-                        method: 'POST', headers: apiHeaders(true),
-                        body: JSON.stringify({ end_time: iso })
-                    });
+                    const r1 = await postTimerRequest(
+                        `${API_URL}/events/${activeSleepId}/stop`,
+                        { end_time: iso }, 'пробуждение'
+                    );
+                    if (r1 === 'queued') { queued = true; closeCachedTimer('sleep', iso); }
+                    else if (r1 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
                 }
-                await fetch(`${API_URL}/events/start`, {
-                    method: 'POST', headers: apiHeaders(true),
-                    body: JSON.stringify({ event_type: 'awake', start_time: iso })
-                });
+                const r2 = await postTimerRequest(
+                    `${API_URL}/events/start`,
+                    { event_type: 'awake', start_time: iso }, 'пробуждение'
+                );
+                if (r2 === 'queued') queued = true;
+                if (r2 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
+                if (queued) {
+                    toast('Нет связи — пробуждение сохранено. Отправим, когда появится сеть.');
+                    renderStatus();
+                    return;
+                }
             } else {
-                await fetch(`${API_URL}/events/start`, {
-                    method: 'POST', headers: apiHeaders(true),
-                    body: JSON.stringify({ event_type: type, start_time: iso })
-                });
+                const r = await postTimerRequest(
+                    `${API_URL}/events/start`,
+                    { event_type: type, start_time: iso }, type === 'walk' ? 'прогулка' : 'сон'
+                );
+                if (r === 'queued') {
+                    toast('Нет связи — старт сохранён. Отправим, когда появится сеть.');
+                    renderStatus();
+                    return;
+                }
+                if (r === 'error') { toast('Не удалось начать', true); return; }
             }
             loadEvents();
         }
@@ -1969,35 +2067,67 @@
 
             // Проснулась: закрываем сон временем пробуждения и стартуем бодрствование
             if (type === 'awake') {
+                let queued = false;
                 if (activeSleepId) {
-                    await fetch(`${API_URL}/events/${activeSleepId}/stop`, {
-                        method: 'POST', headers: apiHeaders(true),
-                        body: JSON.stringify({ end_time: iso })
-                    });
+                    const r1 = await postTimerRequest(
+                        `${API_URL}/events/${activeSleepId}/stop`,
+                        { end_time: iso }, 'пробуждение'
+                    );
+                    if (r1 === 'queued') {
+                        queued = true;
+                        closeCachedTimer('sleep', iso);
+                    } else if (r1 === 'error') {
+                        toast('Не удалось сохранить пробуждение', true);
+                        return;
+                    }
                 }
-                const res = await fetch(`${API_URL}/events/start`, {
-                    method: 'POST', headers: apiHeaders(true),
-                    body: JSON.stringify({ event_type: 'awake', start_time: iso })
-                });
-                if (!res.ok) toast('Не удалось разбудить', true);
-                loadEvents();
+                const r2 = await postTimerRequest(
+                    `${API_URL}/events/start`,
+                    { event_type: 'awake', start_time: iso }, 'пробуждение'
+                );
+                if (r2 === 'queued') queued = true;
+                if (r2 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
+                if (queued) {
+                    toast('Нет связи — пробуждение сохранено. Отправим, когда появится сеть.');
+                    renderStatus();
+                } else {
+                    loadEvents();
+                }
                 return;
             }
 
             // Старт сна или прогулки
-            const res = await fetch(`${API_URL}/events/start`, {
-                method: 'POST', headers: apiHeaders(true),
-                body: JSON.stringify({ event_type: type, start_time: iso })
-            });
-            if (!res.ok) toast('Не удалось начать', true);
-            loadEvents();
+            const r = await postTimerRequest(
+                `${API_URL}/events/start`,
+                { event_type: type, start_time: iso }, type === 'walk' ? 'прогулка' : 'сон'
+            );
+            if (r === 'queued') {
+                toast('Нет связи — старт сохранён. Отправим, когда появится сеть.');
+                renderStatus();
+            } else if (r === 'error') {
+                toast('Не удалось начать', true);
+            } else {
+                loadEvents();
+            }
         }
 
         async function toggleWalk() {
             if (activeWalkId) {
                 // Если гуляет — просто заканчиваем прогулку (остальное не трогаем)
-                await fetch(`${API_URL}/events/${activeWalkId}/stop`, { method: 'POST', headers: apiHeaders() });
-                loadEvents();
+                const iso = new Date().toISOString();
+                const r = await postTimerRequest(
+                    `${API_URL}/events/${activeWalkId}/stop`,
+                    { end_time: iso }, 'прогулка'
+                );
+                if (r === 'queued') {
+                    closeCachedTimer('walk', iso);
+                    toast('Нет связи — конец прогулки сохранён. Отправим, когда появится сеть.');
+                    renderStatus();
+                } else if (r === 'error') {
+                    toast('Не удалось закончить прогулку', true);
+                } else {
+                    loadEvents();
+                }
             } else {
                 // Начинаем прогулку: спрашиваем, когда вышли
                 openTimerModal('walk', 'start');
