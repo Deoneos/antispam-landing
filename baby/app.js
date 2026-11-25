@@ -1513,6 +1513,7 @@
         }
 
         const expandedDays = new Set();
+        const expandedMonths = new Set();
         let activeWalkId = null;
         let activeWalkStart = null;
 
@@ -2000,8 +2001,35 @@
                 });
 
                 let html = '';
-                Object.keys(grouped).sort().reverse().forEach(key => {
+                const keys = Object.keys(grouped).sort().reverse();
+                const orderedKeys = keys.includes(todayKey)
+                    ? [todayKey].concat(keys.filter(k => k !== todayKey))
+                    : keys;
+                let currentMonth = null;
+                orderedKeys.forEach(key => {
                     const isToday = key === todayKey;
+                    if (!isToday) {
+                        const monthKey = key.slice(0, 7);
+                        if (monthKey !== currentMonth) {
+                            if (currentMonth) html += '</div></div>';
+                            const monthOpen = expandedMonths.has(monthKey);
+                            const monthDays = Object.keys(grouped).filter(k =>
+                                k.startsWith(monthKey) && k !== todayKey
+                            );
+                            const monthEvents = monthDays.reduce((n, k) => n + grouped[k].length, 0);
+                            const rawMonth = new Date(monthKey + '-01T12:00:00+03:00')
+                                .toLocaleDateString('ru-RU', { timeZone: tz(), month: 'long', year: 'numeric' });
+                            const monthLabel = rawMonth.charAt(0).toUpperCase()
+                                + rawMonth.slice(1).replace(' г.', '');
+                            html += `<div class="month-section${monthOpen ? ' open' : ''}">`
+                                + `<button type="button" class="month-toggle" data-month="${monthKey}" aria-expanded="${monthOpen}">`
+                                + `<span class="month-info"><b>${monthLabel}</b>`
+                                + `<span>${monthDays.length} дн. · ${monthEvents} записей</span></span>`
+                                + `<span class="month-chev" aria-hidden="true">▼</span></button>`
+                                + `<div class="month-body">`;
+                            currentMonth = monthKey;
+                        }
+                    }
                     const dateStr = labelOf(key);
                     const open = isToday || expandedDays.has(key);
 
@@ -2096,6 +2124,7 @@
 
                     html += `</div></div>`;
                 });
+                if (currentMonth) html += '</div></div>';
 
                 if (html) {
                     if (list.innerHTML !== html) list.innerHTML = html;
@@ -2459,6 +2488,16 @@
         }
 
         document.getElementById('log-list').addEventListener('click', (ev) => {
+            const monthBtn = ev.target.closest('.month-toggle');
+            if (monthBtn) {
+                const monthSection = monthBtn.closest('.month-section');
+                const willOpenMonth = !monthSection.classList.contains('open');
+                monthSection.classList.toggle('open', willOpenMonth);
+                monthBtn.setAttribute('aria-expanded', String(willOpenMonth));
+                if (willOpenMonth) expandedMonths.add(monthBtn.dataset.month);
+                else expandedMonths.delete(monthBtn.dataset.month);
+                return;
+            }
             const btn = ev.target.closest('.day-toggle');
             if (!btn) return;
             const section = btn.closest('.day-section');
