@@ -300,7 +300,9 @@
                 const res = await fetch(`${API_URL}/push/test`, { method: 'POST', headers: apiHeaders() });
                 const d = await res.json();
                 if (status) {
-                    status.textContent = 'Доставлено: ' + (d.sent || 0) + ' из ' + (d.subs || 0);
+                    status.textContent = (d.subs || 0) === 0
+                        ? 'Нет активных подписок — нажми «Переподключить уведомления»'
+                        : 'Доставлено: ' + (d.sent || 0) + ' из ' + (d.subs || 0);
                 }
             } catch (e) {
                 if (status) { status.style.color = '#F87171'; status.textContent = 'Не удалось отправить'; }
@@ -2428,6 +2430,47 @@
             }
         }
 
+        async function renewPush() {
+            const status = document.getElementById('notify-status');
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                if (status) status.textContent = 'Push не поддерживается на этом устройстве';
+                return;
+            }
+            if (status) { status.style.color = ''; status.textContent = 'Переподключаю…'; }
+            try {
+                if (typeof Notification === 'undefined' || !Notification.requestPermission) {
+                    throw new Error('Уведомления не поддерживаются');
+                }
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') throw new Error('Разрешите уведомления в настройках');
+                const keyRes = await fetch(`${API_URL}/vapid-public-key`, { headers: apiHeaders() });
+                if (!keyRes.ok) throw new Error('Не удалось получить ключ');
+                const { publicKey } = await keyRes.json();
+                const registration = await navigator.serviceWorker.ready;
+                const old = await registration.pushManager.getSubscription();
+                if (old) {
+                    try { await old.unsubscribe(); } catch (e) {}
+                }
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
+                const save = await fetch(`${API_URL}/subscribe`, {
+                    method: 'POST',
+                    headers: apiHeaders(true),
+                    body: JSON.stringify(subscription)
+                });
+                if (!save.ok) throw new Error('Не удалось сохранить подписку');
+                if (status) status.textContent = 'Уведомления переподключены ✅';
+                toast('Уведомления включены');
+            } catch (e) {
+                if (status) {
+                    status.style.color = '#F87171';
+                    status.textContent = (e && e.message) || 'Не удалось переподключить';
+                }
+            }
+        }
+
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -3455,7 +3498,10 @@ function closeFeedback(event) {
     if (modal) modal.style.display = 'none';
 }
 
+let feedbackSending = false;
+
 async function sendFeedback() {
+    if (feedbackSending) return;
     const st = document.getElementById('feedback-status');
     const text = (document.getElementById('feedback-text').value || '').trim();
     const contact = (document.getElementById('feedback-contact').value || '').trim();
@@ -3469,6 +3515,9 @@ async function sendFeedback() {
         return;
     }
     if (st) st.textContent = 'Отправляю…';
+    feedbackSending = true;
+    const sendBtn = document.getElementById('feedback-send');
+    if (sendBtn) sendBtn.disabled = true;
     try {
         const res = await fetch(`${API_URL}/feedback`, {
             method: 'POST',
@@ -3485,6 +3534,9 @@ async function sendFeedback() {
         setTimeout(closeFeedback, 1400);
     } catch (e) {
         if (st) st.textContent = e.message || 'Ошибка отправки';
+    } finally {
+        feedbackSending = false;
+        if (sendBtn) sendBtn.disabled = false;
     }
 }
 
