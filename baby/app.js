@@ -3270,7 +3270,7 @@
         }
 
         function ladStatus(text) {
-            ['profile-status', 'login-status'].forEach(function (id) {
+            ['profile-status'].forEach(function (id) {
                 const el = document.getElementById(id);
                 if (el) el.textContent = text || '';
             });
@@ -3295,18 +3295,6 @@
             const gate = document.getElementById('login-gate');
             if (gate) gate.style.display = 'flex';
             if (typeof closeProfileModal === 'function') closeProfileModal();
-        }
-
-        function setAuthTab(tab) {
-            const loginBox = document.getElementById('auth-login');
-            const regBox = document.getElementById('auth-register');
-            if (loginBox) loginBox.style.display = tab === 'register' ? 'none' : 'block';
-            if (regBox) regBox.style.display = tab === 'register' ? 'block' : 'none';
-            document.querySelectorAll('#auth-tabs button').forEach(function (b) {
-                b.classList.toggle('active', b.getAttribute('data-auth') === tab);
-            });
-            const st = document.getElementById('auth-status');
-            if (st) st.textContent = '';
         }
 
         function authNotice(el, text) {
@@ -3413,28 +3401,10 @@
                 ladLoginCode = data.code;
                 ladLoginUrl = data.url;
                 try { localStorage.setItem('lad_login_code', data.code); } catch (e) {}
-                const link = document.getElementById('tg-login-btn');
-                if (link) link.href = data.url;
                 ladStatus('');
             } catch (e) {
                 ladStatus('Не получилось: ' + e.message);
             }
-        }
-
-        function onLoginClick(e) {
-            if (!ladLoginUrl) {
-                // Ссылки ещё нет — готовим и открываем после ответа.
-                if (e) e.preventDefault();
-                prepareTelegramLogin(true).then(function () {
-                    if (ladLoginUrl) {
-                        startLoginPolling();
-                        window.location.href = ladLoginUrl;
-                    }
-                });
-                return true;
-            }
-            startLoginPolling();
-            return true;
         }
 
         function startLoginPolling() {
@@ -3882,45 +3852,6 @@
         function showLoginGate() {
             const gate = document.getElementById('login-gate');
             if (gate) gate.style.display = 'flex';
-            try {
-                const box = document.getElementById('consent-box');
-                if (box && localStorage.getItem('lad_consent') === '1') box.checked = true;
-            } catch (e) {}
-        }
-
-        function consentGiven() {
-            const box = document.getElementById('consent-box');
-            if (box && !box.checked) {
-                document.getElementById('login-status').textContent = 'Подтвердите согласие с документами';
-                return false;
-            }
-            try { localStorage.setItem('lad_consent', '1'); } catch (e) {}
-            return true;
-        }
-
-        async function submitPasswordLogin() {
-            if (!consentGiven()) return;
-            const login = (document.getElementById('login-name').value || '').trim();
-            const password = document.getElementById('login-pass').value || '';
-            const status = document.getElementById('login-status');
-            if (!login || !password) {
-                status.textContent = 'Заполните логин и пароль';
-                return;
-            }
-            status.textContent = 'Входим…';
-            try {
-                const res = await fetch(`${API_URL}/auth/password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login: login, password: password })
-                });
-                const data = await res.json().catch(function () { return {}; });
-                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
-                try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
-                location.reload();
-            } catch (e) {
-                status.textContent = e.message;
-            }
         }
 
         async function gateTelegramLogin() {
@@ -5918,52 +5849,6 @@ async function sendFeedback() {
                 st.textContent = e.message;
             }
         }
-
-        function toggleRegister() {
-            const box = document.getElementById('register-box');
-            if (!box) return;
-            const show = box.style.display === 'none';
-            box.style.display = show ? 'block' : 'none';
-            const st = document.getElementById('reg-status');
-            if (st) st.textContent = '';
-        }
-
-        async function submitRegister() {
-            if (!consentGiven()) return;
-            const login = (document.getElementById('reg-login').value || '').trim();
-            const password = document.getElementById('reg-pass').value || '';
-            const name = (document.getElementById('reg-name').value || '').trim();
-            const st = document.getElementById('reg-status');
-            if (!login || !password) {
-                st.textContent = 'Заполните логин и пароль';
-                return;
-            }
-            if (password.length < 8) {
-                st.textContent = 'Пароль короче 8 символов';
-                return;
-            }
-            st.textContent = 'Создаю аккаунт…';
-            try {
-                const res = await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        login: login,
-                        password: password,
-                        name: name,
-                        consent_version: '2026-11-16'
-                    })
-                });
-                const data = await res.json().catch(function () { return {}; });
-                if (!res.ok || !data.ok) throw new Error(data.detail || ('HTTP ' + res.status));
-                try { localStorage.setItem(LAD_TOKEN_KEY, data.token); } catch (e) {}
-                location.reload();
-            } catch (e) {
-                st.textContent = e.message;
-            }
-        }
-
-
 
         // ===== ЧЕК-ЛИСТ ПЕРВЫХ ШАГОВ =====
         function renderChecklist(c) {
