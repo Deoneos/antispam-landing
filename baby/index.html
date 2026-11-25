@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=146">
+    <link rel="stylesheet" href="styles.css?v=147">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -521,7 +521,7 @@
             <span class="icon">📅</span> Календарь
         </button>
         <button class="nav-item" onclick="switchView('analytics', this)">
-            <span class="icon">📈</span> <span class="nav-label">Аналитика <span class="pro-badge">PRO</span></span>
+            <span class="icon">📈</span> <span class="nav-label"><span class="pro-badge">PRO</span> Аналитика</span>
         </button>
         <button class="nav-item" onclick="switchView('growth', this)">
             <span class="icon">❤️</span> Здоровье
@@ -530,10 +530,10 @@
             <span class="icon">🤖</span> Помощник
         </button>
         <button class="nav-item" onclick="openDoctorReport()">
-            <span class="icon">📄</span> <span class="nav-label">Отчёт <span class="pro-badge">PRO</span></span>
+            <span class="icon">📄</span> <span class="nav-label"><span class="pro-badge">PRO</span> Отчёт</span>
         </button>
         <button class="nav-item" onclick="openNoiseModal()">
-            <span class="icon">🎵</span> <span class="nav-label">Звуки <span class="pro-badge">PRO</span></span>
+            <span class="icon">🎵</span> <span class="nav-label"><span class="pro-badge">PRO</span> Звуки</span>
         </button>
     </div>
     <button class="nav-arrow left" id="nav-left" onclick="navScroll(-1)" aria-label="Назад">‹</button>
@@ -881,7 +881,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=179" defer></script>
+    <script src="app.js?v=180" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
