@@ -307,6 +307,19 @@
             }
         }
 
+        async function sendSOS() {
+            if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+            try {
+                const res = await fetch(`${API_URL}/sos`, { method: 'POST', headers: apiHeaders(true) });
+                if (handleAuthError(res)) return;
+                const d = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(d.detail || 'Не удалось отправить сигнал');
+                toast('🆘 Сигнал отправлен семье');
+            } catch (e) {
+                toast((e && e.message) || 'Не удалось отправить сигнал', true);
+            }
+        }
+
         async function loadNotifyPrefs() {
             try {
                 const res = await fetch(`${API_URL}/notify/prefs`, { headers: apiHeaders() });
@@ -2443,7 +2456,7 @@
         function closeAppModal(e) { if (!e || e.target.id === 'app-modal') document.getElementById('app-modal').style.display = 'none'; }
         
         async function saveAppointment() {
-            const title = document.getElementById('app-title').value;
+            const title = document.getElementById('appointment-title').value;
             const dateTime = document.getElementById('app-date').value;
             const notes = document.getElementById('app-notes').value;
             if (!title || !dateTime) { toast("Заполните название и дату", true); return; }
@@ -2453,7 +2466,7 @@
                 body: JSON.stringify({ title: title, date_time: dateTime, notes: notes })
             });
             closeAppModal();
-            document.getElementById('app-title').value = '';
+            document.getElementById('appointment-title').value = '';
             document.getElementById('app-notes').value = '';
             loadAppointments();
         }
@@ -3333,14 +3346,13 @@
         }
 
         async function gateTelegramLogin() {
-            if (!consentGiven()) return;
-            const status = document.getElementById('login-status');
-            status.textContent = 'Открываю Telegram…';
+            const status = document.getElementById('tg-status');
+            if (status) status.textContent = 'Открываю Telegram…';
             await prepareTelegramLogin(true);
             if (ladLoginUrl) {
                 startLoginPolling();
                 window.location.href = ladLoginUrl;
-            } else {
+            } else if (status) {
                 status.textContent = 'Не получилось получить ссылку';
             }
         }

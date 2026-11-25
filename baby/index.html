@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=167">
+    <link rel="stylesheet" href="styles.css?v=168">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -923,14 +923,14 @@
     <div class="modal-overlay" id="app-modal" onclick="closeAppModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header"><h2>Новая запись</h2><button class="btn-close" onclick="closeAppModal()">✕</button></div>
-            <input type="text" id="app-title" placeholder="Название (например, Педиатр)" style="width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif;">
+            <input type="text" id="appointment-title" placeholder="Название (например, Педиатр)" style="width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif;">
             <input type="datetime-local" id="app-date" style="width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif;">
             <textarea id="app-notes" placeholder="Заметки (что взять, вопросы)" style="width: 100%; padding: 14px; margin-bottom: 20px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: 'Nunito', sans-serif; resize: none; height: 80px;"></textarea>
             <button class="btn-save-ml" style="background: var(--awake); color: #111827;" onclick="saveAppointment()">Сохранить</button>
         </div>
     </div>
 
-    <script src="app.js?v=189" defer></script>
+    <script src="app.js?v=190" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -1014,6 +1014,7 @@
             </div>
 
             <button class="pbtn ghost" onclick="gateTelegramLogin()">Войти через Telegram</button>
+            <p class="login-status" id="tg-status"></p>
             <p class="login-hint">Логин и пароль работают всегда. Telegram — быстрее, но требует VPN.</p>
         </div>
     </div>
