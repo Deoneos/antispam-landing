@@ -13,15 +13,28 @@
   h1 { font-size: 26px; margin: 20px 0 4px; letter-spacing: -0.02em; }
   .meta { color: #8B92A0; font-size: 12.5px; margin-bottom: 18px; }
   .card { background: #171A22; border: 1px solid #262B36; border-radius: 18px; padding: 16px 18px; margin-bottom: 12px; }
-  .price { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .price b { font-size: 30px; white-space: nowrap; }
-  .price span { color: #8B92A0; font-size: 13.5px; }
   h2 { font-size: 15px; margin: 0 0 8px; }
   p, li { font-size: 14px; color: #C6CBD6; margin: 0 0 8px; }
   ul { margin: 0 0 4px; padding-left: 18px; }
   li { margin: 4px 0; }
   a { color: #F29B93; }
   .small { font-size: 12.5px; color: #8B92A0; }
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 8px; }
+  .plan { position: relative; padding: 12px; border: 1px solid #2A3040; border-radius: 14px; background: #1B1F29; }
+  .plan-name { color: #8B92A0; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+  .plan-price { font-size: 22px; font-weight: 800; margin-top: 2px; }
+  .plan-sub { color: #8B92A0; font-size: 11.5px; margin-top: 2px; }
+  .plan-tag { position: absolute; top: 8px; right: 8px; padding: 2px 6px; border-radius: 999px;
+              background: #F29B93; color: #2b1b18; font-size: 9px; font-weight: 800; }
+  .pro-badge { display: inline-flex; align-items: center; justify-content: center;
+               padding: 2px 6px; border-radius: 6px; margin-left: 6px; vertical-align: middle;
+               background: rgba(242,155,147,.15); border: 1px solid rgba(242,155,147,.38);
+               color: #F29B93; font-size: 9px; font-weight: 800; line-height: 1.3;
+               letter-spacing: .05em; text-transform: uppercase; }
+  .pro-badge.solid { background: #F29B93; color: #2b1b18; border-color: #F29B93; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 700; font-size: 14px; color: #ECEDF1; }
+  details p { margin: 6px 0 0; }
   footer { margin-top: 22px; }
   .flink { display: flex; align-items: center; justify-content: space-between; gap: 10px;
            padding: 13px 15px; margin-bottom: 8px; border: 1px solid #262B36; border-radius: 14px;
@@ -31,6 +44,7 @@
   .flink:active { background: #1F2430; }
   .flink.primary { border-color: #F29B93; color: #F29B93; font-weight: 700; }
   .flink.primary span { color: #F29B93; }
+  @media (max-width: 360px) { .plans { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -47,29 +61,39 @@
   </div>
 
   <h1>Оплата и возврат</h1>
-  <div class="meta">Редакция от 21.11.2026 · приложение «Лад»</div>
+  <div class="meta">Редакция от 25.11.2026 · приложение «Лад»</div>
 
   <div class="card">
-    <div class="price"><b>299 руб.</b><span>подписка «Лад Премиум» на 30 дней</span></div>
-    <p class="small" style="margin-top:6px">Разовая оплата. Автоматического списания и продления нет.</p>
+    <h2>Тарифы <span class="pro-badge solid">PRO</span></h2>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">Месяц</div>
+        <div class="plan-price">299 ₽</div>
+        <div class="plan-sub">30 дней</div>
+      </div>
+      <div class="plan">
+        <span class="plan-tag">−30%</span>
+        <div class="plan-name">Год</div>
+        <div class="plan-price">2 490 ₽</div>
+        <div class="plan-sub">365 дней · ≈207 ₽/мес</div>
+      </div>
+    </div>
+    <p class="small">Оплата разовая. Автопродление можно включить после оплаты картой — по желанию.</p>
   </div>
 
   <div class="card">
-    <h2>Кто оказывает услугу</h2>
-    <p>Сахаров Захар Андреевич, плательщик НПД (самозанятый), ИНН 262903139762.</p>
-    <p class="small">Связь: <a href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a> ·
-      Telegram <a href="https://t.me/Lad_passed_bot">@Lad_passed_bot</a></p>
-  </div>
-
-  <div class="card">
-    <h2>Что входит в подписку</h2>
+    <h2>Что входит в «Лад Премиум» <span class="pro-badge">PRO</span></h2>
     <ul>
-      <li>аналитика и графики сна, кормлений и объёма;</li>
-      <li>PDF-отчёт для врача;</li>
-      <li>звуки для сна;</li>
-      <li>несколько детей в одной семье;</li>
-      <li>экспорт в Excel;</li>
-      <li>свои интервалы напоминаний.</li>
+      <li>🎤 голосовой ввод: «покормила 120 мл», «вес 5,2 кг», «температура 36,6»;</li>
+      <li>📏 кривые ВОЗ и перцентили веса и роста;</li>
+      <li>🖼 фото к вехам развития;</li>
+      <li>📊 недельная сводка в уведомлениях;</li>
+      <li>📈 аналитика и графики сна, кормлений и объёма;</li>
+      <li>📄 PDF-отчёт для врача;</li>
+      <li>🎵 12 звуков для сна: дождь, океан, сердце, «шшш»;</li>
+      <li>👶 несколько детей в одной семье;</li>
+      <li>📊 экспорт в Excel;</li>
+      <li>🔔 свои интервалы напоминаний.</li>
     </ul>
     <p class="small" style="margin-top:8px">Базовые функции — таймеры, история, календарь и напоминания — бесплатны.</p>
   </div>
@@ -78,6 +102,15 @@
     <h2>Как оплатить</h2>
     <p>Оплата проходит в ЮKassa: банковской картой или через СБП. Приложение не получает и не хранит данные карты.</p>
     <p>Подписка включается автоматически, обычно в течение минуты после оплаты. Чек самозанятого формируется в приложении «Мой налог».</p>
+    <p class="small">Есть промокод? Активируйте его в профиле — дни добавятся к подписке.</p>
+  </div>
+
+  <div class="card">
+    <h2>Автопродление</h2>
+    <p>По умолчанию оплата разовая: подписка действует 30 или 365 дней и потом переходит в бесплатный тариф.</p>
+    <p>После оплаты картой можно включить автопродление в разделе «Премиум». Тогда спишем за 2 дня до окончания по выбранному тарифу: 299 ₽ за 30 дней или 2 490 ₽ за 365 дней.</p>
+    <p>Если платёж не пройдёт — пришлём уведомление, подписка доработает до конца оплаченного периода.</p>
+    <p>Отключить можно в любой момент там же, в профиле. После отключения следующих списаний не будет.</p>
   </div>
 
   <div class="card">
@@ -87,8 +120,30 @@
   </div>
 
   <div class="card">
-    <h2>Продление</h2>
-    <p>Через 30 дней подписка сама переходит в бесплатный тариф. Продлить можно в любой момент в профиле.</p>
+    <h2>Частые вопросы</h2>
+    <details>
+      <summary>Подписка включится сразу?</summary>
+      <p>Обычно в течение минуты после оплаты. Если дольше — напишите на почту с датой и суммой платежа, проверим.</p>
+    </details>
+    <details>
+      <summary>Как отключить автопродление?</summary>
+      <p>В профиле → «Премиум» → выключите «Продлевать автоматически». Подписка доработает до конца оплаченного периода.</p>
+    </details>
+    <details>
+      <summary>Где посмотреть чек?</summary>
+      <p>Чек самозанятого формируется в приложении «Мой налог». Если чек не пришёл — напишите на почту, поможем.</p>
+    </details>
+    <details>
+      <summary>Можно ли вернуть деньги?</summary>
+      <p>Да, в течение 14 дней, если платными функциями не пользовались. Подробности — в разделе «Возврат» выше.</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Кто оказывает услугу</h2>
+    <p>Сахаров Захар Андреевич, плательщик НПД (самозанятый), ИНН 262903139762.</p>
+    <p class="small">Связь: <a href="mailto:zakharsakharov03@yandex.ru">zakharsakharov03@yandex.ru</a> ·
+      Telegram <a href="https://t.me/Lad_passed_bot">@Lad_passed_bot</a></p>
   </div>
 
   <footer>
