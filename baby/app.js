@@ -1988,6 +1988,14 @@
                 const todayKey = dayKey(new Date());
                 const labelOf = (key) => new Date(key + 'T12:00:00+03:00')
                     .toLocaleDateString('ru-RU', { timeZone: tz(), day: '2-digit', month: 'long' });
+                const plural = (n, one, few, many) => {
+                    const a = Math.abs(n) % 100;
+                    const b = a % 10;
+                    if (a > 10 && a < 20) return many;
+                    if (b === 1) return one;
+                    if (b >= 2 && b <= 4) return few;
+                    return many;
+                };
 
                 const listEvents = events.filter(e =>
                     logFilter === 'all' || e.event_type === logFilter
@@ -2024,7 +2032,8 @@
                             html += `<div class="month-section${monthOpen ? ' open' : ''}">`
                                 + `<button type="button" class="month-toggle" data-month="${monthKey}" aria-expanded="${monthOpen}">`
                                 + `<span class="month-info"><b>${monthLabel}</b>`
-                                + `<span>${monthDays.length} дн. · ${monthEvents} записей</span></span>`
+                                + `<span>${monthDays.length} ${plural(monthDays.length, 'день', 'дня', 'дней')}`
+                                + ` · ${monthEvents} ${plural(monthEvents, 'запись', 'записи', 'записей')}</span></span>`
                                 + `<span class="month-chev" aria-hidden="true">▼</span></button>`
                                 + `<div class="month-body">`;
                             currentMonth = monthKey;
