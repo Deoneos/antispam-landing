@@ -52,6 +52,7 @@
                 if (localStorage.getItem('lad_min_ui') === '1') {
                     document.documentElement.classList.add('min-ui');
                 }
+                moveChildrenToSettings();
             } catch (e) {}
         })();
 
@@ -2821,6 +2822,7 @@
         });
 
         function openProfile() {
+            if (typeof moveChildrenToSettings === 'function') moveChildrenToSettings();
             document.getElementById('profile-modal').style.display = 'flex';
             const done = loadProfile().then(function () {
                 if (typeof updateAppTitle === 'function') updateAppTitle();
@@ -2853,6 +2855,15 @@
                 item.classList.remove('open');
             });
             acc.classList.add('open');
+        }
+
+        function moveChildrenToSettings() {
+            if (!document.documentElement.classList.contains('min-ui')) return;
+            const box = document.getElementById('children-box');
+            const settingsBody = document.querySelector('#profile-me .p-acc[data-pacc="settings"] .p-acc-body');
+            if (box && settingsBody && box.parentElement !== settingsBody) {
+                settingsBody.insertBefore(box, settingsBody.firstChild);
+            }
         }
 
 
