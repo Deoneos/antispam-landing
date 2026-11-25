@@ -676,7 +676,9 @@
         // ===== ЛОКАЛЬНЫЙ КЭШ, ОЧЕРЕДЬ И ЭКСПОРТ =====
         const CACHE_KEY = 'baby_events_cache_v1';
         const QUEUE_KEY = 'baby_queue_v1';
+        const TIMER_MAP_KEY = 'baby_timer_map_v1';
         let lastSyncAt = 0;
+        let flushingQueue = false;
 
         function readJSON(key, fallback) {
             try {
@@ -719,44 +721,147 @@
             renderStatus();
         }
 
-        function queueTimerRequest(url, body, label) {
-            const q = readJSON(QUEUE_KEY, []);
-            const bodyStr = body ? JSON.stringify(body) : undefined;
-            const key = url + '|' + (bodyStr || '');
-            const recent = q.some(function (x) {
-                return x.__key === key && Date.now() - (x.ts || 0) < 5000;
-            });
-            if (!recent) {
-                q.push({
-                    ts: Date.now(), url: url, method: 'POST', body: bodyStr,
-                    label: label || 'таймер', __key: key
-                });
-                writeJSON(QUEUE_KEY, q);
+        function applyLocalTimerStart(type, startIso, tempId) {
+            const minUi = document.documentElement.classList.contains('min-ui');
+            if (type === 'sleep') closeCachedTimer('awake', startIso);
+            if (type === 'awake') closeCachedTimer('sleep', startIso);
+            const cache = readJSON(CACHE_KEY, {});
+            cache[tempId] = {
+                id: tempId, event_type: type, start_time: startIso,
+                end_time: null, details: null, _pending: true
+            };
+            writeJSON(CACHE_KEY, cache);
+            if (type === 'sleep') {
+                activeSleepId = tempId;
+                activeSleepStart = startIso;
+                const row = document.getElementById('row-sleep');
+                if (row) { row.classList.add('timer-active'); row.classList.remove('timer-editable'); row.onclick = null; }
+                startTimer('timer-sleep', startIso, 'sleep');
+                const st = document.getElementById('state-text');
+                if (st) st.innerText = minUi ? 'Разбудить' : 'Разбудить (Спит)';
+                const ic = document.getElementById('state-icon');
+                if (ic) ic.innerText = '👀';
+            } else if (type === 'awake') {
+                activeAwakeId = tempId;
+                activeAwakeStart = startIso;
+                const row = document.getElementById('row-awake');
+                if (row) { row.classList.add('timer-active'); row.classList.remove('timer-editable'); row.onclick = null; }
+                startTimer('timer-awake', startIso, 'awake');
+                const st = document.getElementById('state-text');
+                if (st) st.innerText = minUi ? 'Сон' : 'Уложить спать';
+                const ic = document.getElementById('state-icon');
+                if (ic) ic.innerText = '😴';
+            } else if (type === 'walk') {
+                activeWalkId = tempId;
+                activeWalkStart = startIso;
+                const row = document.getElementById('row-walk');
+                if (row) { row.classList.add('timer-active'); row.classList.remove('timer-editable'); row.onclick = null; }
+                startTimer('timer-walk', startIso, 'walk');
+                const wt = document.getElementById('walk-text');
+                if (wt) wt.innerText = minUi ? 'Закончить' : 'Закончить прогулку';
+                const wb = document.getElementById('walk-btn');
+                if (wb && !minUi) { wb.style.background = 'var(--noise)'; wb.style.color = '#111827'; }
             }
             renderStatus();
+            try { renderToday(cachedEvents()); } catch (e) {}
         }
 
-        async function postTimerRequest(url, body, label) {
-            const bodyStr = body ? JSON.stringify(body) : undefined;
+        function queueTimerStart(type, startIso) {
+            const tempId = 'tmp-' + newId();
+            applyLocalTimerStart(type, startIso, tempId);
+            const body = JSON.stringify({ event_type: type, start_time: startIso });
+            enqueue({
+                kind: 'timer-start',
+                tempId: tempId,
+                eventType: type,
+                url: `${API_URL}/events/start`,
+                method: 'POST',
+                body: body,
+                label: type === 'walk' ? 'прогулка' : (type === 'awake' ? 'пробуждение' : 'сон')
+            });
+        }
+
+        function queueTimerStop(eventId, endIso, label) {
+            enqueue({
+                kind: 'timer-stop',
+                eventId: eventId,
+                endTime: endIso,
+                url: `${API_URL}/events/${eventId}/stop`,
+                method: 'POST',
+                body: JSON.stringify({ end_time: endIso }),
+                label: label || 'таймер'
+            });
+        }
+
+        async function startTimerRequest(type, startIso) {
             if (!navigator.onLine) {
-                queueTimerRequest(url, body, label);
+                queueTimerStart(type, startIso);
                 return 'queued';
             }
             try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: apiHeaders(true),
-                    body: bodyStr
+                const res = await fetch(`${API_URL}/events/start`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ event_type: type, start_time: startIso })
                 });
                 if (res.ok) return 'ok';
                 if (res.status >= 500) {
-                    queueTimerRequest(url, body, label);
+                    queueTimerStart(type, startIso);
                     return 'queued';
                 }
                 return 'error';
             } catch (e) {
-                queueTimerRequest(url, body, label);
+                queueTimerStart(type, startIso);
                 return 'queued';
+            }
+        }
+
+        async function stopTimerRequest(eventId, endIso, label) {
+            if (!eventId) return 'error';
+            if (String(eventId).startsWith('tmp-') || !navigator.onLine) {
+                queueTimerStop(eventId, endIso, label);
+                return 'queued';
+            }
+            try {
+                const res = await fetch(`${API_URL}/events/${eventId}/stop`, {
+                    method: 'POST', headers: apiHeaders(true),
+                    body: JSON.stringify({ end_time: endIso })
+                });
+                if (res.ok) return 'ok';
+                if (res.status >= 500) {
+                    queueTimerStop(eventId, endIso, label);
+                    return 'queued';
+                }
+                return 'error';
+            } catch (e) {
+                queueTimerStop(eventId, endIso, label);
+                return 'queued';
+            }
+        }
+
+        function reconcileTempStart(tempId, realId) {
+            const cache = readJSON(CACHE_KEY, {});
+            const temp = cache[tempId];
+            if (temp) {
+                delete cache[tempId];
+                temp.id = realId;
+                temp._pending = false;
+                cache[realId] = temp;
+                writeJSON(CACHE_KEY, cache);
+            }
+            if (activeSleepId === tempId) {
+                activeSleepId = realId;
+                const row = document.getElementById('row-sleep');
+                if (row) row.onclick = () => openTimerModal('sleep', 'edit');
+            }
+            if (activeAwakeId === tempId) {
+                activeAwakeId = realId;
+                const row = document.getElementById('row-awake');
+                if (row) row.onclick = () => openTimerModal('awake', 'edit');
+            }
+            if (activeWalkId === tempId) {
+                activeWalkId = realId;
+                const row = document.getElementById('row-walk');
+                if (row) row.onclick = () => openTimerModal('walk', 'edit');
             }
         }
 
@@ -783,6 +888,13 @@
                 if (st) st.innerText = minUi ? 'Сон' : 'Уложить спать';
                 const ic = document.getElementById('state-icon');
                 if (ic) ic.innerText = '😴';
+            } else if (type === 'awake') {
+                activeAwakeId = null;
+                activeAwakeStart = null;
+                const row = document.getElementById('row-awake');
+                if (row) { row.classList.remove('timer-active', 'timer-editable'); row.onclick = null; }
+                const tv = document.getElementById('timer-awake');
+                if (tv) tv.textContent = '00:00:00';
             } else if (type === 'walk') {
                 activeWalkId = null;
                 activeWalkStart = null;
@@ -802,24 +914,64 @@
         }
 
         async function flushQueue() {
+            if (flushingQueue) return;
             const q = readJSON(QUEUE_KEY, []);
             if (!q.length) { renderStatus(); return; }
-            const left = [];
-            for (const item of q) {
-                try {
-                    const res = await fetch(item.url, {
-                        method: item.method || 'POST',
-                        headers: apiHeaders(true),
-                        body: item.body
-                    });
-                    if (!res.ok) left.push(item);
-                } catch (e) { left.push(item); }
-            }
-            writeJSON(QUEUE_KEY, left);
-            renderStatus();
-            if (left.length !== q.length) {
-                toast(`Отправлено из очереди: ${q.length - left.length}`);
-                loadEvents();
+            flushingQueue = true;
+            try {
+                const left = [];
+                let sent = 0;
+                for (const item of q) {
+                    try {
+                        if (item.kind === 'timer-start') {
+                            const res = await fetch(item.url, {
+                                method: 'POST', headers: apiHeaders(true), body: item.body
+                            });
+                            if (!res.ok) { left.push(item); continue; }
+                            const d = await res.json().catch(function () { return {}; });
+                            if (!d || !d.id) { left.push(item); continue; }
+                            const map = readJSON(TIMER_MAP_KEY, {});
+                            map[item.tempId] = d.id;
+                            writeJSON(TIMER_MAP_KEY, map);
+                            reconcileTempStart(item.tempId, d.id);
+                            sent++;
+                            continue;
+                        }
+                        if (item.kind === 'timer-stop') {
+                            const map = readJSON(TIMER_MAP_KEY, {});
+                            const eventId = map[item.eventId] || item.eventId;
+                            if (String(eventId).startsWith('tmp-')) { left.push(item); continue; }
+                            const res = await fetch(`${API_URL}/events/${eventId}/stop`, {
+                                method: 'POST', headers: apiHeaders(true), body: item.body
+                            });
+                            if (!res.ok) { left.push(item); continue; }
+                            const cache = readJSON(CACHE_KEY, {});
+                            if (cache[eventId]) {
+                                cache[eventId].end_time = item.endTime || new Date().toISOString();
+                                writeJSON(CACHE_KEY, cache);
+                            }
+                            delete map[item.eventId];
+                            writeJSON(TIMER_MAP_KEY, map);
+                            sent++;
+                            continue;
+                        }
+                        const res = await fetch(item.url, {
+                            method: item.method || 'POST',
+                            headers: apiHeaders(true),
+                            body: item.body
+                        });
+                        if (res.ok) sent++;
+                        else left.push(item);
+                    } catch (e) { left.push(item); }
+                }
+                writeJSON(QUEUE_KEY, left);
+                renderStatus();
+                if (sent) {
+                    toast(`Отправлено из очереди: ${sent}`);
+                    loadEvents();
+                }
+            } finally {
+                flushingQueue = false;
             }
         }
 
@@ -1946,31 +2098,22 @@
             if (type === 'awake') {
                 let queued = false;
                 if (activeSleepId) {
-                    const r1 = await postTimerRequest(
-                        `${API_URL}/events/${activeSleepId}/stop`,
-                        { end_time: iso }, 'пробуждение'
-                    );
+                    const r1 = await stopTimerRequest(activeSleepId, iso, 'пробуждение');
                     if (r1 === 'queued') { queued = true; closeCachedTimer('sleep', iso); }
                     else if (r1 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
                 }
-                const r2 = await postTimerRequest(
-                    `${API_URL}/events/start`,
-                    { event_type: 'awake', start_time: iso }, 'пробуждение'
-                );
+                const r2 = await startTimerRequest('awake', iso);
                 if (r2 === 'queued') queued = true;
                 if (r2 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
                 if (queued) {
-                    toast('Нет связи — пробуждение сохранено. Отправим, когда появится сеть.');
+                    toast('Нет связи — пробуждение сохранено, таймер идёт локально.');
                     renderStatus();
                     return;
                 }
             } else {
-                const r = await postTimerRequest(
-                    `${API_URL}/events/start`,
-                    { event_type: type, start_time: iso }, type === 'walk' ? 'прогулка' : 'сон'
-                );
+                const r = await startTimerRequest(type, iso);
                 if (r === 'queued') {
-                    toast('Нет связи — старт сохранён. Отправим, когда появится сеть.');
+                    toast('Нет связи — таймер идёт локально, синхронизируем позже.');
                     renderStatus();
                     return;
                 }
@@ -2070,10 +2213,7 @@
             if (type === 'awake') {
                 let queued = false;
                 if (activeSleepId) {
-                    const r1 = await postTimerRequest(
-                        `${API_URL}/events/${activeSleepId}/stop`,
-                        { end_time: iso }, 'пробуждение'
-                    );
+                    const r1 = await stopTimerRequest(activeSleepId, iso, 'пробуждение');
                     if (r1 === 'queued') {
                         queued = true;
                         closeCachedTimer('sleep', iso);
@@ -2082,14 +2222,11 @@
                         return;
                     }
                 }
-                const r2 = await postTimerRequest(
-                    `${API_URL}/events/start`,
-                    { event_type: 'awake', start_time: iso }, 'пробуждение'
-                );
+                const r2 = await startTimerRequest('awake', iso);
                 if (r2 === 'queued') queued = true;
                 if (r2 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
                 if (queued) {
-                    toast('Нет связи — пробуждение сохранено. Отправим, когда появится сеть.');
+                    toast('Нет связи — пробуждение сохранено, таймер идёт локально.');
                     renderStatus();
                 } else {
                     loadEvents();
@@ -2098,12 +2235,9 @@
             }
 
             // Старт сна или прогулки
-            const r = await postTimerRequest(
-                `${API_URL}/events/start`,
-                { event_type: type, start_time: iso }, type === 'walk' ? 'прогулка' : 'сон'
-            );
+            const r = await startTimerRequest(type, iso);
             if (r === 'queued') {
-                toast('Нет связи — старт сохранён. Отправим, когда появится сеть.');
+                toast('Нет связи — таймер идёт локально, синхронизируем позже.');
                 renderStatus();
             } else if (r === 'error') {
                 toast('Не удалось начать', true);
@@ -2116,10 +2250,7 @@
             if (activeWalkId) {
                 // Если гуляет — просто заканчиваем прогулку (остальное не трогаем)
                 const iso = new Date().toISOString();
-                const r = await postTimerRequest(
-                    `${API_URL}/events/${activeWalkId}/stop`,
-                    { end_time: iso }, 'прогулка'
-                );
+                const r = await stopTimerRequest(activeWalkId, iso, 'прогулка');
                 if (r === 'queued') {
                     closeCachedTimer('walk', iso);
                     toast('Нет связи — конец прогулки сохранён. Отправим, когда появится сеть.');
