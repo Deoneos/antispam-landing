@@ -970,7 +970,8 @@
 
         (function initDiagEntry() {
             try {
-                if (new URLSearchParams(location.search).get('diag') === '1') {
+                const params = new URLSearchParams(location.search);
+                if (params.get('diag') === '1' || location.hash === '#diag') {
                     setTimeout(openDiag, 900);
                 }
                 const title = document.getElementById('app-title');
@@ -980,8 +981,8 @@
                     title.addEventListener('click', function () {
                         taps += 1;
                         clearTimeout(timer);
-                        timer = setTimeout(function () { taps = 0; }, 1500);
-                        if (taps >= 7) {
+                        timer = setTimeout(function () { taps = 0; }, 3000);
+                        if (taps >= 5) {
                             taps = 0;
                             openDiag();
                         }
