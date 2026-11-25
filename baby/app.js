@@ -1832,11 +1832,15 @@
 
             document.getElementById('t-feeds').textContent = feeds;
             const minUiToday = document.documentElement.classList.contains('min-ui');
-            document.getElementById('t-ml').textContent = ml ? (minUiToday ? ml + ' мл' : '· ' + ml + ' мл') : '';
+            document.getElementById('t-ml').textContent = ml
+                ? (minUiToday ? ml + ' мл' : '· ' + ml + ' мл')
+                : (minUiToday ? 'кормления' : '');
             document.getElementById('t-sleep').textContent = fmt(sleepMs);
             document.getElementById('t-diapers').textContent = diapers;
             document.getElementById('t-walks').textContent = walks;
-            document.getElementById('t-walk-min').textContent = walks ? ('· ' + fmt(walkMs)) : '';
+            document.getElementById('t-walk-min').textContent = walks
+                ? (minUiToday ? fmt(walkMs) : '· ' + fmt(walkMs))
+                : (minUiToday ? 'прогулки' : '');
         }
 
 
@@ -1909,7 +1913,7 @@
                     startTimer('timer-sleep', new Date(activeSleep.start_time), 'sleep');
                     document.getElementById('awake-btn').style.background = 'var(--sleep)';
                     document.getElementById('state-text').innerText = minUi ? 'Разбудить' : 'Разбудить (Спит)';
-                    document.getElementById('state-icon').innerText = '🌙';
+                    document.getElementById('state-icon').innerText = '👀';
                 } else {
                     activeSleepId = null;
                     activeSleepStart = null;
@@ -1919,7 +1923,7 @@
                     document.getElementById('timer-sleep').textContent = '00:00:00';
                     document.getElementById('awake-btn').style.background = 'var(--awake)';
                     document.getElementById('state-text').innerText = minUi ? 'Сон' : 'Уложить спать';
-                    document.getElementById('state-icon').innerText = '👀';
+                    document.getElementById('state-icon').innerText = '😴';
                 }
 
                 if (activeAwake) {
