@@ -42,14 +42,15 @@
         // На baby.kustos.ru API проксируется тем же доменом, на GitHub Pages — на RU.
         const API_URL = (location.hostname === 'baby.kustos.ru') ? '/api/baby' : 'https://baby.kustos.ru/api/baby';
 
-        // Превью минималистичного профиля: ?min=1 включает, ?min=0 выключает.
+        // Минималистичный интерфейс включён по умолчанию.
+        // ?min=0 — вернуть старый вид, ?min=1 — снова включить.
         (function initMinUi() {
             try {
                 const params = new URLSearchParams(location.search);
                 const flag = params.get('min');
                 if (flag === '1') localStorage.setItem('lad_min_ui', '1');
-                if (flag === '0') localStorage.removeItem('lad_min_ui');
-                if (localStorage.getItem('lad_min_ui') === '1') {
+                if (flag === '0') localStorage.setItem('lad_min_ui', '0');
+                if (localStorage.getItem('lad_min_ui') !== '0') {
                     document.documentElement.classList.add('min-ui');
                 }
                 moveChildrenToSettings();
@@ -1895,6 +1896,7 @@
                 const activeSleep = events.find(e => e.event_type === 'sleep' && !e.end_time);
                 const activeAwake = events.find(e => e.event_type === 'awake' && !e.end_time);
                 activeWalkId = events.find(e => e.event_type === 'walk' && !e.end_time)?.id || null;
+                const minUi = document.documentElement.classList.contains('min-ui');
 
                 // Настройка таймеров
                 if (activeSleep) {
@@ -1904,7 +1906,7 @@
                     document.getElementById('row-sleep').onclick = () => openTimerModal('sleep', 'edit');
                     startTimer('timer-sleep', new Date(activeSleep.start_time), 'sleep');
                     document.getElementById('awake-btn').style.background = 'var(--sleep)';
-                    document.getElementById('state-text').innerText = 'Разбудить (Спит)';
+                    document.getElementById('state-text').innerText = minUi ? 'Разбудить' : 'Разбудить (Спит)';
                     document.getElementById('state-icon').innerText = '🌙';
                 } else {
                     activeSleepId = null;
@@ -1914,7 +1916,7 @@
                     if (timerIntervals.sleep) clearInterval(timerIntervals.sleep);
                     document.getElementById('timer-sleep').textContent = '00:00:00';
                     document.getElementById('awake-btn').style.background = 'var(--awake)';
-                    document.getElementById('state-text').innerText = 'Уложить спать';
+                    document.getElementById('state-text').innerText = minUi ? 'Сон' : 'Уложить спать';
                     document.getElementById('state-icon').innerText = '👀';
                 }
 
@@ -1941,9 +1943,14 @@
                     document.getElementById('row-walk').onclick = () => openTimerModal('walk', 'edit');
                     startTimer('timer-walk', new Date(walkStart), 'walk');
                     if (walkBtn) {
-                        walkBtn.style.background = 'var(--noise)';
-                        walkBtn.style.color = '#111827';
-                        document.getElementById('walk-text').innerText = 'Закончить прогулку';
+                        if (minUi) {
+                            walkBtn.style.background = '';
+                            walkBtn.style.color = '';
+                        } else {
+                            walkBtn.style.background = 'var(--noise)';
+                            walkBtn.style.color = '#111827';
+                        }
+                        document.getElementById('walk-text').innerText = minUi ? 'Закончить' : 'Закончить прогулку';
                     }
                 } else {
                     activeWalkStart = null;
@@ -1952,9 +1959,14 @@
                     if (timerIntervals.walk) clearInterval(timerIntervals.walk);
                     document.getElementById('timer-walk').textContent = '00:00:00';
                     if (walkBtn) {
-                        walkBtn.style.background = 'var(--card)';
-                        walkBtn.style.color = 'var(--text)';
-                        document.getElementById('walk-text').innerText = 'Погулять';
+                        if (minUi) {
+                            walkBtn.style.background = '';
+                            walkBtn.style.color = '';
+                        } else {
+                            walkBtn.style.background = 'var(--card)';
+                            walkBtn.style.color = 'var(--text)';
+                        }
+                        document.getElementById('walk-text').innerText = minUi ? 'Прогулка' : 'Погулять';
                     }
                 }
 

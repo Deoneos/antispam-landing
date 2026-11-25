@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=155">
+    <link rel="stylesheet" href="styles.css?v=156">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -53,6 +53,7 @@
 
         <!-- ТАЙМЕРЫ -->
         <div class="timer-box">
+            <div class="timer-cap">Сейчас</div>
             <div class="timer-row" id="row-sleep">
                 <div class="timer-label">😴 Спит</div>
                 <div class="timer-value" id="timer-sleep">00:00:00</div>
@@ -78,26 +79,26 @@
         </div>
 
         <div class="grid">
-            <button class="action-btn btn-feed" id="btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
-            
-            <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="toggleSleepAwake()">
-                <span class="icon" id="state-icon">👀</span> <span id="state-text">Уложить спать</span>
-            </button>
-            <button class="action-btn" id="walk-btn" onclick="toggleWalk()" style="grid-column: span 2; padding: 22px; font-size: 18px; font-weight: 700;">
-                <span class="icon" id="walk-icon">🚶‍♀️</span> <span id="walk-text">Погулять</span>
-            </button>
-
-            <button class="action-btn btn-voice" id="voice-btn" onclick="openVoiceModal()">
-                <span class="icon">🎤</span> Сказать голосом <span class="voice-pro" id="voice-pro">PRO</span>
-            </button>
-
-            <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
-            <button class="action-btn btn-diaper" id="btn-pee" onclick="quickDiaper('pee')"><span class="icon">💦</span> <span id="label-pee">Пописала</span></button>
-            
-            <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Помоги!</button>
-            <button class="action-btn" id="push-btn" onclick="subscribePush()" style="grid-column: span 2; background: var(--bg);">
-                <span class="icon">🔔</span> Включить уведомления
-            </button>        
+            <div class="min-actions-primary">
+                <button class="action-btn btn-feed" id="btn-feed" onclick="openFeedModal()"><span class="icon">🍼</span> Покормить</button>
+                <button class="action-btn btn-awake-toggle" id="awake-btn" onclick="toggleSleepAwake()">
+                    <span class="icon" id="state-icon">👀</span> <span id="state-text">Уложить спать</span>
+                </button>
+                <button class="action-btn" id="walk-btn" onclick="toggleWalk()">
+                    <span class="icon" id="walk-icon">🚶‍♀️</span> <span id="walk-text">Погулять</span>
+                </button>
+            </div>
+            <div class="min-actions-secondary">
+                <button class="action-btn btn-voice" id="voice-btn" onclick="openVoiceModal()">
+                    <span class="icon">🎤</span> Сказать голосом <span class="voice-pro" id="voice-pro">PRO</span>
+                </button>
+                <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
+                <button class="action-btn btn-diaper" id="btn-pee" onclick="quickDiaper('pee')"><span class="icon">💦</span> <span id="label-pee">Пописала</span></button>
+                <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Помоги!</button>
+                <button class="action-btn" id="push-btn" onclick="subscribePush()">
+                    <span class="icon">🔔</span> Включить уведомления
+                </button>
+            </div>
         </div>
 
         <div class="log-section">
@@ -929,7 +930,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=183" defer></script>
+    <script src="app.js?v=184" defer></script>
     <div class="modal-overlay" id="token-modal" onclick="closeTokenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">

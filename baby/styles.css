@@ -663,6 +663,78 @@ html { -webkit-text-size-adjust: 100%; }
 .min-ui #profile-me > .pbtn.danger { width: auto; height: auto; padding: 10px 14px;
     margin: 14px auto 0; background: none; border: 0; color: var(--muted);
     font-size: 13px; font-weight: 600; }
+
+/* Трекер: обычный вид и минимализм */
+.min-actions-primary, .min-actions-secondary { display: contents; }
+.timer-cap { display: none; }
+#walk-btn { grid-column: span 2; padding: 22px; font-size: 18px; font-weight: 700; }
+#push-btn { grid-column: span 2; background: var(--bg); }
+
+.min-ui .header { flex-direction: row; flex-wrap: wrap; align-items: center;
+    justify-content: flex-start; text-align: left; padding: 10px 16px 8px; gap: 8px; }
+.min-ui .header h1 { order: 1; margin: 0 auto 0 0; max-width: calc(100% - 100px);
+    font-size: 20px; line-height: 1.2; }
+.min-ui .bell-btn { position: static; transform: none; order: 2;
+    width: 36px; height: 36px; font-size: 16px; }
+.min-ui .profile-btn { position: static; transform: none; order: 3;
+    width: 36px; height: 36px; font-size: 16px; }
+.min-ui .age-hint { order: 4; width: 100%; margin: 2px 0 0; padding: 0;
+    border: 0; background: none; text-align: left; font-size: 11.5px; }
+.min-ui .last-feed-badge { display: none !important; }
+.min-ui .checklist-card { order: 6; flex-basis: 100%; margin: 4px 0 6px; }
+.min-ui #onboarding-hint { order: 7; flex-basis: 100%; }
+
+.min-ui .timer-box { margin: 8px 16px 10px; padding: 10px 12px; text-align: left;
+    border-radius: 18px; gap: 2px; box-shadow: none; }
+.min-ui .timer-cap { display: block; margin: 0 0 4px 2px; font-size: 10px;
+    font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.min-ui .timer-row { background: transparent; padding: 4px 2px; border-radius: 10px; order: 2; }
+.min-ui #row-awake { order: 1; }
+.min-ui .timer-row.timer-active { order: 0; }
+.min-ui .timer-label { font-size: 12px; }
+.min-ui .timer-value { font-size: 16px; }
+.min-ui .timer-row.timer-active { background: var(--bg); padding: 9px 10px;
+    border: 0; border-radius: 12px; }
+.min-ui .timer-row.timer-active .timer-label { color: var(--text); font-size: 13px; }
+.min-ui .timer-row.timer-active .timer-value { font-size: 23px; }
+
+.min-ui .grid { display: block; padding: 0; }
+.min-ui .min-actions-primary { display: grid; grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 8px; padding: 0 16px; }
+.min-ui .min-actions-secondary { display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; padding: 8px 16px 6px; }
+.min-ui .min-actions-primary .action-btn { grid-column: auto; height: 82px;
+    padding: 10px; border-radius: 18px; box-shadow: none; gap: 6px; font-size: 12px; }
+.min-ui .min-actions-primary .action-btn .icon { font-size: 22px; }
+.min-ui .min-actions-primary .btn-feed { background: #F29B93; color: #2b1b18; border: none; }
+.min-ui .min-actions-primary .btn-awake-toggle { background: var(--card) !important;
+    color: var(--text) !important; border: 1px solid var(--border) !important;
+    padding: 10px; font-size: 12px; }
+.min-ui .min-actions-primary #walk-btn { grid-column: auto; padding: 10px;
+    font-size: 12px; background: var(--card); color: var(--text);
+    border: 1px solid var(--border); }
+.min-ui .min-actions-secondary .action-btn { grid-column: auto; height: 44px;
+    padding: 8px; border-radius: 999px; flex-direction: row; gap: 6px;
+    font-size: 12px; box-shadow: none; }
+.min-ui .min-actions-secondary .action-btn .icon { font-size: 16px; }
+.min-ui .min-actions-secondary .btn-voice { background: var(--card);
+    border: 1px solid var(--border); padding: 8px; font-size: 12px; }
+.min-ui .min-actions-secondary .btn-voice .icon { font-size: 16px; }
+.min-ui .min-actions-secondary .voice-pro { position: static; margin-left: 2px;
+    padding: 2px 5px; font-size: 8px; }
+.min-ui .min-actions-secondary .btn-sos { background: var(--card); color: var(--text);
+    border: 1px solid var(--border); padding: 8px; font-size: 12px; }
+.min-ui .min-actions-secondary #push-btn { grid-column: span 2; background: var(--bg);
+    height: 40px; font-size: 12px; }
+
+.min-ui .today-card { margin: 8px 16px 0; padding: 10px 12px; }
+.min-ui .today-title { margin-bottom: 6px; font-size: 10px; }
+.min-ui .today-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.min-ui .today-item { display: block; font-size: 10px; }
+.min-ui .today-item .ti { display: none; }
+.min-ui .today-item b { display: block; font-size: 17px; }
+.min-ui .today-item .ts { display: block; margin-top: 2px; font-size: 9.5px; }
+.min-ui .log-section { padding: 10px 16px 20px; }
 .profile-row {
     display: flex; justify-content: space-between; padding: 12px 0;
     border-bottom: 1px solid var(--border); font-size: 14px; color: var(--muted);
