@@ -2890,6 +2890,11 @@
 
         async function ensurePremium() {
             if (familyPremium !== null) return familyPremium;
+            let cached = null;
+            try {
+                const saved = localStorage.getItem('lad_premium');
+                if (saved === '1' || saved === '0') cached = saved === '1';
+            } catch (e) {}
             try {
                 if (!ladToken() && !apiToken()) { familyPremium = false; return false; }
                 const res = await fetch(`${API_URL}/billing/status`, {
@@ -2897,8 +2902,9 @@
                 });
                 const d = await res.json().catch(function () { return {}; });
                 familyPremium = !!d.active;
+                try { localStorage.setItem('lad_premium', familyPremium ? '1' : '0'); } catch (e) {}
             } catch (e) {
-                familyPremium = false;
+                familyPremium = cached === true;
             }
             return familyPremium;
         }
@@ -5044,6 +5050,7 @@ async function sendFeedback() {
                 const st = document.getElementById('plan-status');
                 if (!name || !btn) return;
                 familyPremium = !!d.active;
+                try { localStorage.setItem('lad_premium', familyPremium ? '1' : '0'); } catch (e) {}
                 if (typeof updateVoicePremiumUi === 'function') updateVoicePremiumUi(familyPremium);
 
                 // Сначала то, что видит человек: надпись и дата.
