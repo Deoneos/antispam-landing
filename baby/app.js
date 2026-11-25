@@ -2409,8 +2409,10 @@
                 if (activeSleep) {
                     activeSleepId = activeSleep.id;
                     activeSleepStart = activeSleep.start_time;
-                    document.getElementById('row-sleep').classList.add('timer-active', 'timer-editable');
-                    document.getElementById('row-sleep').onclick = () => openTimerModal('sleep', 'edit');
+                    const sleepTemp = String(activeSleep.id).startsWith('tmp-');
+                    document.getElementById('row-sleep').classList.add('timer-active');
+                    if (!sleepTemp) document.getElementById('row-sleep').classList.add('timer-editable');
+                    document.getElementById('row-sleep').onclick = sleepTemp ? null : () => openTimerModal('sleep', 'edit');
                     startTimer('timer-sleep', new Date(activeSleep.start_time), 'sleep');
                     document.getElementById('awake-btn').style.background = 'var(--sleep)';
                     document.getElementById('state-text').innerText = minUi ? 'Разбудить' : 'Разбудить (Спит)';
@@ -2430,8 +2432,10 @@
                 if (activeAwake) {
                     activeAwakeId = activeAwake.id;
                     activeAwakeStart = activeAwake.start_time;
-                    document.getElementById('row-awake').classList.add('timer-active', 'timer-editable');
-                    document.getElementById('row-awake').onclick = () => openTimerModal('awake', 'edit');
+                    const awakeTemp = String(activeAwake.id).startsWith('tmp-');
+                    document.getElementById('row-awake').classList.add('timer-active');
+                    if (!awakeTemp) document.getElementById('row-awake').classList.add('timer-editable');
+                    document.getElementById('row-awake').onclick = awakeTemp ? null : () => openTimerModal('awake', 'edit');
                     startTimer('timer-awake', new Date(activeAwake.start_time), 'awake');
                 } else {
                     activeAwakeId = null;
@@ -2446,8 +2450,10 @@
                 if (activeWalkId) {
                     const walkStart = events.find(e => e.id === activeWalkId)?.start_time || null;
                     activeWalkStart = walkStart;
-                    document.getElementById('row-walk').classList.add('timer-active', 'timer-editable');
-                    document.getElementById('row-walk').onclick = () => openTimerModal('walk', 'edit');
+                    const walkTemp = String(activeWalkId).startsWith('tmp-');
+                    document.getElementById('row-walk').classList.add('timer-active');
+                    if (!walkTemp) document.getElementById('row-walk').classList.add('timer-editable');
+                    document.getElementById('row-walk').onclick = walkTemp ? null : () => openTimerModal('walk', 'edit');
                     startTimer('timer-walk', new Date(walkStart), 'walk');
                     if (walkBtn) {
                         if (minUi) {
