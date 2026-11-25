@@ -745,9 +745,17 @@ html { -webkit-text-size-adjust: 100%; }
 .min-ui .voice-label-min { display: inline; }
 .min-ui .min-actions-secondary .btn-sos { background: var(--card); color: var(--text);
     border: 1px solid var(--border); padding: 8px; font-size: 12px; }
-.min-ui .min-actions-secondary #push-btn { grid-column: span 2; background: var(--bg);
+.min-ui .min-actions-secondary #water-btn { order: 1; background: rgba(147,197,253,.08);
+    border-color: rgba(147,197,253,.35); }
+.min-ui .min-actions-secondary #btn-poop { order: 2; }
+.min-ui .min-actions-secondary #btn-pee { order: 3; }
+.min-ui .min-actions-secondary #voice-btn { order: 4; }
+.min-ui .min-actions-secondary .btn-sos { order: 5; grid-column: span 2; }
+.min-ui .min-actions-secondary #push-btn { order: 6; grid-column: span 2; background: var(--bg);
     height: 40px; font-size: 12px; }
 
+.today-water { font-size: 11.5px; color: var(--muted); margin: -2px 0 7px; }
+.today-water b { color: var(--text); font-weight: 800; }
 .min-ui .today-card { margin: 8px 16px 0; padding: 10px 12px; }
 .min-ui .today-title { margin-bottom: 6px; font-size: 10px; }
 .min-ui .today-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }

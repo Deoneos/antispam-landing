@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=189">
+    <link rel="stylesheet" href="styles.css?v=190">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -70,6 +70,7 @@
 
         <div class="today-card" id="today-card" style="display:none">
             <div class="today-title">Сегодня</div>
+            <div class="today-water" id="t-water" style="display:none"></div>
             <div class="today-grid">
                 <div class="today-item"><span class="ti">🍼</span><b id="t-feeds">0</b><span class="ts" id="t-ml"></span></div>
                 <div class="today-item"><span class="ti">🌙</span><b id="t-sleep">0</b><span class="ts">сон</span></div>
@@ -94,6 +95,7 @@
                 </button>
                 <button class="action-btn btn-diaper" id="btn-poop" onclick="quickDiaper('poop')"><span class="icon">💩</span> <span id="label-poop">Покакала</span></button>
                 <button class="action-btn btn-diaper" id="btn-pee" onclick="quickDiaper('pee')"><span class="icon">💦</span> <span id="label-pee">Пописала</span></button>
+                <button class="action-btn" id="water-btn" onclick="openWaterModal()"><span class="icon">💧</span> Вода</button>
                 <button class="action-btn btn-sos" onclick="sendSOS()"><span class="icon">🆘</span> Помоги!</button>
                 <button class="action-btn" id="push-btn" onclick="subscribePush()">
                     <span class="icon">🔔</span> Включить уведомления
@@ -106,6 +108,7 @@
                 <div class="chips" id="log-chips">
                     <button type="button" class="chip active" data-f="all">Все</button>
                     <button type="button" class="chip" data-f="feed" title="Кормления" aria-label="Кормления">🍼</button>
+                    <button type="button" class="chip" data-f="water" title="Вода" aria-label="Вода">🥤</button>
                     <button type="button" class="chip" data-f="sleep" title="Сон" aria-label="Сон">🌙</button>
                     <button type="button" class="chip" data-f="diaper" title="Подгузники" aria-label="Подгузники">💧</button>
                     <button type="button" class="chip" data-f="walk" title="Прогулки" aria-label="Прогулки">🚶</button>
@@ -844,12 +847,12 @@
     <div class="modal-overlay" id="feed-modal" onclick="closeFeedModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h2>Сколько съела?</h2>
+                <h2 id="feed-modal-title">Сколько съела?</h2>
                 <button class="btn-close" onclick="closeFeedModal()">✕</button>
             </div>
             <div class="slider-value"><span id="ml-value">120</span> <span>мл</span></div>
             <input type="range" id="ml-slider" min="10" max="240" step="10" value="120" oninput="document.getElementById('ml-value').innerText = this.value">
-            <p class="sleep-hint" style="margin-top:16px">Когда покормили?</p>
+            <p class="sleep-hint" id="feed-time-label" style="margin-top:16px">Когда покормили?</p>
             <div class="sleep-quick">
                 <button class="sleep-chip" onclick="feedShift(-15)">−15 мин</button>
                 <button class="sleep-chip" onclick="feedShift(-30)">−30 мин</button>
@@ -857,7 +860,7 @@
                 <button class="sleep-chip" onclick="feedShift(-120)">−2 часа</button>
             </div>
             <input type="datetime-local" id="feed-time" class="sleep-time-input">
-            <button class="btn-save-ml" onclick="saveFeedVolume()">Записать кормление</button>
+            <button class="btn-save-ml" id="feed-save-btn" onclick="saveFeedVolume()">Записать кормление</button>
         </div>
     </div>
 
@@ -937,7 +940,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=200" defer></script>
+    <script src="app.js?v=201" defer></script>
 
     <!-- СКРЫТАЯ ДИАГНОСТИКА -->
     <div class="modal-overlay" id="diag-modal" onclick="closeDiag(event)">

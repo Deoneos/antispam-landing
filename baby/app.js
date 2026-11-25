@@ -1225,11 +1225,32 @@
             toast('Файл выгружен');
         }
 
-        function openFeedModal(when) {
+        let feedModalKind = 'feed';
+
+        function openFeedModal(when, kind) {
+            feedModalKind = kind === 'water' ? 'water' : 'feed';
+            const isWater = feedModalKind === 'water';
             const inp = document.getElementById('feed-time');
             const base = (when instanceof Date && !isNaN(when.getTime())) ? when : new Date();
             if (inp) inp.value = toLocalInputValue(base);
+            const title = document.getElementById('feed-modal-title');
+            if (title) title.textContent = isWater ? 'Сколько воды?' : 'Сколько съела?';
+            const label = document.getElementById('feed-time-label');
+            if (label) label.textContent = isWater ? 'Когда выпила?' : 'Когда покормили?';
+            const save = document.getElementById('feed-save-btn');
+            if (save) save.textContent = isWater ? 'Записать воду' : 'Записать кормление';
+            const slider = document.getElementById('ml-slider');
+            if (slider) {
+                slider.max = isWater ? '300' : '240';
+                slider.value = isWater ? '100' : '120';
+            }
+            const value = document.getElementById('ml-value');
+            if (value) value.textContent = isWater ? '100' : '120';
             document.getElementById('feed-modal').style.display = 'flex';
+        }
+
+        function openWaterModal() {
+            openFeedModal(null, 'water');
         }
         function closeFeedModal(e) { if (!e || e.target.id === 'feed-modal') document.getElementById('feed-modal').style.display = 'none'; }
         function feedShift(minutes) {
@@ -1242,6 +1263,7 @@
         }
         async function saveFeedVolume() {
             const ml = document.getElementById('ml-slider').value;
+            const isWater = feedModalKind === 'water';
             const inp = document.getElementById('feed-time');
             let when = new Date();
             if (inp && inp.value) {
@@ -1251,23 +1273,24 @@
             if (when.getTime() > Date.now() + 60000) { toast('Время ещё не наступило', true); return; }
             closeFeedModal();
             if (navigator.vibrate) navigator.vibrate(50);
-            const body = JSON.stringify({ event_type: 'feed', details: ml + ' мл', start_time: when.toISOString(), client_uuid: newId() });
+            const type = isWater ? 'water' : 'feed';
+            const body = JSON.stringify({ event_type: type, details: ml + ' мл', start_time: when.toISOString(), client_uuid: newId() });
             try {
                 const res = await fetch(`${API_URL}/events/quick`, { method: 'POST', headers: apiHeaders(true), body: body });
                 if (handleAuthError(res) || !res.ok) throw new Error('HTTP ' + res.status);
-                toast(`Записано: ${ml} мл`);
+                toast(isWater ? `Записано: ${ml} мл воды` : `Записано: ${ml} мл`);
             } catch (e) {
-                enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `feed: ${ml} мл` });
-                toast("Нет связи — кормление в очереди", true);
+                enqueue({ url: `${API_URL}/events/quick`, method: 'POST', body: body, label: `${type}: ${ml} мл` });
+                toast(isWater ? "Нет связи — вода в очереди" : "Нет связи — кормление в очереди", true);
             } finally {
                 loadEvents();
             }
         }
 
-        function editFeedTime(id, startIso) {
+        function editFeedTime(id, startIso, kind) {
             editingFeedId = id;
             activeFeedStart = startIso;
-            openTimerModal('feed', 'edit');
+            openTimerModal(kind === 'water' ? 'water' : 'feed', 'edit');
         }
 
         // --- ГОЛОСОВОЙ ВВОД ---
@@ -2007,7 +2030,8 @@
             sleep: { title: 'Когда заснула?', hint: 'Если заснула раньше — поправь время, таймер пойдёт с него.', start: 'Уложить спать' },
             awake: { title: 'Когда проснулась?', hint: 'Поставь время, когда малышка проснулась — с него пойдёт бодрствование.', start: 'Разбудить' },
             walk:  { title: 'Когда пошла гулять?', hint: 'Если вышли раньше — поправь время, таймер пойдёт с него.', start: 'Погулять' },
-            feed:  { title: 'Когда покормили?', hint: 'Поправь время кормления — запись пересчитается.', start: 'Записать' }
+            feed:  { title: 'Когда покормили?', hint: 'Поправь время кормления — запись пересчитается.', start: 'Записать' },
+            water: { title: 'Когда выпила воду?', hint: 'Поправь время записи.', start: 'Записать' }
         };
 
         function toLocalInputValue(d) {
@@ -2087,7 +2111,7 @@
         function activeStartOf(type) {
             if (type === 'sleep') return activeSleepStart;
             if (type === 'awake') return activeAwakeStart;
-            if (type === 'feed') return activeFeedStart;
+            if (type === 'feed' || type === 'water') return activeFeedStart;
             return activeWalkStart;
         }
 
@@ -2186,13 +2210,13 @@
 
             // Правка начала уже идущего события
             if (timerModalMode === 'edit') {
-                if (type === 'feed') {
+                if (type === 'feed' || type === 'water') {
                     if (!editingFeedId) { toast('Нет записи', true); return; }
                     const res = await fetch(`${API_URL}/events/${editingFeedId}`, {
                         method: 'PATCH', headers: apiHeaders(true),
                         body: JSON.stringify({ start_time: iso, end_time: iso })
                     });
-                    if (res.ok) toast('Время кормления обновлено');
+                    if (res.ok) toast(type === 'water' ? 'Время воды обновлено' : 'Время кормления обновлено');
                     else toast('Не удалось изменить время', true);
                     loadEvents();
                     return;
@@ -2301,13 +2325,15 @@
                 return !isNaN(t) && t >= startOfDay;
             };
 
-            let feeds = 0, ml = 0, diapers = 0, walks = 0, walkMs = 0, sleepMs = 0;
+            let feeds = 0, ml = 0, waterMl = 0, diapers = 0, walks = 0, walkMs = 0, sleepMs = 0;
             list.forEach(function (e) {
                 if (!isToday(e.start_time)) return;
                 const start = new Date(e.start_time).getTime();
                 if (e.event_type === 'feed') {
                     feeds += 1;
                     ml += eventVolumeMl(e.details);
+                } else if (e.event_type === 'water') {
+                    waterMl += eventVolumeMl(e.details);
                 } else if (e.event_type === 'diaper') {
                     diapers += 1;
                 } else if (e.event_type === 'walk') {
@@ -2320,7 +2346,7 @@
                 }
             });
 
-            if (!feeds && !diapers && !walks && !sleepMs) { card.style.display = 'none'; return; }
+            if (!feeds && !waterMl && !diapers && !walks && !sleepMs) { card.style.display = 'none'; return; }
             card.style.display = '';
 
             function fmt(ms) {
@@ -2341,6 +2367,16 @@
             document.getElementById('t-walk-min').textContent = walks
                 ? (minUiToday ? fmt(walkMs) : '· ' + fmt(walkMs))
                 : (minUiToday ? 'прогулки' : '');
+            const waterEl = document.getElementById('t-water');
+            if (waterEl) {
+                if (waterMl) {
+                    waterEl.style.display = 'block';
+                    waterEl.innerHTML = '💧 Вода: <b>' + waterMl + ' мл</b>';
+                } else {
+                    waterEl.style.display = 'none';
+                    waterEl.textContent = '';
+                }
+            }
         }
 
 
@@ -2549,7 +2585,7 @@
                     const open = isToday || expandedDays.has(key);
 
                     // Сводка по дню: что и сколько записей
-                    const cnt = { feed: 0, sleep: 0, awake: 0, diaper: 0, walk: 0 };
+                    const cnt = { feed: 0, water: 0, sleep: 0, awake: 0, diaper: 0, walk: 0 };
                     grouped[key].forEach(e => {
                         if (Object.prototype.hasOwnProperty.call(cnt, e.event_type)) {
                             if ((e.event_type === 'sleep' || e.event_type === 'awake' || e.event_type === 'walk') && !e.end_time) return;
@@ -2558,6 +2594,7 @@
                     });
                     const metaParts = [];
                     if (cnt.feed) metaParts.push('🍼 ' + cnt.feed);
+                    if (cnt.water) metaParts.push('🥤 ' + cnt.water);
                     if (cnt.sleep) metaParts.push('🌙 ' + cnt.sleep);
                     if (cnt.awake) metaParts.push('👀 ' + cnt.awake);
                     if (cnt.diaper) metaParts.push('💧 ' + cnt.diaper);
@@ -2605,6 +2642,7 @@
                         timeStr = "";
                     }
                     else if (e.event_type === 'feed') { icon = "🍼"; name = g("Покушала", "Покушал"); sub = e.details || "Бутылочка"; }
+                    else if (e.event_type === 'water') { icon = "🥤"; name = g("Выпила воду", "Выпил воду"); sub = e.details || "Вода"; }
                     else if (e.event_type === 'diaper') {
                         const det = e.details || '';
                         // «Пописала» / «Пописал» — капля, всё остальное — какашка
@@ -2630,7 +2668,7 @@
                             </div>
                             <div class="log-right">
                                 ${rightSide}
-                                ${e.event_type === 'feed' ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}')">✎</button>` : (e.end_time ? `<button class="btn-delete" title="Изменить время" onclick="editEventTime(${e.id}, '${e.start_time}', '${e.end_time}', '${e.event_type}')">✎</button>` : '')}
+                                ${(e.event_type === 'feed' || e.event_type === 'water') ? `<button class="btn-delete" title="Изменить время" onclick="editFeedTime(${e.id}, '${e.start_time}', '${e.event_type}')">✎</button>` : (e.end_time ? `<button class="btn-delete" title="Изменить время" onclick="editEventTime(${e.id}, '${e.start_time}', '${e.end_time}', '${e.event_type}')">✎</button>` : '')}
                                 <button class="btn-delete" onclick="deleteEvent(${e.id})">✕</button>
                             </div>
                         </div>
