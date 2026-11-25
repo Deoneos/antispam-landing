@@ -2978,6 +2978,64 @@
         }
 
         // --- WEB PUSH ---
+        let pushActive = false;
+
+        function pushOnboardKey() {
+            const uid = (ladProfile && ladProfile.user && ladProfile.user.id) || 'anon';
+            return 'lad_push_onboard_' + uid;
+        }
+
+        function isIOSDevice() {
+            return /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+        }
+
+        function isStandaloneApp() {
+            return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                navigator.standalone === true;
+        }
+
+        function hidePushOnboard() {
+            const card = document.getElementById('push-onboard');
+            if (card) card.style.display = 'none';
+        }
+
+        function maybeShowPushOnboard() {
+            if (pushActive) return;
+            if (!ladToken() && !apiToken()) return;
+            try { if (localStorage.getItem(pushOnboardKey()) === '1') return; } catch (e) {}
+            const card = document.getElementById('push-onboard');
+            if (!card) return;
+            const installMode = isIOSDevice() && !isStandaloneApp();
+            const text = document.getElementById('push-onboard-text');
+            const action = document.getElementById('push-onboard-btn');
+            if (installMode) {
+                if (text) text.textContent = 'На iPhone уведомления работают только у приложения, добавленного на экран «Домой».';
+                if (action) action.textContent = 'Как установить';
+            } else {
+                if (text) text.textContent = 'Чтобы не забывать останавливать таймер и получать напоминания.';
+                if (action) action.textContent = 'Включить';
+            }
+            const pushBtn = document.getElementById('push-btn');
+            if (pushBtn) pushBtn.style.display = 'none';
+            const installBanner = document.getElementById('install-banner');
+            if (installBanner) installBanner.style.display = 'none';
+            card.style.display = 'flex';
+        }
+
+        function pushOnboardAction() {
+            if (isIOSDevice() && !isStandaloneApp()) {
+                location.href = 'install.html';
+                return;
+            }
+            subscribePush();
+        }
+
+        function dismissPushOnboard() {
+            try { localStorage.setItem(pushOnboardKey(), '1'); } catch (e) {}
+            hidePushOnboard();
+            const pushBtn = document.getElementById('push-btn');
+            if (pushBtn && !pushActive) pushBtn.style.display = '';
+        }
 
         // Проверяем подписку при запуске: если она уже есть — прячем кнопку
         // и тихо пересылаем её на сервер (после перезапуска приложения).
@@ -2985,11 +3043,20 @@
             const btn = document.getElementById('push-btn');
             if (!btn) return;
             try {
-                if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-                if (!('Notification' in window) || Notification.permission !== 'granted') return;
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    if (isIOSDevice()) setTimeout(maybeShowPushOnboard, 700);
+                    return;
+                }
+                if (!('Notification' in window) || Notification.permission !== 'granted') {
+                    setTimeout(maybeShowPushOnboard, 700);
+                    return;
+                }
                 const reg = await navigator.serviceWorker.ready;
                 const sub = await reg.pushManager.getSubscription();
-                if (!sub) return;
+                if (!sub) {
+                    setTimeout(maybeShowPushOnboard, 700);
+                    return;
+                }
                 try {
                     await fetch(`${API_URL}/subscribe`, {
                         method: 'POST',
@@ -2997,8 +3064,12 @@
                         body: JSON.stringify(sub)
                     });
                 } catch (e) {}
+                pushActive = true;
                 btn.style.display = 'none';
-            } catch (e) {}
+                hidePushOnboard();
+            } catch (e) {
+                setTimeout(maybeShowPushOnboard, 700);
+            }
         }
 
         async function subscribePush() {
@@ -3008,7 +3079,11 @@
             }
             try {
                 const permission = await Notification.requestPermission();
-                if (permission !== 'granted') { toast("Уведомления отклонены", true); return; }
+                if (permission !== 'granted') {
+                    toast("Уведомления отклонены", true);
+                    dismissPushOnboard();
+                    return;
+                }
 
                 const res = await fetch(`${API_URL}/vapid-public-key`, { headers: apiHeaders() });
                 const { publicKey } = await res.json();
@@ -3027,8 +3102,10 @@
                     body: JSON.stringify(subscription)
                 });
 
+                pushActive = true;
                 toast("✅ Уведомления включены!");
                 document.getElementById('push-btn').style.display = 'none';
+                hidePushOnboard();
             } catch (e) {
                 console.error(e);
                 toast("Ошибка включения уведомлений", true);
@@ -3066,6 +3143,10 @@
                     body: JSON.stringify(subscription)
                 });
                 if (!save.ok) throw new Error('Не удалось сохранить подписку');
+                pushActive = true;
+                hidePushOnboard();
+                const pushBtn = document.getElementById('push-btn');
+                if (pushBtn) pushBtn.style.display = 'none';
                 if (status) status.textContent = 'Уведомления переподключены ✅';
                 toast('Уведомления включены');
             } catch (e) {
@@ -5054,6 +5135,8 @@ async function sendFeedback() {
                 if (navigator.standalone === true) return;
                 if (localStorage.getItem(installSeenKey())) return;
                 if (document.getElementById('tour') && document.getElementById('tour').style.display === 'block') return;
+                const pushOnboard = document.getElementById('push-onboard');
+                if (pushOnboard && pushOnboard.style.display !== 'none') return;
             } catch (e) { return; }
             banner.style.display = 'flex';
         }

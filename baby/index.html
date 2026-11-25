@@ -14,7 +14,7 @@
     
     <link rel="stylesheet" href="fonts.css?v=2">
     
-    <link rel="stylesheet" href="styles.css?v=199">
+    <link rel="stylesheet" href="styles.css?v=200">
 </head>
 <body>
     <!-- Видимое сообщение о проблемах с доступом к данным -->
@@ -49,6 +49,16 @@
                 <div class="onboard-row">💩 покакал — кнопка «Покакал»</div>
                 <button class="link-btn" onclick="dismissOnboarding()">Понятно</button>
             </div>
+        </div>
+
+        <div class="push-onboard" id="push-onboard" style="display:none">
+            <div class="po-icon">🔔</div>
+            <div class="po-text">
+                <b>Включить напоминания?</b>
+                <span id="push-onboard-text">Чтобы не забывать останавливать таймер и получать напоминания.</span>
+            </div>
+            <button class="po-btn" id="push-onboard-btn" onclick="pushOnboardAction()">Включить</button>
+            <button class="po-close" onclick="dismissPushOnboard()" aria-label="Позже">✕</button>
         </div>
 
         <!-- ТАЙМЕРЫ -->
@@ -951,7 +961,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=205" defer></script>
+    <script src="app.js?v=206" defer></script>
 
     <!-- СКРЫТАЯ ДИАГНОСТИКА -->
     <div class="modal-overlay" id="diag-modal" onclick="closeDiag(event)">
