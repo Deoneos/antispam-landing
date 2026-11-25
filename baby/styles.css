@@ -766,9 +766,12 @@ html { -webkit-text-size-adjust: 100%; }
 .min-ui .log-section { padding: 10px 16px 20px; }
 
 /* Обратная связь */
-.feedback-profile-btn { margin-top: 14px; }
-.min-ui #profile-me > .feedback-profile-btn { margin-top: 14px;
+.share-profile-btn { margin-top: 14px; }
+.feedback-profile-btn { margin-top: 8px; }
+.min-ui #profile-me > .share-profile-btn,
+.min-ui #profile-me > .feedback-profile-btn { margin-top: 10px;
     background: var(--card); border: 1px solid var(--border); color: var(--text); }
+.min-ui #profile-me > .feedback-profile-btn { margin-top: 8px; }
 .feedback-image-preview { position: relative; margin: 8px 0 12px;
     border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
     background: var(--bg); }

@@ -359,6 +359,25 @@
             copyRefLink();
         }
 
+        async function shareApp() {
+            const link = (ladReferral && ladReferral.link) || (location.origin + '/baby/');
+            const text = 'Дневник малыша «Лад» — сон, кормления, подгузники и прогулки.';
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Лад', text: text, url: link });
+                    return;
+                } catch (e) {
+                    if (e && e.name === 'AbortError') return;
+                }
+            }
+            try {
+                await navigator.clipboard.writeText(link);
+                toast('Ссылка скопирована');
+            } catch (e) {
+                toast('Скопируйте ссылку: ' + link, true);
+            }
+        }
+
         async function testPush() {
             const status = document.getElementById('notify-status');
             if (status) { status.style.color = ''; status.textContent = 'Отправляю…'; }
