@@ -2456,15 +2456,21 @@
         function closeAppModal(e) { if (!e || e.target.id === 'app-modal') document.getElementById('app-modal').style.display = 'none'; }
         
         async function saveAppointment() {
-            const title = document.getElementById('appointment-title').value;
+            const title = (document.getElementById('appointment-title').value || '').trim();
             const dateTime = document.getElementById('app-date').value;
             const notes = document.getElementById('app-notes').value;
             if (!title || !dateTime) { toast("Заполните название и дату", true); return; }
-            await fetch(`${API_URL}/appointments`, {
+            const res = await fetch(`${API_URL}/appointments`, {
                 method: 'POST',
                 headers: apiHeaders(true),
                 body: JSON.stringify({ title: title, date_time: dateTime, notes: notes })
             });
+            if (handleAuthError(res)) return;
+            if (!res.ok) {
+                const d = await res.json().catch(function () { return {}; });
+                toast(d.detail || 'Не удалось сохранить запись', true);
+                return;
+            }
             closeAppModal();
             document.getElementById('appointment-title').value = '';
             document.getElementById('app-notes').value = '';
