@@ -443,15 +443,27 @@
 
         // ===== ПОДСКАЗКА ПО ВОЗРАСТУ =====
         const AGE_NORMS = [
-            { max: 1,  sleep: '14–17 ч', feeds: '8–12', ml: '60–90 мл' },
-            { max: 2,  sleep: '14–17 ч', feeds: '7–9',  ml: '90–120 мл' },
-            { max: 3,  sleep: '14–16 ч', feeds: '6–8',  ml: '120–150 мл' },
-            { max: 4,  sleep: '14–16 ч', feeds: '5–7',  ml: '150–180 мл' },
-            { max: 6,  sleep: '12–16 ч', feeds: '4–6',  ml: '180–210 мл' },
-            { max: 9,  sleep: '12–15 ч', feeds: '4–5',  ml: '180–220 мл' },
-            { max: 12, sleep: '12–15 ч', feeds: '3–4',  ml: '200–240 мл' },
-            { max: 24, sleep: '11–14 ч', feeds: '3',    ml: '220–250 мл' }
+            { max: 1,  sleep: '14–17 ч', feeds: '8–12', ml: '60–90 мл',   nap: 3.0 },
+            { max: 2,  sleep: '14–17 ч', feeds: '7–9',  ml: '90–120 мл',  nap: 3.0 },
+            { max: 3,  sleep: '14–16 ч', feeds: '6–8',  ml: '120–150 мл', nap: 3.0 },
+            { max: 4,  sleep: '14–16 ч', feeds: '5–7',  ml: '150–180 мл', nap: 2.5 },
+            { max: 6,  sleep: '12–16 ч', feeds: '4–6',  ml: '180–210 мл', nap: 2.5 },
+            { max: 9,  sleep: '12–15 ч', feeds: '4–5',  ml: '180–220 мл', nap: 2.5 },
+            { max: 12, sleep: '12–15 ч', feeds: '3–4',  ml: '200–240 мл', nap: 2.5 },
+            { max: 24, sleep: '11–14 ч', feeds: '3',    ml: '220–250 мл', nap: 3.0 }
         ];
+
+        function sleepNudgeLimitHours() {
+            try {
+                const child = (typeof childInfo === 'function') ? childInfo() : null;
+                if (!child || !child.birth_date) return 2.5;
+                const birth = new Date(child.birth_date + 'T12:00:00');
+                if (isNaN(birth.getTime())) return 2.5;
+                const months = (Date.now() - birth.getTime()) / (1000 * 60 * 60 * 24 * 30.4375);
+                const norm = AGE_NORMS.find(function (n) { return months < n.max; });
+                return (norm && norm.nap) || 3.0;
+            } catch (e) { return 2.5; }
+        }
 
         function renderAgeHint() {
             const el = document.getElementById('age-hint');
@@ -2415,7 +2427,8 @@
             const start = new Date(activeSleepStart).getTime();
             if (!isFinite(start)) { box.style.display = 'none'; return; }
             const elapsed = Date.now() - start;
-            if (elapsed < 2 * 3600 * 1000) { box.style.display = 'none'; return; }
+            const limitHours = sleepNudgeLimitHours();
+            if (elapsed < limitHours * 3600 * 1000) { box.style.display = 'none'; return; }
             try {
                 if (localStorage.getItem(sleepNudgeKey()) === '1') {
                     box.style.display = 'none';
