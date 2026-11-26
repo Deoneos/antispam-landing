@@ -137,6 +137,54 @@
                 }
             } catch (e) { /* приватный режим — работаем без токена */ }
         })();
+        const METRIKA_ID = 114700528;
+
+        function trackGoal(name, params) {
+            try {
+                if (window.ym) window.ym(METRIKA_ID, 'reachGoal', name, params || {});
+            } catch (e) {}
+        }
+
+        function trackFirstEventIfNeeded(hadEvents) {
+            if (hadEvents) {
+                try { localStorage.setItem('lad_first_event_sent', '1'); } catch (e) {}
+                return;
+            }
+            try {
+                if (localStorage.getItem('lad_first_event_sent') === '1') return;
+                localStorage.setItem('lad_first_event_sent', '1');
+            } catch (e) {}
+            trackGoal('first_event');
+        }
+
+        async function trackPaidGoalIfNeeded() {
+            let params;
+            try { params = new URLSearchParams(location.search); } catch (e) { return; }
+            if (params.get('paid') !== '1') return;
+            let active = false;
+            try {
+                const res = await fetch(`${API_URL}/billing/status`, { headers: apiHeaders() });
+                const d = await res.json().catch(function () { return {}; });
+                active = !!d.active;
+            } catch (e) {}
+            if (!active) {
+                let tries = 0;
+                try { tries = parseInt(sessionStorage.getItem('lad_paid_retry') || '0', 10) || 0; } catch (e) {}
+                if (tries < 3) {
+                    try { sessionStorage.setItem('lad_paid_retry', String(tries + 1)); } catch (e) {}
+                    setTimeout(trackPaidGoalIfNeeded, 4000);
+                }
+                return;
+            }
+            trackGoal('payment');
+            try { sessionStorage.removeItem('lad_paid_retry'); } catch (e) {}
+            try {
+                params.delete('paid');
+                const clean = location.pathname + (params.toString() ? '?' + params.toString() : '') + location.hash;
+                history.replaceState({}, '', clean);
+            } catch (e) {}
+        }
+
         let activeSleepId = null;
         let activeSleepStart = null;
         let activeAwakeId = null;
@@ -1294,6 +1342,7 @@
             inp.value = toLocalInputValue(base);
         }
         async function saveFeedVolume() {
+            const hadEvents = cachedEvents().length > 0;
             const ml = document.getElementById('ml-slider').value;
             const isWater = feedModalKind === 'water';
             const inp = document.getElementById('feed-time');
@@ -1316,6 +1365,7 @@
                 toast(isWater ? "Нет связи — вода в очереди" : "Нет связи — кормление в очереди", true);
             } finally {
                 loadEvents();
+                trackFirstEventIfNeeded(hadEvents);
             }
         }
 
@@ -2150,6 +2200,7 @@
         async function quickStart(type) {
             // Резервный путь: если модалка почему-то недоступна (старая оболочка,
             // кэш PWA на iOS) — стартуем таймер сразу, чтобы кнопка не «молчала».
+            const hadEvents = cachedEvents().length > 0;
             const iso = new Date().toISOString();
             if (type === 'awake') {
                 let queued = false;
@@ -2162,6 +2213,7 @@
                 if (r2 === 'queued') queued = true;
                 if (r2 === 'error') { toast('Не удалось сохранить пробуждение', true); return; }
                 if (queued) {
+                    trackFirstEventIfNeeded(hadEvents);
                     toast('Нет связи — пробуждение сохранено, таймер идёт локально.');
                     renderStatus();
                     return;
@@ -2169,12 +2221,14 @@
             } else {
                 const r = await startTimerRequest(type, iso);
                 if (r === 'queued') {
+                    trackFirstEventIfNeeded(hadEvents);
                     toast('Нет связи — таймер идёт локально, синхронизируем позже.');
                     renderStatus();
                     return;
                 }
                 if (r === 'error') { toast('Не удалось начать', true); return; }
             }
+            trackFirstEventIfNeeded(hadEvents);
             loadEvents();
         }
 
@@ -2239,6 +2293,7 @@
 
             const iso = when.toISOString();
             const type = timerModalType;
+            const hadEvents = cachedEvents().length > 0;
 
             // Правка начала уже идущего события
             if (timerModalMode === 'edit') {
@@ -2287,17 +2342,20 @@
                 } else {
                     loadEvents();
                 }
+                trackFirstEventIfNeeded(hadEvents);
                 return;
             }
 
             // Старт сна или прогулки
             const r = await startTimerRequest(type, iso);
             if (r === 'queued') {
+                trackFirstEventIfNeeded(hadEvents);
                 toast('Нет связи — таймер идёт локально, синхронизируем позже.');
                 renderStatus();
             } else if (r === 'error') {
                 toast('Не удалось начать', true);
             } else {
+                trackFirstEventIfNeeded(hadEvents);
                 loadEvents();
             }
         }
@@ -2782,6 +2840,7 @@
         }
 
         async function quickEvent(type, details, when) {
+            const hadEvents = cachedEvents().length > 0;
             if (navigator.vibrate) navigator.vibrate(50);
             const payload = { event_type: type, details: details, client_uuid: newId() };
             if (when instanceof Date && !isNaN(when.getTime())) payload.start_time = when.toISOString();
@@ -2794,6 +2853,7 @@
                 toast("Нет связи — запись в очереди", true);
             } finally {
                 loadEvents();
+                trackFirstEventIfNeeded(hadEvents);
             }
         }
 
@@ -3529,6 +3589,7 @@
                 const d = await res.json().catch(function () { return {}; });
                 if (!res.ok) throw new Error(d.detail || 'Не удалось зарегистрироваться');
                 localStorage.setItem(LAD_TOKEN_KEY, d.token);
+                trackGoal('registration');
                 if (d.personal_code) {
                     document.getElementById('gate-tabs').style.display = 'none';
                     document.getElementById('gate-login').style.display = 'none';
@@ -6062,6 +6123,11 @@ async function sendFeedback() {
             if (d.billing) familyPremium = !!d.billing.active;
             if (d.checklist) renderChecklist(d.checklist);
         }
+
+        window.addEventListener('appinstalled', function () {
+            trackGoal('pwa_install');
+        });
+        setTimeout(trackPaidGoalIfNeeded, 2500);
 
         // Загружаем профиль ребёнка при старте: нужен возраст и пол
         // для кривых ВОЗ и подсказки по возрасту.
